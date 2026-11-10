@@ -53,9 +53,9 @@ Cada épica (T01–T13) tiene sub-issues pequeñas. Ver [Issues](https://github.
 
 ## Flujo de Git
 
-- `main`: solo entregas estables. `develop`: integración vía Pull Request con revisión cruzada.
-- Una rama por sub-issue: `feature/T04-1-escena-player-y-movimiento`, `art/…`, `audio/…`, `docs/…`, `fix/…`, `chore/…`.
-- Commits semánticos ligados a la tarea: `feat(#T05.2): implementa la espada`.
+- `main` y `develop` se mantienen a la par (ambas estables). Cada tarea sale de `develop` y vuelve por Pull Request con revisión cruzada.
+- Rama por issue, creada y vinculada a ella: `tipo/numero-alcance-descripcion` (ej. `feat/35-player-dash-estamina`).
+- Commits: `<tipo>(<zona>)/<descripción>` (ej. `feat(player)/añade dash con shift`).
 - Binarios (`*.fbx *.glb *.gltf *.blend *.png *.wav *.ogg`) con Git LFS. `.godot/` ignorado.
 
 ## Créditos de assets (itch.io)

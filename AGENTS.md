@@ -39,13 +39,16 @@ Mantén los números de balance en `armagedon/data/` (Resources), no en el códi
 - Nada de lógica de balance hardcodeada.
 
 ## Git
-- Ramas: `main` (estable, solo entregas) ← `develop` (integración) ← ramas por tarea.
-- Rama por issue: `feature/T04-1-movimiento`, `art/…`, `audio/…`, `docs/…`, `fix/…`, `chore/…`.
-- PR siempre a `develop`, con revisión de al menos un compañero. Nunca push directo a `main`.
-- Commits: `tipo(#T04.1): descripción` (feat, fix, docs, chore, art, audio, refactor).
-- No subir `.godot/`, builds ni binarios fuera de `assets/`. Binarios por Git LFS.
-- Cada tarea del tablero es una issue `[Txx.y]`; referénciala en el PR (`Closes #N`).
+- Ramas: `main` (estable) y `develop` (integración) están **a la par** salvo mientras se prepara un PR; las ramas de tarea salen de `develop`.
+- **Nombre de rama:** `tipo/numero-alcance-descripcion`, donde `numero` es el número de la issue. Ej.: `feat/35-player-dash-estamina`, `docs/12-gdd-tabla-mejoras`.
+- Cada rama se **crea vinculada a su issue**: `gh issue develop <N> --name <rama> --base develop`. No crees ramas sin issue.
+- **Commits:** `<tipo>(<zona>)/<descripción>`. Ej.: `feat(player)/añade dash con shift`, `fix(weapons)/corrige recarga del rifle`.
+  - Tipos: `feat`, `fix`, `docs`, `chore`, `ci`, `test`, `refactor`, `perf`, `art`, `audio`.
+  - Zonas: `repo`, `gdd`, `art`, `player`, `weapons`, `arena`, `enemies`, `rounds`, `shop`, `audio`, `ui`, `score`, `qa`, `release`.
+- PR siempre a `develop`, con `Closes #N` y revisión de al menos un compañero. Nunca push directo a `main`.
+- No subir `.godot/`, builds ni binarios fuera de `armagedon/assets/`. Binarios por Git LFS.
 - Las issues usan las plantillas de `.github/ISSUE_TEMPLATE/` y los PR `.github/pull_request_template.md`.
+- **JAMÁS te agregues como colaborador, coautor ni asignado.** Prohibido `Co-Authored-By`, "Generated with…" o cualquier atribución a un agente en commits, PRs, issues o archivos. El trabajo es de Sadrach34, AdrianS-127 y Ddarielz.
 
 ## Comandos útiles
 ```

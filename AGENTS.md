@@ -19,16 +19,18 @@ Armageddon: roguelike shooter en primera persona por rondas, low-poly PSX. **God
 - El crítico es una tirada aleatoria y no afecta el Score.
 - Ronda 3:30; descanso 40 s; jefe cada 10 rondas; ronda 100 Lucifer; 101+ el Vacío.
 
-## Estructura del repo (proyecto Godot en la raíz)
+## Estructura del repo (proyecto Godot en `armagedon/`)
 ```
-project.godot
-docs/        GDD y documentación
-assets/      modelos, texturas, audio (Git LFS)
-scenes/      .tscn
-scripts/     .gd
-data/        recursos .tres (armas, mejoras, enemigos)
+armagedon/            proyecto Godot 4.7 (project.godot)
+  assets/             modelos, texturas, audio (Git LFS)
+  scenes/             .tscn
+  scripts/            .gd
+  data/               recursos .tres (armas, mejoras, enemigos)
+  test/               pruebas GUT (opcional)
+docs/                 GDD y documentación
+.github/              plantillas de issues/PR y workflows (Godot CI y Release)
 ```
-Mantén los números de balance en `data/` (Resources), no en el código.
+Mantén los números de balance en `armagedon/data/` (Resources), no en el código.
 
 ## Convenciones de código
 - Código e identificadores en **inglés**; docs, issues y commits en **español**.
@@ -43,13 +45,16 @@ Mantén los números de balance en `data/` (Resources), no en el código.
 - Commits: `tipo(#T04.1): descripción` (feat, fix, docs, chore, art, audio, refactor).
 - No subir `.godot/`, builds ni binarios fuera de `assets/`. Binarios por Git LFS.
 - Cada tarea del tablero es una issue `[Txx.y]`; referénciala en el PR (`Closes #N`).
+- Las issues usan las plantillas de `.github/ISSUE_TEMPLATE/` y los PR `.github/pull_request_template.md`.
 
 ## Comandos útiles
 ```
-godot --path . --headless --quit     # validar que el proyecto carga
-godot --path .                       # abrir el juego
+godot --headless --path armagedon --import --quit   # importar recursos
+godot --headless --path armagedon --quit            # validar que el proyecto carga
+godot --path armagedon                              # abrir el juego
+gdlint armagedon && gdformat --check armagedon      # lint (pip install gdtoolkit)
 ```
-(Requiere Godot 4.x instalado; la versión exacta está en la issue T01.)
+Godot **4.7**. El CI está en `.github/workflows/godot-ci.yml`.
 
 ## Cómo trabajar como agente
 - Cambios pequeños y enfocados en una sola issue. No refactorices lo que no se pidió.

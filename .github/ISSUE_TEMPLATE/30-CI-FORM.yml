@@ -2,8 +2,6 @@ name: Cambios en la Integración Continua (CI/CD)
 description: Crea una tarea para modificar, optimizar o agregar nuevas configuraciones relacionadas con la integración y entrega continua.
 title: "[CI]: "
 labels: [ci]
-assignees: 
-  - ""  # Asignación manual o automatizada
 
 body:
   - type: markdown
@@ -16,7 +14,7 @@ body:
     id: ci-summary
     attributes:
       label: 📌 Resumen del Cambio en CI/CD
-      placeholder: "Ej: Agregar caché para dependencias en GitHub Actions"
+      placeholder: "Ej: Exportar el juego para Windows y Linux en cada push a main"
       description: |
         Describe brevemente el cambio que se realizará en el sistema de integración o entrega continua.
 
@@ -36,7 +34,7 @@ body:
     id: affected-files
     attributes:
       label: 📝 Archivos Afectados
-      placeholder: "Ej: ci/deploy.yml, .github/workflows/test.yml"
+      placeholder: "Ej: .github/workflows/godot-export.yml, armagedon/export_presets.cfg"
       description: |
         Menciona los archivos de configuración o scripts modificados dentro de la carpeta `ci/` u otros relacionados con los pipelines.
     validations:
@@ -64,9 +62,9 @@ body:
       description: |
         Indica si el cambio afecta a entornos de ejecución (producción, staging, desarrollo).
       options:
-        - Solo afecta entornos de prueba/desarrollo
-        - Afecta staging
-        - Afecta producción
+        - Solo afecta ramas de desarrollo (develop / ramas de tarea)
+        - Afecta la rama main
+        - Afecta los builds y releases publicados
         - No aplica
     validations:
       required: true

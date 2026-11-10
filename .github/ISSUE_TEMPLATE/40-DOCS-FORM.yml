@@ -2,8 +2,6 @@ name: Cambio en Documentación
 description: Crea una tarea para cualquier cambio, mejora o corrección en la documentación del proyecto.
 title: "[Docs]: "
 labels: [docs]
-assignees: 
-  - ""  # Asignación manual o con GitHub Actions
 body:
   - type: markdown
     attributes:
@@ -64,7 +62,7 @@ body:
         ¿Qué tan importante es este cambio para la comprensión general del proyecto?
         Para más detalles sobre cómo medir el impacto de cambios en la documentación, consulta [Impacto en la Documentación](https://www.oreilly.com/library/view/technical-writing-for/9781449321011/ch04.html) (Haz clic derecho para abrir en una nueva pestaña).
       options:
-        - Bajo (el cambio no afecta significativamente a la mayoría de los usuarios)
+        - Bajo (el cambio no afecta significativamente a la mayoría del equipo o los jugadores)
         - Medio (el cambio es útil, pero no crítico para todos)
         - Alto (el cambio es crucial para la comprensión y uso adecuado del proyecto)
     validations:

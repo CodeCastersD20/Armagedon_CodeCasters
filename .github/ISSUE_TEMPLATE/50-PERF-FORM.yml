@@ -2,8 +2,6 @@ name: Mejora de Rendimiento
 description: Crea una tarea para identificar y aplicar optimizaciones que mejoren el rendimiento del sistema.
 title: "[Perf]: "
 labels: [performance]
-assignees: 
-  - ""  # Asignación manual o automatizada
 
 body:
   - type: markdown
@@ -16,7 +14,7 @@ body:
     id: perf-summary
     attributes:
       label: 📌 Resumen de la Mejora
-      placeholder: "Ej: Optimizar el tiempo de carga de la página de inicio"
+      placeholder: "Ej: Mantener 60 FPS con 30 enemigos en pantalla en la GTX 1650"
       description: |
         Proporciona un resumen claro y breve del objetivo principal de esta mejora de rendimiento.
 
@@ -26,7 +24,7 @@ body:
       label: 📜 Descripción Detallada
       description: |
         Describe qué parte del sistema será optimizada, cómo se detectó el problema (ej. profiling, métricas, auditorías) y qué técnicas o estrategias se utilizarán para mejorarlo.  
-        Para más detalles, revisa [Guía de Optimización de Rendimiento Web](https://web.dev/performance/) o [Mejoras de rendimiento en aplicaciones](https://developer.mozilla.org/es/docs/Web/Performance).
+        Para más detalles, revisa [Optimización en Godot](https://docs.godotengine.org/es/stable/tutorials/performance/index.html).
       placeholder: |
         Se identificó un cuello de botella en la renderización de la lista de productos mediante Chrome DevTools. Se implementará virtualización para mejorar la performance en dispositivos móviles.
     validations:
@@ -36,7 +34,7 @@ body:
     id: affected-files
     attributes:
       label: 📝 Archivos Afectados
-      placeholder: "Ej: perf/lazy-load.js, components/ProductList.jsx"
+      placeholder: "Ej: armagedon/scripts/enemy.gd, armagedon/scenes/enemy.tscn"
       description: |
         Lista los archivos específicos que se modificarán durante esta optimización.
     validations:
@@ -49,10 +47,10 @@ body:
       description: |
         ¿Qué parte del sistema se está optimizando?
       options:
-        - Backend (API, lógica del servidor, consultas)
-        - Frontend (renderizado, interacciones, carga)
-        - Base de datos
-        - Red (peticiones HTTP, headers, compresión)
+        - Lógica de juego (IA, física, scripts)
+        - Render (shaders, luces, draw calls, resolución interna)
+        - Carga de escenas y recursos (memoria, instanciado)
+        - Audio
         - Otro
     validations:
       required: true

@@ -1,0 +1,80 @@
+name: Godot CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "armagedon/**"
+      - ".github/workflows/godot-ci.yml"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "armagedon/**"
+      - ".github/workflows/godot-ci.yml"
+
+concurrency:
+  group: godot-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: "4.7.0"   # Debe coincidir con config/features de armagedon/project.godot
+  PROJECT_PATH: armagedon
+
+jobs:
+  lint:
+    name: Lint y formato (gdtoolkit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "gdtoolkit==4.*"
+      - name: gdlint
+        run: |
+          if find "$PROJECT_PATH" -name '*.gd' | grep -q .; then gdlint "$PROJECT_PATH"; else echo "Sin scripts .gd todavía"; fi
+      - name: gdformat --check
+        run: |
+          if find "$PROJECT_PATH" -name '*.gd' | grep -q .; then gdformat --check "$PROJECT_PATH"; else echo "Sin scripts .gd todavía"; fi
+
+  validate:
+    name: Importar y validar proyecto
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: chickensoft-games/setup-godot@v2
+        with:
+          version: ${{ env.GODOT_VERSION }}
+          use-dotnet: false
+          include-templates: false
+      - name: Importar recursos
+        run: godot --headless --path "$PROJECT_PATH" --import --quit
+      - name: Cargar el proyecto sin errores
+        run: |
+          godot --headless --path "$PROJECT_PATH" --quit 2>&1 | tee godot.log
+          if grep -E "SCRIPT ERROR|Parse Error|ERROR: Failed to load" godot.log; then
+            echo "::error::Errores de script o recursos en el proyecto"; exit 1
+          fi
+
+  test:
+    name: Pruebas (GUT, si existen)
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: chickensoft-games/setup-godot@v2
+        with:
+          version: ${{ env.GODOT_VERSION }}
+          use-dotnet: false
+      - name: Ejecutar GUT
+        run: |
+          if [ -d "$PROJECT_PATH/addons/gut" ] && [ -d "$PROJECT_PATH/test" ]; then
+            godot --headless --path "$PROJECT_PATH" --import --quit
+            godot --headless --path "$PROJECT_PATH" -s addons/gut/gut_cmdln.gd -gdir=res://test -gexit
+          else
+            echo "GUT o carpeta test/ no existen todavía; se omite."
+          fi

@@ -8,7 +8,7 @@ Gracias por tu contribución. Por favor, completa la siguiente información para
 
 Describe brevemente qué cambios introduces con este PR.
 
-> Ejemplo: Se corrige un bug en la validación del formulario de login y se agrega test para cubrir el caso con campos vacíos.
+> Ejemplo: Se implementa el dash con Shift y la estamina de 3 cargas del jugador.
 
 ---
 
@@ -20,6 +20,7 @@ Marca con una `x` lo que aplica:
 - [ ] ✨ Nueva funcionalidad (`feat`)
 - [ ] ♻️ Refactorización del código sin cambios funcionales (`refactor`)
 - [ ] 🧪 Agregado o mejora de pruebas (`test`)
+- [ ] 🎨 Arte, audio o assets (`art` / `audio`)
 - [ ] 🧱 Cambio en configuración CI/CD (`ci`)
 - [ ] 🚀 Mejora de rendimiento (`perf`)
 - [ ] 📚 Cambios en la documentación (`docs`)
@@ -32,9 +33,9 @@ Marca con una `x` lo que aplica:
 Enumera los archivos modificados o creados:
 
 > Ejemplo:  
-> - `src/components/LoginForm.jsx`  
-> - `test/loginForm.test.js`  
-> - `.github/workflows/test.yml`
+> - `armagedon/scripts/player.gd`  
+> - `armagedon/scenes/player.tscn`  
+> - `.github/workflows/godot-ci.yml`
 
 ---
 
@@ -43,10 +44,10 @@ Enumera los archivos modificados o creados:
 Incluye instrucciones claras para probar los cambios localmente.
 
 > Ejemplo:  
-> 1. Ejecutar `npm install`  
-> 2. Iniciar app con `npm run dev`  
-> 3. Ir a `/login` y probar credenciales inválidas  
-> 4. Revisar consola del navegador
+> 1. Abrir `armagedon/project.godot` con Godot 4.7  
+> 2. Ejecutar la escena principal (F5)  
+> 3. Pulsar Shift y comprobar que gasta una carga de estamina  
+> 4. Revisar la consola de Godot: sin errores ni warnings nuevos
 
 ---
 
@@ -56,9 +57,12 @@ Asegúrate de completar lo siguiente antes de enviar:
 
 - [ ] He probado mis cambios localmente
 - [ ] Esta PR sigue el formato de convención de commits (si aplica)
-- [ ] Se han actualizado o agregado pruebas
+- [ ] Se han actualizado o agregado pruebas (o se probó a mano en el juego)
+- [ ] El proyecto abre y corre sin errores en Godot
+- [ ] Los números de balance están en `data/`, no en el código
+- [ ] El PR apunta a `develop` y menciona la issue (`Closes #N`)
 - [ ] La documentación se actualizó si fue necesario
-- [ ] No hay errores en CI/CD
+- [ ] No hay errores en CI (Godot CI)
 
 ---
 

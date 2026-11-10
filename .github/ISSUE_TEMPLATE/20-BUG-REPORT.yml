@@ -1,9 +1,7 @@
 name: Reporte de Error
-description: Envía un reporte detallado sobre un error encontrado en la aplicación.
+description: Envía un reporte detallado sobre un error encontrado en el juego.
 title: "[Bug]: "
 labels: [bug]
-assignees: 
-  - ""  # Asignación manual o con GitHub Actions
 body:
   - type: markdown
     attributes:
@@ -15,7 +13,7 @@ body:
     id: bug-summary
     attributes:
       label: 📌 Resumen del Error
-      placeholder: "Ej: La aplicación se cierra al intentar abrir una imagen"
+      placeholder: "Ej: Los esqueletos atraviesan las paredes de la arena"
       description: |
         Proporciona un resumen breve del error que has encontrado.
 
@@ -28,9 +26,9 @@ body:
         Si no se puede reproducir, describe las condiciones bajo las cuales ocurre el error.  
         Más información en [Cómo redactar un buen informe de errores – GitHub Docs](https://docs.github.com/es/issues/tracking-your-work-with-issues/creating-issues/about-issues) (Haz clic derecho para abrir en una nueva pestaña).
       placeholder: |
-        1. Abrir la aplicación  
-        2. Intentar cargar una imagen desde la galería  
-        3. La aplicación se cierra inesperadamente
+        1. Iniciar una partida y llegar a la ronda 2  
+        2. Acercarse a la pared este de la arena  
+        3. Los esqueletos atraviesan la pared
     validations:
       required: true
 
@@ -39,10 +37,10 @@ body:
     attributes:
       label: 🧐 Comportamiento Esperado
       description: |
-        Explica cómo debería funcionar la aplicación si el error no estuviera presente.  
+        Explica cómo debería funcionar el juego si el error no estuviera presente.  
         Consulta más detalles sobre el comportamiento esperado en [Cómo escribir casos de prueba](https://www.guru99.com/test-case-template.html) (Haz clic derecho para abrir en una nueva pestaña).
       placeholder: |
-        La aplicación debería cargar la imagen correctamente sin cerrarse.
+        Los enemigos deberían rodear la pared siguiendo el NavMesh.
     validations:
       required: true
 
@@ -54,7 +52,7 @@ body:
         Describe lo que sucede cuando ocurre el error.  
         Es importante ser detallado para que podamos comprender el problema de manera precisa.
       placeholder: |
-        La aplicación se cierra de forma inesperada cuando intento cargar una imagen desde la galería.
+        Los esqueletos atraviesan la pared y llegan al jugador.
     validations:
       required: true
 
@@ -66,7 +64,7 @@ body:
         ¿Qué tan grave es este error?  
         Para más detalles sobre la clasificación de errores, consulta [Escala de Severidad de Errores](https://www.testingexcellence.com/severity-levels-in-software-testing/) (Haz clic derecho para abrir en una nueva pestaña).
       options:
-        - Crítico (el error impide el uso de la aplicación)
+        - Crítico (el error impide el uso del juego)
         - Alto (el error afecta una funcionalidad importante pero tiene soluciones alternativas)
         - Medio (el error afecta una funcionalidad menor sin afectar el flujo principal)
         - Bajo (el error no afecta significativamente la funcionalidad)
@@ -94,15 +92,16 @@ body:
       description: |
         Describe el entorno en el que ocurrió el error. Esto puede incluir:
         - Sistema operativo y versión
-        - Navegador y versión
-        - Dispositivo (si aplica)
-        - Conexión a internet
+        - Versión de Godot y rama/commit
+        - Hardware (CPU, GPU, RAM)
+        - Ronda o escena donde ocurre
         - Otros detalles importantes
         Consulta más sobre cómo describir el entorno en [Testing Environments – Testing Excellence](https://www.testingexcellence.com/testing-environment/) (Haz clic derecho para abrir en una nueva pestaña).
       placeholder: |
-        - Windows 10  
-        - Google Chrome versión 90  
-        - Conexión de red estable
+        - Arch Linux  
+        - Godot 4.7, rama develop  
+        - Ryzen 5 5500, RX 7600, 16 GB  
+        - Ronda 3
     validations:
       required: true
 
@@ -144,9 +143,9 @@ body:
     id: reporter-user
     attributes:
       label: 🧑‍💻 Usuario que Reportó el Error
-      placeholder: "Ej: juanperez"
+      placeholder: "Ej: Sadrach34"
       description: |
-        Proporciona el nombre de usuario o identificador de la persona que reporta el error. Si es el creador del reporte, puede dejar este campo vacío, ya que se auto-asignará automáticamente.
+        Proporciona tu usuario de GitHub de la persona que reporta el error. Si es el creador del reporte, puede dejar este campo vacío, ya que se auto-asignará automáticamente.
     validations:
       required: false
 

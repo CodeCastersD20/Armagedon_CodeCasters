@@ -2,8 +2,6 @@ name: Reestructuración del Código
 description: Crea una tarea para la reestructuración del código, mejora su legibilidad, optimización o refactorización sin cambiar su funcionalidad.
 title: "[Refactor]: "
 labels: [refactor]
-assignees: 
-  - ""  # Asignación manual o con GitHub Actions
 body:
   - type: markdown
     attributes:
@@ -64,8 +62,8 @@ body:
         Para más detalles sobre cómo evaluar el impacto, consulta [Impacto de la Refactorización en el Código](https://refactoring.guru/es/faq/impact-of-refactoring) (Haz clic derecho para abrir en una nueva pestaña).
       options:
         - Bajo (la refactorización no cambiará de forma significativa la arquitectura general)
-        - Medio (modifica partes importantes del sistema, pero no cambia la funcionalidad)
-        - Alto (impacta una parte clave del sistema, mejorando su rendimiento y mantenimiento)
+        - Medio (modifica partes importantes del juego, pero no cambia la funcionalidad)
+        - Alto (impacta una parte clave del juego, mejorando su rendimiento y mantenimiento)
     validations:
       required: true
 

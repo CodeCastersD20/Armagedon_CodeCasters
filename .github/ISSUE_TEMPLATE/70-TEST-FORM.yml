@@ -1,9 +1,7 @@
 name: Agregar o Actualizar Pruebas
-description: Crea una tarea para escribir nuevas pruebas o actualizar pruebas existentes en el directorio `test/`.
+description: Crea una tarea para escribir nuevas pruebas o actualizar pruebas existentes del proyecto (GUT en `armagedon/test/` o pruebas manuales de QA).
 title: "[Test]: "
 labels: [test]
-assignees: 
-  - ""  # Asignación manual o automatizada
 
 body:
   - type: markdown
@@ -16,7 +14,7 @@ body:
     id: test-summary
     attributes:
       label: 📌 Resumen de la Tarea de Pruebas
-      placeholder: "Ej: Agregar pruebas unitarias para el módulo de login"
+      placeholder: "Ej: Probar el cálculo de combo y score con GUT"
       description: |
         Proporciona un resumen breve del objetivo principal de esta tarea de pruebas.
 
@@ -36,7 +34,7 @@ body:
     id: affected-files
     attributes:
       label: 📝 Archivos de Prueba Afectados
-      placeholder: "Ej: test/login.test.js, test/userService.test.js"
+      placeholder: "Ej: armagedon/test/test_score_system.gd"
       description: |
         Lista los archivos de prueba nuevos o modificados. Esto ayuda a identificar rápidamente las áreas cubiertas por esta tarea.
     validations:
@@ -51,7 +49,7 @@ body:
       options:
         - Unitarias
         - Integración
-        - End-to-End (E2E)
+        - Pruebas manuales de QA / playtest
         - Mixtas
     validations:
       required: true

@@ -2,8 +2,6 @@ name: Solicitud de Funcionalidad
 description: Envía una propuesta para una nueva funcionalidad o mejora.
 title: "[feat]: "
 labels: [enhancement]
-assignees: 
-  - ${{ github.actor }}  # Asigna automáticamente al creador del formulario
 body:
   - type: markdown
     attributes:
@@ -15,7 +13,7 @@ body:
     id: feature-summary
     attributes:
       label: 📌 Resumen de la Funcionalidad
-      placeholder: "Ej: Añadir modo oscuro en la configuración de usuario"
+      placeholder: "Ej: Añadir dash con Shift y estamina de 3 cargas para Zahariel"
       description: |
         Describe brevemente la funcionalidad que estás solicitando.
 
@@ -27,7 +25,7 @@ body:
         ¿Qué problema estás tratando de resolver con esta funcionalidad?  
         Para más detalles, consulta el [enlace oficial sobre el estado del problema](https://www.interaction-design.org/literature/article/how-to-define-a-problem-statement) (Haz clic derecho para abrir en una nueva pestaña).
       placeholder: |
-        Ej: Los usuarios que trabajan de noche encuentran la interfaz muy brillante, causando molestias visuales.
+        Ej: Sin dash el jugador no puede esquivar a la horda y el combate se siente injusto.
     validations:
       required: true
 
@@ -39,9 +37,9 @@ body:
         Lista las condiciones que deben cumplirse para considerar la funcionalidad como completada.  
         Para más información, revisa [Acceptance Criteria – Atlassian](https://www.atlassian.com/agile/project-management/user-stories#Acceptance-criteria) (Haz clic derecho para abrir en una nueva pestaña).
       placeholder: |
-        - [ ] Hay un interruptor visible en la configuración
-        - [ ] Cambiar el interruptor activa el modo oscuro inmediatamente
-        - [ ] La preferencia se guarda y se mantiene entre sesiones
+        - [ ] Pulsar Shift lanza un dash en la dirección de movimiento
+        - [ ] Cada dash consume 1 de las 3 cargas de estamina
+        - [ ] Las cargas se recuperan y la barra del HUD se actualiza
     validations:
       required: true
 
@@ -53,8 +51,8 @@ body:
         Si la solicitud mejora o corrige un comportamiento, proporciona pasos detallados para reproducirlo.  
         Más detalles en [Cómo redactar un buen informe de errores – GitHub Docs](https://docs.github.com/es/issues/tracking-your-work-with-issues/creating-issues/about-issues) (Haz clic derecho para abrir en una nueva pestaña).
       placeholder: |
-        1. Ir a configuración  
-        2. Observar que no existe una opción para activar el modo oscuro
+        1. Abrir la escena principal y mover a Zahariel  
+        2. Pulsar Shift y observar que no ocurre nada
     validations:
       required: false
 
@@ -89,19 +87,19 @@ body:
         - 13 (muy compleja)
         - 21 (nivel épico)
         - ∞ (demasiado grande, necesita dividirse)
-        - ? (incierta)
+        - "? (incierta)"
     validations:
       required: true
 
   - type: textarea
     id: business-value
     attributes:
-      label: 💡 Valor para el Negocio / Impacto en el Usuario
+      label: 💡 Valor para el Juego / Impacto en el Jugador
       description: |
         Explica el valor que aporta esta funcionalidad.  
         Más detalles en [Business Value Definition – Scaled Agile Framework (SAFe)](https://www.scaledagileframework.com/wsjf/) (Haz clic derecho para abrir en una nueva pestaña).
       placeholder: |
-        Mejora la accesibilidad y reduce la fatiga visual en entornos con poca luz.
+        Mejora la sensación de control y la rejugabilidad del combate.
     validations:
       required: false
 

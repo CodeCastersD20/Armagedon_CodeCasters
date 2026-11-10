@@ -32,8 +32,6 @@ jobs:
             name: linux
     steps:
       - uses: actions/checkout@v4
-        with:
-          lfs: true
       - uses: chickensoft-games/setup-godot@v2
         with:
           version: ${{ env.GODOT_VERSION }}

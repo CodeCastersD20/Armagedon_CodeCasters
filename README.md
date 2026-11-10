@@ -11,7 +11,7 @@ El Infierno se desbordó y la Tierra quedó inhabitable. Eres el Arcángel **Zah
 
 - **Género:** roguelike + shooter en primera persona (melee y fuego), sin progreso entre partidas.
 - **Público:** +16.
-- **Motor:** Godot Engine 4 (3D), Blender para ajustar modelos, Git + Git LFS + GitHub Projects.
+- **Motor:** Godot Engine 4 (3D), Blender para ajustar modelos, Git + GitHub Projects.
 - **Estructura:** rondas de 3:30, descanso de 40 s con el Mercante, 9 círculos del Infierno y munición infinita.
 - **Enemigos:** Esqueletos Condenados, Demonios del Averno, The Wrapped; jefe cada 10 rondas, Lucifer en la ronda 100 y el Vacío (rondas infinitas) después.
 
@@ -55,8 +55,8 @@ Cada épica (T01–T13) tiene sub-issues pequeñas. Ver [Issues](https://github.
 
 - `main` y `develop` se mantienen a la par (ambas estables). Cada tarea sale de `develop` y vuelve por Pull Request con revisión cruzada.
 - Rama por issue, creada y vinculada a ella: `tipo/numero-alcance-descripcion` (ej. `feat/35-player-dash-estamina`).
-- Commits: `<tipo>(<zona>)/<descripción>` (ej. `feat(player)/añade dash con shift`).
-- Binarios (`*.fbx *.glb *.gltf *.blend *.png *.wav *.ogg`) con Git LFS. `.godot/` ignorado.
+- Commits: `<tipo>(<zona>): <descripción>` (ej. `feat(player): añade dash con shift`).
+- Los assets van directo en el repo (sin Git LFS). `.godot/` ignorado.
 
 ## Créditos de assets (itch.io)
 

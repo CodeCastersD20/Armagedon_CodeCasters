@@ -20,9 +20,9 @@ El Infierno se desbordó y la Tierra quedó inhabitable. Eres el Arcángel **Zah
 | Integrante | GitHub | Rol | Hardware |
 |---|---|---|---|
 | Sadrach Juan Diego García Flores | [@Sadrach34](https://github.com/Sadrach34) | Programación principal, jugador, shaders PSX, armas, rondas, builds | Ryzen 5 5500 / 16 GB / RX 7600 |
-| Adrián Eduardo Santos Rosales | [@AdrianS-127](https://github.com/AdrianS-127) | Arena, enemigos/IA, spawner, jefes | Ryzen 5 5500 / 16 GB / RX 7600 |
-| Erick Daniel Arvayo Avilés | [@Ddarielz](https://github.com/Ddarielz) | Tienda y poderes, HUD/menús, QA, estilo PSX | Core i5 10ª gen / 16 GB / GTX 1650 |
-| Alfion _(nombre completo pendiente)_ | [@Alfion72](https://github.com/Alfion72) | Audio, Score/combo, arte conceptual, ambientación, enemigos secundarios | _pendiente_ |
+| Adrián Eduardo Santos Rosales | [@AdrianS-127](https://github.com/AdrianS-127) | Enemigos/IA, spawner, jefes, drops | Ryzen 5 5500 / 16 GB / RX 7600 |
+| Erick Daniel Arvayo Avilés | [@Ddarielz](https://github.com/Ddarielz) | Arena, tienda y poderes, menús, QA | Core i5 10ª gen / 16 GB / GTX 1650 |
+| Jesús Adriana Martínez Trillas (Alfion) | [@Alfion72](https://github.com/Alfion72) | Audio, Score/combo, HUD, arte conceptual, armas secundarias | AMD Ryzen 5 serie 7000 / 8 GB / gráficos AMD integrados |
 
 ## Documentación
 
@@ -41,10 +41,10 @@ Cada épica (T01–T13) tiene sub-issues pequeñas. Ver [Issues](https://github.
 | T01 | Repositorio, ramas, agentes y proyecto Godot | Sadrach |
 | T02 | Documentación y pendientes del GDD | Adrián, Erick, Alfion |
 | T03 | Arte conceptual (splash, storyboard, bocetos) | Alfion |
-| T04 | Jugador FPS y shader PSX | Sadrach, Erick |
-| T05 | Sistema de armas | Sadrach, Erick, Alfion |
-| T06 | Arena | Adrián, Alfion |
-| T07 | Enemigos y drops | Adrián, Alfion |
+| T04 | Jugador FPS y shader PSX | Sadrach |
+| T05 | Sistema de armas | Sadrach, Alfion, Adrián |
+| T06 | Arena | Erick |
+| T07 | Enemigos y drops | Adrián |
 | T08 | Rondas, jefes y flujo de partida | Adrián, Sadrach |
 | T09 | Mercante, mejoras y poderes de Fe | Erick |
 | T10 | Audio | Alfion |

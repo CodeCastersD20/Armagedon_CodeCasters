@@ -347,7 +347,7 @@ El ejemplo del documento original (46,540 pts) ya no aplica y se recalculará.
 
 ## 17. Rendimiento y alcance
 
-- Meta: 60 FPS en las 3 PCs (la más modesta: Core i5 10ª gen + GTX 1650).
+- Meta: 60 FPS en las 4 PCs (la más modesta: AMD Ryzen 5 serie 7000 + gráficos AMD integrados + 8 GB de RAM).
 - Tope de 30 enemigos a la vez.
 - **Fuera de alcance de la beta:** multijugador, jefes secretos, eventos especiales, comportamientos distintos por enemigo, guardado entre partidas, círculos con nombre.
 

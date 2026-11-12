@@ -29,7 +29,7 @@ El Infierno se desbordó y la Tierra quedó inhabitable. Eres el Arcángel **Zah
 - **GDD (fuente de verdad):** [`docs/GDD.md`](docs/GDD.md)
 - Propuesta original (Documento Técnico + GDD Lean): [`docs/Portafolio_GDD_Armageddon.docx`](docs/Portafolio_GDD_Armageddon.docx)
 - Guía para agentes de IA: [`AGENTS.md`](AGENTS.md)
-- Tablero de tarjetas (GitHub Projects): [Armagedon kanban](https://github.com/orgs/CodeCastersD20/projects/3)
+- Tablero de tarjetas (GitHub Projects): _pendiente — enlace por agregar_
 - [Issues T01–T13](https://github.com/CodeCastersD20/Armagedon_CodeCasters/issues)
 
 ## Plan de trabajo

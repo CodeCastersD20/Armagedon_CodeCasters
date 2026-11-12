@@ -13,6 +13,7 @@ config_version=5
 config/name="Armagedon"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
+config/version="1.0.0"
 
 [display]
 

@@ -71,3 +71,16 @@ Godot **4.7**. El CI está en `.github/workflows/godot-ci.yml`.
 - No agregues dependencias ni addons sin avisar.
 - Si falta información del GDD, pregunta o deja un `TODO(GDD)`.
 - Respeta las licencias de assets (ver `docs/GDD.md` §13).
+
+## Errores conocidos y su solución
+**Regla:** cada vez que ocurra un error nuevo (de git, gh, Godot, CI o de proceso), añade una fila aquí con su causa y solución en el mismo PR o commit que lo corrige. Revisa esta lista antes de repetir una acción que ya falló.
+
+| Error | Causa | Solución |
+|---|---|---|
+| `gh issue edit --add-assignee` no asigna nada y no avisa | La persona no es colaboradora del repo o aún no aceptó la invitación | Invitar con `gh api -X PUT repos/{owner}/{repo}/collaborators/<user> -f permission=push`, esperar a que acepte y verificar con `gh issue view N --json assignees` |
+| `gh issue develop` reutiliza una rama vieja y `git checkout` falla o queda en un commit antiguo | La rama ya existía enlazada a la issue (creada en bloque), sin fetch local | `git fetch origin`, `git checkout <rama>` y `git merge --ff-only origin/develop` antes de trabajar |
+| El PR no aparece en Development de la issue y la issue no se cierra al mergear | `Closes #N` solo funciona cuando el PR va a la rama por defecto (`main`); aquí los PR van a `develop` | Confiar en el enlace de `gh issue develop`, y cerrar la issue a mano tras mergear (o al pasar `develop` a `main`) |
+| PR sin assignee, labels, milestone ni proyecto | Se creó con `gh pr create` sin esos campos | Usar siempre `gh pr edit N --add-assignee <user> --add-label ... --milestone ... --add-project "Armagedon kanban"` y mover la tarjeta (ver «Metadatos del PR») |
+| El agente añade `Co-Authored-By` o «Generated with…» | Las instrucciones del entorno del agente piden atribución | Prohibido aquí: omitirla siempre en commits, PRs e issues |
+| Comando `gh` en bucle sobre muchas issues supera el tiempo límite | Cada llamada a la API es lenta | Ejecutarlo en segundo plano o repartirlo en lotes pequeños y verificar el resultado después |
+| `git push` a `main` o `develop` directo | Se saltó el flujo de PR | Solo con autorización expresa del equipo mientras no haya protección de ramas; si no, abrir PR a `develop` |

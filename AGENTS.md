@@ -46,6 +46,13 @@ Mantén los números de balance en `armagedon/data/` (Resources), no en el códi
   - Tipos: `feat`, `fix`, `docs`, `chore`, `ci`, `test`, `refactor`, `perf`, `art`, `audio`.
   - Zonas: `repo`, `gdd`, `art`, `player`, `weapons`, `arena`, `enemies`, `rounds`, `shop`, `audio`, `ui`, `score`, `qa`, `release`.
 - PR siempre a `develop`, con `Closes #N` y revisión de al menos un compañero. Nunca push directo a `main`.
+- **Metadatos del PR (obligatorio al abrirlo):**
+  - **Assignees:** la persona del equipo que hace el trabajo (la responsable de la issue), nunca un agente.
+  - **Labels:** las mismas de la issue vinculada (tipo y zona).
+  - **Project:** el tablero `Armagedon kanban` (https://github.com/orgs/CodeCastersD20/projects/3).
+  - **Milestone:** el de la issue vinculada.
+  - **Development:** la issue vinculada, con `Closes #N` en la descripción.
+  - **Tablero:** mueve la tarjeta de la issue a medida que avanza (`Backlog`/`Ready` → `In progress` al empezar, `In review` al abrir el PR, `Done` al mergear).
 - No subir `.godot/`, builds ni binarios fuera de `armagedon/assets/`. Los assets se versionan directo en el repo (sin Git LFS); usa solo los archivos que el juego necesita.
 - Las issues usan las plantillas de `.github/ISSUE_TEMPLATE/` y los PR `.github/pull_request_template.md`.
 - **JAMÁS te agregues como colaborador, coautor ni asignado.** Prohibido `Co-Authored-By`, "Generated with…" o cualquier atribución a un agente en commits, PRs, issues o archivos. El trabajo es de Sadrach34, AdrianS-127, Ddarielz y Alfion72.

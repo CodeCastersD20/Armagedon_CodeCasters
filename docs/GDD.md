@@ -2,6 +2,8 @@
 
 Versión 0.2 (beta) · Motor: Godot 4 (3D, GDScript) · Equipo CodeCasters
 
+Tablero de tarjetas: [Armagedon kanban](https://github.com/orgs/CodeCastersD20/projects/3)
+
 > **Alcance:** desarrollo rápido, menos de un mes. Se hace lo mínimo que sea entretenido y cumpla los requisitos. Todos los números están sujetos a cambios tras pruebas.
 >
 > Convención: **[PENDIENTE]** = falta definir. **[FUTURO]** = fuera de la beta.

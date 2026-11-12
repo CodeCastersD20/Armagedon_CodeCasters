@@ -3,7 +3,7 @@
 Guía para agentes de IA (Claude Code, OpenCode, Codex, Cursor, etc.) y para el equipo. Este archivo es la fuente única; `CLAUDE.md` solo lo importa.
 
 ## Proyecto
-Armageddon: roguelike shooter en primera persona por rondas, low-poly PSX. **Godot 4, GDScript, 3D.** Desarrollo rápido (< 1 mes): hacer lo mínimo que sea entretenido. Equipo de 3: Sadrach (@Sadrach34), Adrián (@AdrianS-127), Erick (@Ddarielz).
+Armageddon: roguelike shooter en primera persona por rondas, low-poly PSX. **Godot 4, GDScript, 3D.** Desarrollo rápido (< 1 mes): hacer lo mínimo que sea entretenido. Equipo de 4: Sadrach (@Sadrach34), Adrián (@AdrianS-127), Erick (@Ddarielz), Alfion (@Alfion72).
 
 ## Fuente de verdad
 - Diseño: `docs/GDD.md`. **Léelo antes de implementar.** Si el código contradice el GDD, avisa; no inventes valores.
@@ -48,7 +48,7 @@ Mantén los números de balance en `armagedon/data/` (Resources), no en el códi
 - PR siempre a `develop`, con `Closes #N` y revisión de al menos un compañero. Nunca push directo a `main`.
 - No subir `.godot/`, builds ni binarios fuera de `armagedon/assets/`. Los assets se versionan directo en el repo (sin Git LFS); usa solo los archivos que el juego necesita.
 - Las issues usan las plantillas de `.github/ISSUE_TEMPLATE/` y los PR `.github/pull_request_template.md`.
-- **JAMÁS te agregues como colaborador, coautor ni asignado.** Prohibido `Co-Authored-By`, "Generated with…" o cualquier atribución a un agente en commits, PRs, issues o archivos. El trabajo es de Sadrach34, AdrianS-127 y Ddarielz.
+- **JAMÁS te agregues como colaborador, coautor ni asignado.** Prohibido `Co-Authored-By`, "Generated with…" o cualquier atribución a un agente en commits, PRs, issues o archivos. El trabajo es de Sadrach34, AdrianS-127, Ddarielz y Alfion72.
 
 ## Comandos útiles
 ```

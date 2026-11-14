@@ -4,7 +4,7 @@ extends Node
 
 var _player: Player
 
-@onready var _label: Label = $Label
+@onready var _label: Label = $Stamina
 
 
 func _ready() -> void:

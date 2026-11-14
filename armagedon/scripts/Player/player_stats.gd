@@ -39,3 +39,10 @@ extends Resource
 # Si el jugador cae por debajo de esta altura, vuelve al punto de inicio.
 # TODO(GDD): el GDD no define la caída al vacío; valor provisional.
 @export var fall_limit_y: float = -20.0
+
+# Escudo y mitigación (GDD §6.1).
+# TODO(GDD): Confirmar si la reducción del 60% aplica siempre al llevar espada+escudo o solo al cubrirse (#27).
+## Reducción pasiva de daño al llevar espada y escudo (0.60 = 60% menos de daño).
+@export_range(0.0, 1.0, 0.05) var sword_shield_passive_reduction: float = 0.60
+## Ángulo frontal de bloqueo efectivo con el escudo en grados (ej. 120° frontales).
+@export_range(30.0, 180.0, 5.0) var shield_block_angle_degrees: float = 120.0

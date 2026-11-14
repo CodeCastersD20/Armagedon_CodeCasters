@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://cgwbqawqxlxe2" path="res://scripts/WeaponBob/weapon_bob.gd" id="3_bob"]
 [ext_resource type="Resource" path="res://data/weapon_bob_stats.tres" id="4_bobstats"]
 [ext_resource type="Script" uid="uid://cujw4666a0c1f" path="res://scripts/Weapons/weapon_manager.gd" id="5_uiqp4"]
+[ext_resource type="Script" uid="uid://cdg5ic5wtjwkr" path="res://scripts/Weapons/shield.gd" id="5_shield"]
 [ext_resource type="Resource" uid="uid://bgk1r21ac0jqu" path="res://data/weapons/pistol.tres" id="6_pistol"]
 [ext_resource type="Resource" uid="uid://7txwl60gdnn2" path="res://data/weapons/sword.tres" id="7_sword"]
 
@@ -38,3 +39,6 @@ bob_stats = ExtResource("4_bobstats")
 script = ExtResource("5_uiqp4")
 fire_data = ExtResource("6_pistol")
 melee_data = ExtResource("7_sword")
+
+[node name="Shield" type="Node3D" parent="Head/Camera3D/WeaponHolder" unique_id=381920148]
+script = ExtResource("5_shield")

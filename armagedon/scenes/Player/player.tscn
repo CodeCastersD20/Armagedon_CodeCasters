@@ -40,5 +40,5 @@ script = ExtResource("5_uiqp4")
 fire_data = ExtResource("6_pistol")
 melee_data = ExtResource("7_sword")
 
-[node name="Shield" type="Node3D" parent="Head/Camera3D/WeaponHolder" unique_id=381920148]
+[node name="Shield" type="Node3D" parent="Head/Camera3D" unique_id=381920148]
 script = ExtResource("5_shield")

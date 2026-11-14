@@ -22,8 +22,13 @@ environment = SubResource("Environment_mbmvx")
 [node name="Player" parent="." unique_id=1210332556 instance=ExtResource("1_6rd1t")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0056672096, 0.009530306, 0.007673621)
 
-[node name="CSGBox3D" type="CSGBox3D" parent="." unique_id=671298003]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.10339737, -1.4835205, -0.1125412)
+[node name="Suelo" type="CSGBox3D" parent="." unique_id=671298003]
 use_collision = true
 collision_layer = 2
-size = Vector3(400, 0.001, 400)
+size = Vector3(20, 0.001, 20)
+
+[node name="pared" type="CSGBox3D" parent="." unique_id=112390329]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.37693357, 2.4946234, -4.1150413)
+use_collision = true
+collision_layer = 2
+size = Vector3(6.1, 5, 0.1)

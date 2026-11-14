@@ -366,11 +366,11 @@ El ejemplo del documento original (46,540 pts) ya no aplica y se recalculará.
 |---|---|
 | Modelos | Respetar 300–1,200 triángulos; sin mallas ocultas ni caras que nunca se ven. |
 | Texturas | 256–500 px, sin mipmaps innecesarios, filtro Nearest. Compartir un atlas por familia de enemigos. |
-| Materiales | Pocos y compartidos. Evitar crear un material nuevo por cada instancia de enemigo (cachear el de `PsxStyle` por textura). |
+| Materiales | Pocos y compartidos. `PsxStyle.apply()` cachea el `ShaderMaterial` por material original, textura y rejilla: 30 enemigos del mismo tipo comparten un solo material. |
 | Resolución | Renderizar a 640×480 o 320×240 (#38): es la mayor ganancia en una iGPU, porque reduce el costo por píxel. |
 | Iluminación | Una luz direccional y pocas luces dinámicas. Sombras desactivadas o solo en la luz principal; sin SSAO, SSR ni SDFGI. Revisar el `glow` de `WorldEnvironment`. |
 | Enemigos | Tope de 30 simultáneos. Esqueleto con pocos huesos; animaciones simples; no instanciar ni liberar en cada frame. |
-| Pooling | Reutilizar objetos de efectos frecuentes (trazos de disparo, marcas de impacto, números de daño) en vez de crearlos y liberarlos por golpe. |
+| Pooling | Reutilizar objetos de efectos frecuentes (trazos de disparo, marcas de impacto) en vez de crearlos y liberarlos por golpe. **[PENDIENTE]** `DamageNumber` (número flotante del muñeco de pruebas) crea un `Label3D` por golpe: hoy es solo herramienta de depuración; decidir si pasa al juego final (y con pooling) o se quita. |
 | Física e IA | Colisiones con formas simples (cápsula, caja); evitar `ConcavePolygonShape3D` salvo la arena estática. Recalcular rutas del NavMesh con intervalo, no cada frame. |
 | Escena | Props repetidos con `MultiMeshInstance3D`; `VisibleOnScreenNotifier`/visibility range para lo lejano; la arena es pequeña, así que el occlusion culling solo si hace falta. |
 | Proceso | Medir antes de optimizar (Profiler y Monitors). Probar en la PC más modesta antes de mergear cualquier cambio visual pesado. |
@@ -391,3 +391,5 @@ El ejemplo del documento original (46,540 pts) ya no aplica y se recalculará.
 10. Arena, boceto y storyboard.
 11. Menús (pausa, opciones, pantalla de escape).
 12. Confirmar licencias marcadas como "Verificar".
+13. `DamageNumber`: decidir si el número flotante de daño pasa al juego final (con pooling) o queda solo como depuración del muñeco.
+14. Verificar el shader PSX en Windows y en la PC con iGPU (§17.1).

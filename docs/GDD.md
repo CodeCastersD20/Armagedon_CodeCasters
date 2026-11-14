@@ -274,7 +274,7 @@ No hay cajas de munición porque la munición es infinita.
 ## 13. Dirección de arte
 
 - Low-poly PSX: modelos de 300–1,200 triángulos, texturas de 256–500 px.
-- Resolución interna 640×480 o 320×240, Nearest-Neighbor, vertex snapping, dithering.
+- Resolución interna 640×480 o 320×240, Nearest-Neighbor, vertex snapping, dithering. Detalles de compatibilidad y rendimiento en §17.1 y §17.2.
 - Paleta: rojos y negros del Infierno, dorado para Zahariel y lo divino, azul para el Mercante.
 
 | Uso | Autor / Pack | Licencia |
@@ -352,6 +352,28 @@ El ejemplo del documento original (46,540 pts) ya no aplica y se recalculará.
 - Meta: 60 FPS en las 4 PCs (la más modesta: AMD Ryzen 5 serie 7000 + gráficos AMD integrados + 8 GB de RAM).
 - Tope de 30 enemigos a la vez.
 - **Fuera de alcance de la beta:** multijugador, jefes secretos, eventos especiales, comportamientos distintos por enemigo, guardado entre partidas, círculos con nombre.
+
+### 17.1 Compatibilidad y costo del shader PSX
+
+- **Multiplataforma:** el shader (`assets/shaders/psx.gdshader`) es shader estándar de Godot 4 (`.gdshader`), sin código específico de plataforma. Godot lo compila para Vulkan (Linux), Direct3D 12 (Windows, ver `project.godot`) y Compatibility. No usa extensiones ni texturas especiales.
+- **Estado de la verificación:** probado solo en Linux (AMD RX 7600, Vulkan, Forward+). **[PENDIENTE]** probarlo en Windows y en la PC más modesta (iGPU) antes de cerrar #37.
+- **Costo:** el vertex snapping es una multiplicación de matriz, una división y un `floor` por vértice; con modelos de 300–1,200 triángulos es despreciable. El fragment shader (`lambert`, sin especular) es más barato que el material estándar. El costo real en una iGPU está en los píxeles (resolución, sombras, glow, luces), no en el shader.
+- **Cómo medirlo:** ejecutar `scenes/Test/psx_test.tscn` (F6) y anotar FPS y tiempo de frame (Debugger → Monitors) con y sin el shader en cada PC. Meta: 60 FPS (16.6 ms por frame).
+
+### 17.2 Optimización (modelos, enemigos y escena)
+
+| Área | Regla |
+|---|---|
+| Modelos | Respetar 300–1,200 triángulos; sin mallas ocultas ni caras que nunca se ven. |
+| Texturas | 256–500 px, sin mipmaps innecesarios, filtro Nearest. Compartir un atlas por familia de enemigos. |
+| Materiales | Pocos y compartidos. Evitar crear un material nuevo por cada instancia de enemigo (cachear el de `PsxStyle` por textura). |
+| Resolución | Renderizar a 640×480 o 320×240 (#38): es la mayor ganancia en una iGPU, porque reduce el costo por píxel. |
+| Iluminación | Una luz direccional y pocas luces dinámicas. Sombras desactivadas o solo en la luz principal; sin SSAO, SSR ni SDFGI. Revisar el `glow` de `WorldEnvironment`. |
+| Enemigos | Tope de 30 simultáneos. Esqueleto con pocos huesos; animaciones simples; no instanciar ni liberar en cada frame. |
+| Pooling | Reutilizar objetos de efectos frecuentes (trazos de disparo, marcas de impacto, números de daño) en vez de crearlos y liberarlos por golpe. |
+| Física e IA | Colisiones con formas simples (cápsula, caja); evitar `ConcavePolygonShape3D` salvo la arena estática. Recalcular rutas del NavMesh con intervalo, no cada frame. |
+| Escena | Props repetidos con `MultiMeshInstance3D`; `VisibleOnScreenNotifier`/visibility range para lo lejano; la arena es pequeña, así que el occlusion culling solo si hace falta. |
+| Proceso | Medir antes de optimizar (Profiler y Monitors). Probar en la PC más modesta antes de mergear cualquier cambio visual pesado. |
 
 ---
 

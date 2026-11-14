@@ -1,5 +1,3 @@
 [gd_scene format=3 uid="uid://d0d4vywxphcik"]
 
 [node name="Pistol" type="Node3D" unique_id=2130764313]
-
-[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=495163491]

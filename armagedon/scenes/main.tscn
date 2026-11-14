@@ -1,3 +1,7 @@
 [gd_scene format=3]
 
+[ext_resource type="PackedScene" path="res://scenes/PostProcess/PsxPostProcess.tscn" id="9_post"]
+
 [node name="Main" type="Node3D"]
+
+[node name="PsxPostProcess" parent="." instance=ExtResource("9_post")]

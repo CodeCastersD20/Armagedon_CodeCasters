@@ -11,7 +11,7 @@ El Infierno se desbordó y la Tierra quedó inhabitable. Eres el Arcángel **Zah
 
 - **Género:** roguelike + shooter en primera persona (melee y fuego), sin progreso entre partidas.
 - **Público:** +16.
-- **Motor:** Godot Engine 4 (3D), Blender para ajustar modelos, Git + GitHub Projects.
+- **Motor:** Godot Engine 4.7 (3D, versión fijada: 4.7.2 stable), Blender para ajustar modelos, Git + GitHub Projects.
 - **Estructura:** rondas de 3:30, descanso de 40 s con el Mercante, 9 círculos del Infierno y munición infinita.
 - **Enemigos:** Esqueletos Condenados, Demonios del Averno, The Wrapped; jefe cada 10 rondas, Lucifer en la ronda 100 y el Vacío (rondas infinitas) después.
 

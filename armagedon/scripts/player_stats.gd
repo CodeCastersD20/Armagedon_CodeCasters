@@ -5,7 +5,6 @@ extends Resource
 # TODO(GDD): velocidad, salto y sensibilidad no están definidos en el GDD (§4, §5).
 # Todos estos valores pueden ser inventados al inicio en el medio o QA del desarollo
 # seran cambiados para balancear y mejorar todo
-@export var vida: float = 100.0
 @export var stamina: float = 3.0
 @export var faith: float = 10.0
 @export var move_speed: float = 10.0 # velocidad al caminar
@@ -29,3 +28,14 @@ extends Resource
 @export var dash_duration: float = 0.15
 @export var dash_recharge_seconds: float = 3.0
 @export var dash_in_air: bool = false
+
+# Vida. TODO(GDD): los segundos de espera antes de regenerar son [PENDIENTE]
+# (propuesta del GDD: 5 s, ver #27).
+@export var max_health: float = 100.0
+@export var regen_delay_seconds: float = 5.0
+@export var regen_interval_seconds: float = 1.2
+@export var regen_amount: float = 1.0
+
+# Si el jugador cae por debajo de esta altura, vuelve al punto de inicio.
+# TODO(GDD): el GDD no define la caída al vacío; valor provisional.
+@export var fall_limit_y: float = -20.0

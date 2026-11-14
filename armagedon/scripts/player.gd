@@ -4,6 +4,10 @@ extends CharacterBody3D
 
 ## Cargas de dash actuales (fraccionarias mientras se recarga) y máximo. Para el HUD (#88).
 signal stamina_changed(current: float, maximum: float)
+## Vida actual y máxima. Para el HUD (#88).
+signal health_changed(current: float, maximum: float)
+## HP llegó a 0: no es muerte, es el escape (aro de luz). Lo escucha el RoundManager (#72).
+signal player_escaped
 
 @export var stats: PlayerStats
 
@@ -16,6 +20,14 @@ var _crouching: bool = false
 var _stand_height: float
 var _head_stand_y: float
 
+## Multiplicador del daño recibido (1.0 = normal). El escudo (#42) lo baja, p. ej. a 0.5.
+var damage_taken_multiplier: float = 1.0
+var _health: float
+var _time_since_damage: float = 0.0
+var _regen_timer: float = 0.0
+var _escaped: bool = false
+var _spawn_transform: Transform3D
+
 @onready var _head: Node3D = $Head
 @onready var _collision: CollisionShape3D = $Colison
 
@@ -24,12 +36,15 @@ func _ready() -> void:
 	if stats == null:
 		stats = PlayerStats.new()
 	add_to_group("player")
+	_spawn_transform = global_transform
 	_collision.shape = _collision.shape.duplicate()
 	_stand_height = (_collision.shape as CapsuleShape3D).height
 	_head_stand_y = _head.position.y
 	_charges = stats.stamina
 	stamina_changed.emit(_charges, stats.stamina)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_health = stats.max_health
+	health_changed.emit(_health, stats.max_health)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -46,6 +61,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	_recharge_dash(delta)
+	_regen_health(delta)
+	_respawn_if_fallen()
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 	elif Input.is_action_just_pressed("jump"):
@@ -123,3 +140,51 @@ func _recharge_dash(delta: float) -> void:
 		return
 	_charges = minf(_charges + delta / stats.dash_recharge_seconds, stats.stamina)
 	stamina_changed.emit(_charges, stats.stamina)
+
+func get_health() -> float:
+	return _health
+
+
+## Segundos hasta el próximo HP regenerado (0 si la vida está llena o ya escapó).
+func get_regen_seconds_left() -> float:
+	if _escaped or _health >= stats.max_health:
+		return 0.0
+	if _time_since_damage < stats.regen_delay_seconds:
+		return stats.regen_delay_seconds - _time_since_damage + stats.regen_interval_seconds
+	return stats.regen_interval_seconds - _regen_timer
+
+
+## Aplica daño (ya con el multiplicador). Al llegar a 0 emite player_escaped una sola vez.
+func take_damage(amount: float) -> void:
+	if _escaped or amount <= 0.0:
+		return
+	_health = maxf(_health - amount * damage_taken_multiplier, 0.0)
+	_time_since_damage = 0.0
+	_regen_timer = 0.0
+	health_changed.emit(_health, stats.max_health)
+	if _health <= 0.0:
+		_escaped = true
+		player_escaped.emit()
+
+
+func _regen_health(delta: float) -> void:
+	if _escaped or _health >= stats.max_health:
+		return
+	_time_since_damage += delta
+	if _time_since_damage < stats.regen_delay_seconds:
+		return
+	_regen_timer += delta
+	if _regen_timer >= stats.regen_interval_seconds:
+		_regen_timer -= stats.regen_interval_seconds
+		_health = minf(_health + stats.regen_amount, stats.max_health)
+		health_changed.emit(_health, stats.max_health)
+
+
+## Si caes fuera del mapa, vuelves al punto de inicio sin perder vida.
+func _respawn_if_fallen() -> void:
+	if global_position.y >= stats.fall_limit_y:
+		return
+	global_transform = _spawn_transform
+	velocity = Vector3.ZERO
+	_dash_time_left = 0.0
+	_head.rotation.x = 0.0

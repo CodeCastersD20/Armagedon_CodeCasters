@@ -19,3 +19,6 @@ script = ExtResource("3_fwf3k")
 [editable path="skeleton"]
 
 [node name="PsxPostProcess" parent="." instance=ExtResource("9_post")]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.866, 0.5, 0, -0.5, 0.866, 0, 3, 3)

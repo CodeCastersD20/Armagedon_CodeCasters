@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://c1xjkjem6cok7"]
+
+[ext_resource type="Script" uid="uid://ds7e8sfxq32ie" path="res://scenes/Test/arms_test.gd" id="1_test"]
+[ext_resource type="PackedScene" path="res://scenes/player/player_arms.tscn" id="2_arms"]
+
+[node name="ArmsTest" type="Node3D" unique_id=1785868129]
+script = ExtResource("1_test")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=876835556]
+current = true
+fov = 90.0
+
+[node name="PlayerArms" parent="Camera3D" unique_id=1241161399 instance=ExtResource("2_arms")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.26423, 0.27001363)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1902844083]
+transform = Transform3D(1, 0, 0, 0, 0.707, 0.707, 0, -0.707, 0.707, 0, 3, 3)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1044620977]

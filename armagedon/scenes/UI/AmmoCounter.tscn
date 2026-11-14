@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://bv0ek3fvwd5ca"]
+
+[ext_resource type="Script" uid="uid://bf47ce3rmk68s" path="res://scripts/Player/counters/ammo_counter.gd" id="1_x7i66"]
+
+[node name="AmmoCounter" type="Node" unique_id=1260784920]
+script = ExtResource("1_x7i66")
+
+[node name="Ammo" type="Label" parent="." unique_id=400544608]
+offset_left = 16.0
+offset_top = 112.0
+offset_right = 239.0
+offset_bottom = 157.0
+theme_override_font_sizes/font_size = 32
+text = "Municion: 0/0"

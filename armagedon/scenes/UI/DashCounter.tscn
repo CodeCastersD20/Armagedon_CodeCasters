@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://b3njp8d6dh7fp"]
 
-[ext_resource type="Script" uid="uid://wjnk5353jkoa" path="res://scripts/dash_counter.gd" id="1_u3qnr"]
+[ext_resource type="Script" uid="uid://wjnk5353jkoa" path="res://scripts/Player/counters/dash_counter.gd" id="1_u3qnr"]
 
 [node name="DashCounter" type="Node" unique_id=1260784920]
 script = ExtResource("1_u3qnr")

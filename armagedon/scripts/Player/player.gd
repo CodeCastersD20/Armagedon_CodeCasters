@@ -30,6 +30,7 @@ var _regen_timer: float = 0.0
 var _escaped: bool = false
 var _spawn_transform: Transform3D
 var _is_blocking: bool = false
+var _weapon_manager: WeaponManager
 
 @onready var _head: Node3D = $Head
 @onready var _collision: CollisionShape3D = $Colison
@@ -39,6 +40,8 @@ func _ready() -> void:
 	if stats == null:
 		stats = PlayerStats.new()
 	add_to_group("player")
+	# El WeaponManager se registra en su grupo en su propio _ready (hijo, corre antes que este).
+	_weapon_manager = get_tree().get_first_node_in_group("weapon_manager") as WeaponManager
 	_spawn_transform = global_transform
 	_collision.shape = _collision.shape.duplicate()
 	_stand_height = (_collision.shape as CapsuleShape3D).height
@@ -191,10 +194,9 @@ func take_damage(amount: float, damage_source_position: Vector3 = Vector3.INF) -
 
 ## Actualiza el estado de cobertura del escudo y el multiplicador pasivo (GDD §6.1).
 func _update_shield_block() -> void:
-	var weapon_manager: WeaponManager = get_node_or_null("Head/Camera3D/WeaponHolder/WeaponManager")
 	var has_sword_equipped: bool = false
-	if weapon_manager != null:
-		var current_w: Weapon = weapon_manager.get_current_weapon()
+	if _weapon_manager != null:
+		var current_w: Weapon = _weapon_manager.get_current_weapon()
 		has_sword_equipped = current_w != null and current_w.is_melee()
 
 	# Pasiva GDD §6.1: llevar espada + escudo reduce el daño un 60%

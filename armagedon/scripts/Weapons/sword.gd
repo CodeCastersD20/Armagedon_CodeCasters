@@ -8,9 +8,9 @@ extends Weapon
 
 signal hit_enemy(enemy: Object, hit_position: Vector3)
 
-@export var arc_angle_degrees: float = 90.0
-@export var arc_range: float = 2.5
-@export var ray_count: int = 9
+## Altura (sobre los pies) del punto al que se apunta en cada enemigo para la línea de visión.
+const TARGET_HEIGHT: float = 0.9
+const MAX_TARGETS: int = 32
 
 var _original_rotation: Vector3
 var _original_position: Vector3
@@ -26,25 +26,39 @@ func _ready() -> void:
 	_original_position = position
 
 
-## Punto de entrada del ataque: dispara cada módulo por separado sin mezclarse
+## Punto de entrada del ataque: dispara cada módulo por separado sin mezclarse.
+## El golpe conecta tras hit_delay_seconds para coincidir con el tajo de la animación.
 func _perform_attack() -> void:
 	_slash_alternate = not _slash_alternate
-	_perform_combat_hit()
 	_play_weapon_animation(_slash_alternate)
 	_show_whoosh_effect(_slash_alternate)
+	if data.hit_delay_seconds > 0.0:
+		await get_tree().create_timer(data.hit_delay_seconds).timeout
+		# Si se guardó el arma durante el tajo, el golpe se cancela.
+		if not is_inside_tree() or not visible:
+			return
+	_perform_combat_hit()
 
 
 # ==============================================================================
 # MÓDULO 1: COMBATE Y DAÑO (HIT TOTALMENTE INDEPENDIENTE)
+# Todo se calcula en espacio de mundo desde la cámara, sin usar la rotación del arma.
+# Sector frontal: cuerpos dentro de una esfera (alcance), dentro del ángulo del arco
+# (en el plano horizontal, así acierta a cualquier altura) y sin pared de por medio.
 # ==============================================================================
 func _perform_combat_hit() -> void:
 	var camera: Camera3D = get_viewport().get_camera_3d()
 	if camera == null:
 		return
 
-	var from: Vector3 = camera.global_position
-	var half_angle_rad: float = deg_to_rad(arc_angle_degrees * 0.5)
-	var step_angle: float = deg_to_rad(arc_angle_degrees) / float(maxi(ray_count - 1, 1))
+	var origin: Vector3 = camera.global_position
+	var forward: Vector3 = -camera.global_basis.z
+	forward.y = 0.0
+	if forward.length_squared() < 0.0001:
+		# Mirando casi recto arriba o abajo: se usa el frente del jugador.
+		forward = -camera.global_basis.y
+		forward.y = 0.0
+	forward = forward.normalized()
 
 	var exclude: Array[RID] = []
 	var player := get_tree().get_first_node_in_group("player") as CollisionObject3D
@@ -52,30 +66,47 @@ func _perform_combat_hit() -> void:
 		exclude.append(player.get_rid())
 
 	var space_state := get_world_3d().direct_space_state
+	var sphere := SphereShape3D.new()
+	sphere.radius = data.max_range
+	var shape_query := PhysicsShapeQueryParameters3D.new()
+	shape_query.shape = sphere
+	shape_query.transform = Transform3D(Basis.IDENTITY, origin)
+	shape_query.exclude = exclude
+	shape_query.collision_mask = 0xFFFFFFFF
+
+	var min_dot: float = cos(deg_to_rad(data.arc_angle_degrees * 0.5))
 	var hit_targets: Array[Object] = []
 
-	for i in range(ray_count):
-		var angle: float = -half_angle_rad + float(i) * step_angle
-		# Rayo proyectado en el plano horizontal de la vista del jugador
-		var dir: Vector3 = (-camera.global_basis.z).rotated(camera.global_basis.y, angle).normalized()
-		var to: Vector3 = from + dir * arc_range
-
-		var query := PhysicsRayQueryParameters3D.create(from, to, 0xFFFFFFFF, exclude)
-		var hit: Dictionary = space_state.intersect_ray(query)
-		if hit.is_empty():
-			continue
-
-		var collider: Object = hit["collider"]
-		# Dibujar la marca de impacto en cada punto del abanico que choque con una superficie
-		_spawn_impact(hit["position"], hit["normal"])
-
+	for result in space_state.intersect_shape(shape_query, MAX_TARGETS):
+		var collider := result["collider"] as Node3D
 		# El daño solo se aplica 1 vez por enemigo en este tajo
-		if collider != null and not hit_targets.has(collider):
-			hit_targets.append(collider)
-			if collider.has_method("take_damage"):
-				collider.call("take_damage", data.damage)
-			hit_enemy.emit(collider, hit["position"])
-			hit_target.emit(collider, hit["position"], hit["normal"])
+		if collider == null or hit_targets.has(collider) or not collider.has_method("take_damage"):
+			continue
+		var target_point: Vector3 = collider.global_position + Vector3.UP * TARGET_HEIGHT
+		var to_target: Vector3 = target_point - origin
+		var flat: Vector3 = Vector3(to_target.x, 0.0, to_target.z)
+		# Pegado al jugador siempre cuenta; si no, debe caer dentro del arco.
+		if flat.length() > 0.3 and forward.dot(flat.normalized()) < min_dot:
+			continue
+		if not _has_line_of_sight(space_state, origin, target_point, exclude, collider):
+			continue
+		hit_targets.append(collider)
+		collider.call("take_damage", data.damage)
+		var normal: Vector3 = -to_target.normalized()
+		_spawn_impact(target_point, normal)
+		hit_enemy.emit(collider, target_point)
+		hit_target.emit(collider, target_point, normal)
+
+
+## Ninguna pared debe estar entre el jugador y el enemigo.
+func _has_line_of_sight(
+	space_state: PhysicsDirectSpaceState3D, from: Vector3, to: Vector3, exclude: Array[RID], target: CollisionObject3D
+) -> bool:
+	var ignore: Array[RID] = exclude.duplicate()
+	if target != null:
+		ignore.append(target.get_rid())
+	var query := PhysicsRayQueryParameters3D.create(from, to, 0xFFFFFFFF, ignore)
+	return space_state.intersect_ray(query).is_empty()
 
 
 # ==============================================================================
@@ -122,7 +153,7 @@ func _show_whoosh_effect(alternate: bool) -> void:
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.albedo_color = Color(0.9, 0.95, 1.0, 0.85)
 
-	var half_angle: float = deg_to_rad(arc_angle_degrees * 0.5)
+	var half_angle: float = deg_to_rad(data.arc_angle_degrees * 0.5)
 	var steps: int = 16
 
 	im.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP, mat)
@@ -133,11 +164,11 @@ func _show_whoosh_effect(alternate: bool) -> void:
 
 		if alternate:
 			# Diagonal /
-			angle = half_angle - t * deg_to_rad(arc_angle_degrees)
+			angle = half_angle - t * deg_to_rad(data.arc_angle_degrees)
 			y = 0.18 - t * 0.42
 		else:
 			# Diagonal \
-			angle = -half_angle + t * deg_to_rad(arc_angle_degrees)
+			angle = -half_angle + t * deg_to_rad(data.arc_angle_degrees)
 			y = 0.18 - t * 0.42
 
 		var x: float = sin(angle)

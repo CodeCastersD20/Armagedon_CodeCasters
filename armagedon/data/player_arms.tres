@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="PlayerArmsSettings" format=3]
+
+[ext_resource type="Script" path="res://scripts/player_arms_settings.gd" id="1_set"]
+
+[resource]
+script = ExtResource("1_set")
+idle_anim = &"finger_gun_idle"
+walk_anim = &""
+fire_anim = &"finger_gun_fire"
+reload_anim = &"finger_gun_fix"
+blend_time = 0.1

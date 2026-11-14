@@ -7,8 +7,8 @@ extends Node3D
 const SIZE: Vector3 = Vector3(0.4, 0.55, 0.05)
 const COLOR: Color = Color(0.45, 0.27, 0.12)
 
-@export var rest_position: Vector3 = Vector3(-0.32, -0.26, -0.42)
-@export var rest_rotation_degrees: Vector3 = Vector3(-8.0, -15.0, 8.0)
+@export var rest_position: Vector3 = Vector3(-0.52, -0.26, -0.42)
+@export var rest_rotation_degrees: Vector3 = Vector3(-8.0, 15.0, -8.0)
 @export var block_position: Vector3 = Vector3(-0.10, -0.06, -0.35)
 @export var block_rotation_degrees: Vector3 = Vector3(4.0, -3.0, 2.0)
 @export var transition_speed: float = 14.0

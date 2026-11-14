@@ -11,17 +11,22 @@ signal hit_enemy(enemy: Object, hit_position: Vector3)
 ## Altura (sobre los pies) del punto al que se apunta en cada enemigo para la línea de visión.
 const TARGET_HEIGHT: float = 0.9
 const MAX_TARGETS: int = 32
+const SLASH_MARKS: int = 7
+const SLASH_REACH_X: float = 0.35
+const SLASH_RAISE_Y: float = 0.3
+const SLASH_DROP_Y: float = 0.25
 
 var _original_rotation: Vector3
 var _original_position: Vector3
 var _slash_tween: Tween
-var _slash_alternate: bool = false
+# Arranca en true: el primer ataque alterna a false y hace el tajo "\".
+var _slash_alternate: bool = true
 
 
 func _ready() -> void:
 	super._ready()
 	if _mesh_instance != null:
-		_mesh_instance.position.z = -0.45
+		_mesh_instance.position = Vector3(0.0, 0.4, -0.05)
 	_original_rotation = rotation
 	_original_position = position
 
@@ -66,6 +71,7 @@ func _perform_combat_hit() -> void:
 		exclude.append(player.get_rid())
 
 	var space_state := get_world_3d().direct_space_state
+	_mark_slash_line(space_state, camera, exclude)
 	var sphere := SphereShape3D.new()
 	sphere.radius = data.max_range
 	var shape_query := PhysicsShapeQueryParameters3D.new()
@@ -117,25 +123,20 @@ func _play_weapon_animation(alternate: bool) -> void:
 		_slash_tween.kill()
 
 	_slash_tween = create_tween()
+	# Tajo en diagonal frente a la cámara: "\" (arriba-izquierda a abajo-derecha) y
+	# "/" (arriba-derecha a abajo-izquierda) alternando. La punta pasa de atrás a adelante.
+	var start_side: float = 1.0 if alternate else -1.0
+	var start_pos: Vector3 = _original_position + Vector3(start_side * SLASH_REACH_X, SLASH_RAISE_Y, 0.0)
+	var end_pos: Vector3 = _original_position + Vector3(-start_side * SLASH_REACH_X, -SLASH_DROP_Y, 0.0)
+	var start_rot: Vector3 = _original_rotation + Vector3(deg_to_rad(10.0), 0.0, deg_to_rad(-start_side * 35.0))
+	var end_rot: Vector3 = _original_rotation + Vector3(deg_to_rad(-65.0), 0.0, deg_to_rad(start_side * 35.0))
 
-	if alternate:
-		# Swing 1: corte descendente diagonal /
-		_slash_tween.tween_property(self, "rotation:x", _original_rotation.x + deg_to_rad(30.0), 0.07)
-		_slash_tween.parallel().tween_property(self, "rotation:y", _original_rotation.y + deg_to_rad(35.0), 0.07)
-
-		_slash_tween.tween_property(self, "rotation:x", _original_rotation.x - deg_to_rad(55.0), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		_slash_tween.parallel().tween_property(self, "rotation:y", _original_rotation.y - deg_to_rad(65.0), 0.12)
-		_slash_tween.parallel().tween_property(self, "rotation:z", _original_rotation.z - deg_to_rad(30.0), 0.12)
-	else:
-		# Swing 2: corte descendente diagonal \
-		_slash_tween.tween_property(self, "rotation:x", _original_rotation.x + deg_to_rad(30.0), 0.07)
-		_slash_tween.parallel().tween_property(self, "rotation:y", _original_rotation.y - deg_to_rad(45.0), 0.07)
-
-		_slash_tween.tween_property(self, "rotation:x", _original_rotation.x - deg_to_rad(55.0), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		_slash_tween.parallel().tween_property(self, "rotation:y", _original_rotation.y + deg_to_rad(55.0), 0.12)
-		_slash_tween.parallel().tween_property(self, "rotation:z", _original_rotation.z + deg_to_rad(35.0), 0.12)
-
-	_slash_tween.tween_property(self, "rotation", _original_rotation, 0.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_slash_tween.tween_property(self, "position", start_pos, 0.07)
+	_slash_tween.parallel().tween_property(self, "rotation", start_rot, 0.07)
+	_slash_tween.tween_property(self, "position", end_pos, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_slash_tween.parallel().tween_property(self, "rotation", end_rot, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_slash_tween.tween_property(self, "position", _original_position, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_slash_tween.parallel().tween_property(self, "rotation", _original_rotation, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 
 # ==============================================================================
@@ -188,3 +189,19 @@ func _show_whoosh_effect(alternate: bool) -> void:
 	var tw := node.create_tween()
 	tw.tween_property(mat, "albedo_color:a", 0.0, 0.2)
 	tw.tween_callback(node.queue_free)
+
+
+## Marca con puntos rojos en línea la superficie que recorre el tajo (diagonal, como el whoosh).
+func _mark_slash_line(space_state: PhysicsDirectSpaceState3D, camera: Camera3D, exclude: Array[RID]) -> void:
+	var from: Vector3 = camera.global_position
+	var half_angle: float = deg_to_rad(data.arc_angle_degrees * 0.5)
+	for i in range(SLASH_MARKS):
+		var t: float = float(i) / float(SLASH_MARKS - 1)
+		var yaw: float = lerpf(half_angle, -half_angle, t) * (1.0 if _slash_alternate else -1.0)
+		var pitch: float = lerpf(0.18, -0.24, t)
+		var dir: Vector3 = (camera.global_basis * Vector3(sin(yaw), pitch, -cos(yaw))).normalized()
+		var query := PhysicsRayQueryParameters3D.create(from, from + dir * data.max_range, 0xFFFFFFFF, exclude)
+		var hit: Dictionary = space_state.intersect_ray(query)
+		if hit.is_empty() or (hit["collider"] as Object).has_method("take_damage"):
+			continue
+		_spawn_impact(hit["position"], hit["normal"])

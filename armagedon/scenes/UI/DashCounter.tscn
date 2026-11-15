@@ -5,7 +5,7 @@
 [node name="DashCounter" type="Node" unique_id=1260784920]
 script = ExtResource("1_u3qnr")
 
-[node name="Label" type="Label" parent="." unique_id=400544608]
+[node name="Stamina" type="Label" parent="." unique_id=400544608]
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 178.0

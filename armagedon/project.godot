@@ -17,7 +17,6 @@ config/icon="res://icon.svg"
 
 [display]
 
-# TODO(GDD): resolución interna 640x480 o 320x240 sin decidir (GDD §13)
 window/size/viewport_width=640
 window/size/viewport_height=480
 window/size/window_width_override=1280
@@ -68,5 +67,5 @@ jump={
 
 [rendering]
 
-rendering_device/driver.windows="d3d12"
 textures/canvas_textures/default_texture_filter=0
+rendering_device/driver.windows="d3d12"

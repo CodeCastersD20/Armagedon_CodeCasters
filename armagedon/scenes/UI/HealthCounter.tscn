@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bp1kekekmcmac"]
 
-[ext_resource type="Script" uid="uid://cyk4rv2yjpng6" path="res://scripts/health_counter.gd" id="1_t8352"]
+[ext_resource type="Script" uid="uid://cyk4rv2yjpng6" path="res://scripts/Player/counters/health_counter.gd" id="1_t8352"]
 
 [node name="VidaCounter" type="Node" unique_id=1260784920]
 script = ExtResource("1_t8352")

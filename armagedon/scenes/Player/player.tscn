@@ -1,16 +1,16 @@
 [gd_scene format=3 uid="uid://c7gojarrgqvgl"]
 
-[ext_resource type="Script" uid="uid://bkpranon87p1x" path="res://scripts/player.gd" id="1_1kbk7"]
+[ext_resource type="Script" uid="uid://bkpranon87p1x" path="res://scripts/Player/player.gd" id="1_1kbk7"]
 [ext_resource type="Resource" uid="uid://b52lr3pe5h3mm" path="res://data/player_stats.tres" id="2_gqjuk"]
-[ext_resource type="Script" uid="uid://cgwbqawqxlxe2" path="res://scripts/weapon_bob.gd" id="3_bob"]
+[ext_resource type="Script" uid="uid://cgwbqawqxlxe2" path="res://scripts/WeaponBob/weapon_bob.gd" id="3_bob"]
 [ext_resource type="Resource" path="res://data/weapon_bob_stats.tres" id="4_bobstats"]
+[ext_resource type="Script" uid="uid://cujw4666a0c1f" path="res://scripts/Weapons/weapon_manager.gd" id="5_uiqp4"]
+[ext_resource type="Resource" uid="uid://bgk1r21ac0jqu" path="res://data/weapons/pistol.tres" id="6_pistol"]
+[ext_resource type="Resource" uid="uid://7txwl60gdnn2" path="res://data/weapons/sword.tres" id="7_sword"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
 height = 1.8
-
-[sub_resource type="BoxMesh" id="BoxMesh_c4h5g"]
-size = Vector3(0.08, 0.1, 0.4)
 
 [node name="Player" type="CharacterBody3D" unique_id=1210332556]
 collision_mask = 2
@@ -34,5 +34,7 @@ script = ExtResource("3_bob")
 player = NodePath("../../..")
 bob_stats = ExtResource("4_bobstats")
 
-[node name="WeaponMesh" type="MeshInstance3D" parent="Head/Camera3D/WeaponHolder" unique_id=1631692073]
-mesh = SubResource("BoxMesh_c4h5g")
+[node name="WeaponManager" type="Node3D" parent="Head/Camera3D/WeaponHolder" unique_id=292174088]
+script = ExtResource("5_uiqp4")
+fire_data = ExtResource("6_pistol")
+melee_data = ExtResource("7_sword")

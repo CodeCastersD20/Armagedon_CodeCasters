@@ -1,6 +1,7 @@
 class_name Player
 extends CharacterBody3D
-## Zahariel en primera persona: movimiento WASD, mirar con mouse, salto, dash, correr (Ctrl) y agacharse (C).
+## Zahariel en primera persona: movimiento WASD, mirar con mouse, salto,
+## dash, correr (Ctrl) y agacharse (C).
 
 ## Cargas de dash actuales (fraccionarias mientras se recarga) y máximo. Para el HUD (#88).
 signal stamina_changed(current: float, maximum: float)
@@ -51,7 +52,9 @@ func _physics_process(delta: float) -> void:
 	elif Input.is_action_just_pressed("jump"):
 		velocity.y = stats.jump_velocity
 
-	var input_dir: Vector2 = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	var input_dir: Vector2 = Input.get_vector(
+		"move_left", "move_right", "move_forward", "move_back"
+	)
 	var direction: Vector3 = (transform.basis * Vector3(input_dir.x, 0.0, input_dir.y)).normalized()
 
 	_update_crouch(delta)

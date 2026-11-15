@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://b3njp8d6dh7fp"]
+
+[ext_resource type="Script" uid="uid://wjnk5353jkoa" path="res://scripts/dash_counter.gd" id="1_u3qnr"]
+
+[node name="DashCounter" type="Node" unique_id=1260784920]
+script = ExtResource("1_u3qnr")
+
+[node name="Label" type="Label" parent="." unique_id=400544608]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 178.0
+offset_bottom = 61.0
+theme_override_font_sizes/font_size = 32
+text = "Dash: 3 / 3"

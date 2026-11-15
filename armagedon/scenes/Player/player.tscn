@@ -31,8 +31,8 @@ fov = 90.0
 [node name="WeaponHolder" type="Node3D" parent="Head/Camera3D" unique_id=1630587073 node_paths=PackedStringArray("player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, -0.3, -0.5)
 script = ExtResource("3_bob")
-bob_stats = ExtResource("4_bobstats")
 player = NodePath("../../..")
+bob_stats = ExtResource("4_bobstats")
 
 [node name="WeaponMesh" type="MeshInstance3D" parent="Head/Camera3D/WeaponHolder" unique_id=1631692073]
 mesh = SubResource("BoxMesh_c4h5g")

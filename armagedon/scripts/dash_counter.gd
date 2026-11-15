@@ -16,6 +16,8 @@ func _ready() -> void:
 func _on_stamina_changed(current: float, maximum: float) -> void:
 	var text: String = "Dash: %d / %d" % [floori(current), int(maximum)]
 	if current < maximum:
-		var seconds_left: float = (floorf(current) + 1.0 - current) * _player.stats.dash_recharge_seconds
+		var seconds_left: float = (
+			(floorf(current) + 1.0 - current) * _player.stats.dash_recharge_seconds
+		)
 		text += "  (%.1f s)" % seconds_left
 	_label.text = text

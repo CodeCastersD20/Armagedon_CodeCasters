@@ -11,6 +11,8 @@ enum Kind { FIRE, MELEE }
 @export var magazine_size: int = 0
 @export var reload_seconds: float = 0.0
 ## Segundos entre ataques. 650 RPM = 60 / 650 ≈ 0.092 s.
+@export_range(0.0, 1.0) var crit_chance: float = 0.05
+@export var crit_multiplier: float = 2.0
 
 # TODO(GDD): la cadencia de pistola, escopeta y subfusil es [PENDIENTE] (§6.2).
 @export var attack_interval: float = 0.5

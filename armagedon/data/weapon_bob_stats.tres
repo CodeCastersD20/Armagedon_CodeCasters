@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="WeaponBobStats" format=3]
+
+[ext_resource type="Script" uid="uid://blw2g3vy2jusu" path="res://scripts/weapon_bob_stats.gd" id="1_bobstats"]
+
+[resource]
+script = ExtResource("1_bobstats")

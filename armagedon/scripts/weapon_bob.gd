@@ -21,8 +21,7 @@ func _ready() -> void:
 func _physics_process(_delta: float) -> void:
 	# Un rayo por el centro de la cámara y otro por el lado donde cuelga el arma.
 	_wall_push = maxf(
-		_push_from(Vector3.ZERO),
-		_push_from(Vector3(_rest_position.x, _rest_position.y, 0.0))
+		_push_from(Vector3.ZERO), _push_from(Vector3(_rest_position.x, _rest_position.y, 0.0))
 	)
 
 
@@ -51,5 +50,7 @@ func _process(delta: float) -> void:
 		weight = bob_stats.smoothing
 	var xy := Vector2(position.x, position.y).lerp(target, weight * delta)
 	# Al acercarse a una pared el arma retrocede al instante; al alejarse vuelve suave.
-	_applied_push = maxf(_wall_push, lerpf(_applied_push, _wall_push, bob_stats.return_speed * delta))
+	_applied_push = maxf(
+		_wall_push, lerpf(_applied_push, _wall_push, bob_stats.return_speed * delta)
+	)
 	position = Vector3(xy.x, xy.y, _rest_position.z + _applied_push)

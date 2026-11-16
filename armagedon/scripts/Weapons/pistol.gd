@@ -30,6 +30,10 @@ func _ready() -> void:
 	reload_started.connect(_on_reload_started)
 
 
+func _grip_model() -> Node3D:
+	return get_node_or_null("Pistol_01") as Node3D
+
+
 func _on_attacked() -> void:
 	var clip: StringName = _fire_clip
 	if clip != &"":

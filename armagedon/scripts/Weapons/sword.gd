@@ -84,7 +84,7 @@ func _pack_animation_on() -> bool:
 ## así la espada gira alrededor de la mano y no de su propio origen. Al terminar la animación
 ## se desvanece hacia la pose de reposo del modelo.
 func _apply_pack_pose(delta: float) -> void:
-	if _model == null or data == null:
+	if _model == null or data == null or _arms_active():
 		return
 	if not _pack_animation_on():
 		return
@@ -140,6 +140,10 @@ func _setup_pack_pose() -> void:
 	_pivot_rest_origin = (
 		idle_grip_point - Basis(_hand_rest_quat) * (CAMERA_FLIP * data.pack_grip_offset)
 	)
+
+
+func _grip_model() -> Node3D:
+	return _model
 
 
 ## Punto de entrada del ataque: dispara cada módulo por separado sin mezclarse.
@@ -269,6 +273,8 @@ func cancel_reload() -> void:
 func _play_weapon_animation(alternate: bool) -> void:
 	if _slash_tween != null and _slash_tween.is_valid():
 		_slash_tween.kill()
+	if _arms_active():
+		return  # el tajo lo anima PlayerArms (knife_hit_*)
 	if _pack_animation_on() and _pack_anim != null:
 		var clip: String = "slash_b" if alternate else "slash_a"
 		_pack_anim.play(clip, -1.0, data.pack_animation_speed)

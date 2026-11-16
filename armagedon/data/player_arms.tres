@@ -9,3 +9,6 @@ walk_anim = &""
 fire_anim = &"finger_gun_fire"
 reload_anim = &"finger_gun_fix"
 blend_time = 0.1
+melee_idle_anim = &"knife_idle"
+melee_hit_anims = Array[StringName]([&"knife_hit_01", &"knife_hit_02"])
+guard_anim = &"guard_idle"

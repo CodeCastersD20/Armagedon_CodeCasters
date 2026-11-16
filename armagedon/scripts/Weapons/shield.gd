@@ -23,6 +23,10 @@ const COLOR: Color = Color(0.45, 0.27, 0.12)
 ## Qué tan rápido (1/segundos) vuelve a su sitio al terminar o al bloquear.
 @export var attack_anim_fade_speed: float = 8.0
 
+@export_group("Agarre con los brazos (PlayerArms)")
+## Dónde queda el asa del escudo, en ejes de la mano izquierda.
+@export var arms_grip_position: Vector3 = Vector3.ZERO
+@export var arms_grip_rotation_degrees: Vector3 = Vector3.ZERO
 @export_group("Agarre en la mano izquierda")
 ## Giro del escudo sobre el eje del pulgar, en grados.
 @export_range(-180.0, 180.0, 5.0) var grip_roll_degrees: float = 0.0
@@ -36,6 +40,8 @@ const COLOR: Color = Color(0.45, 0.27, 0.12)
 @export var model_grip_center: Vector3 = Vector3(-0.031, 0.378, 0.0)
 
 var _hands: ViewmodelHands
+var _arms: PlayerArms
+var _model_scale: Vector3 = Vector3.ONE
 var _player: Player
 var _bob_time: float = 0.0
 var _weapon: Weapon
@@ -53,7 +59,9 @@ func _ready() -> void:
 	rotation_degrees = rest_rotation_degrees
 	if _model != null:
 		_model_base = _model.transform
+		_model_scale = Vector3.ONE * model_scale
 		PsxStyle.apply(_model)
+	_bind_arms.call_deferred()
 	# El WeaponManager es hijo del jugador y se registra antes que este nodo.
 	var manager := get_tree().get_first_node_in_group("weapon_manager") as WeaponManager
 	if manager != null:
@@ -63,8 +71,23 @@ func _ready() -> void:
 		visible = false
 
 
+## Se engancha a los brazos: la mano izquierda sostiene el escudo por el asa.
+func _bind_arms() -> void:
+	_arms = get_tree().get_first_node_in_group("player_arms") as PlayerArms
+	if _arms != null:
+		_arms.hands_updated.connect(_on_hands_updated)
+
+
+func _on_hands_updated() -> void:
+	if _model == null or not visible or not is_inside_tree():
+		return
+	_arms.place_in_hand(
+		_model, false, arms_grip_position, arms_grip_rotation_degrees, model_grip_center, _model_scale
+	)
+
+
 func _process(delta: float) -> void:
-	if not visible:
+	if not visible or (_arms != null and _arms.is_active()):
 		return
 	if _player == null:
 		# El jugador se registra en su grupo después que sus hijos, por eso se busca aquí.

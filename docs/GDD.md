@@ -381,7 +381,7 @@ Principio: medir antes de optimizar (Profiler y Monitors de Godot, siempre sobre
 
 ### 17.4 Ajustes de rendimiento (opciones del jugador)
 
-- **Límite de FPS:** 30, 60, 144, 180 o ilimitado. **[PENDIENTE]** valor por defecto (propuesta: 60, igual que la meta).
+- **Límite de FPS:** 30, 60, 144, 180 o ilimitado. **[PENDIENTE]** valor por defecto (propuesta: 60, igual que la meta). Mientras no exista el menú, el autoload `DisplayConfig` (`scripts/Settings/display_config.gd`) aplica 180 FPS y V-Sync activado, y guarda la elección en `user://settings.cfg`.
 - **V-Sync:** activado o desactivado.
 - Se guardan como preferencia de usuario (archivo de configuración local). No cuentan como progreso entre partidas, así que no contradicen la regla de "sin progreso salvo el mejor Score".
 - Viven en el menú de opciones (§12).

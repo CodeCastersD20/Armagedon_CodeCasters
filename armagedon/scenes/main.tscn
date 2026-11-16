@@ -1,15 +1,10 @@
 [gd_scene format=3 uid="uid://bpc7csnghp6"]
 
-[ext_resource type="PackedScene" uid="uid://b3njp8d6dh7fp" path="res://scenes/UI/DashCounter.tscn" id="2_0wfyh"]
+[ext_resource type="PackedScene" uid="uid://b0p43fgmh6ths" path="res://scenes/UI/MainHud.tscn" id="2_0wfyh"]
 [ext_resource type="PackedScene" uid="uid://8y0dvplsaxko" path="res://scenes/World/World.tscn" id="2_world"]
-[ext_resource type="PackedScene" uid="uid://bp1kekekmcmac" path="res://scenes/UI/HealthCounter.tscn" id="3_sugp2"]
 
 [node name="Main" type="Node3D" unique_id=499188323]
 
 [node name="World" parent="." unique_id=1436690693 instance=ExtResource("2_world")]
 
-[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=235154089]
-
-[node name="DashCounter" parent="CanvasLayer" unique_id=1260784920 instance=ExtResource("2_0wfyh")]
-
-[node name="VidaCounter" parent="CanvasLayer" unique_id=581402135 instance=ExtResource("3_sugp2")]
+[node name="MainHud" parent="." unique_id=77760244 instance=ExtResource("2_0wfyh")]

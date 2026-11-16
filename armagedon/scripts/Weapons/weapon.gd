@@ -142,6 +142,9 @@ func _spawn_tracer(from: Vector3, to: Vector3) -> void:
 
 
 func _spawn_impact(pos: Vector3, normal: Vector3) -> void:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
 	var sphere := SphereMesh.new()
 	sphere.radius = 0.05
 	sphere.height = 0.1
@@ -152,6 +155,6 @@ func _spawn_impact(pos: Vector3, normal: Vector3) -> void:
 	var node := MeshInstance3D.new()
 	node.mesh = sphere
 	node.top_level = true
-	get_tree().current_scene.add_child(node)
+	scene.add_child(node)
 	node.global_position = pos + normal * 0.02
 	get_tree().create_timer(IMPACT_DURATION).timeout.connect(node.queue_free)

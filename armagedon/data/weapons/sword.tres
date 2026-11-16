@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3 uid="uid://7txwl60gdnn2"]
 
+[ext_resource type="PackedScene" uid="uid://b0x1swordscene1" path="res://scenes/Weapons/sword.tscn" id="1_scene"]
 [ext_resource type="Script" uid="uid://g3xkb2ao6fsg" path="res://scripts/Weapons/weapon_data.gd" id="1_wdata"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_sword"]
@@ -10,5 +11,8 @@ script = ExtResource("1_wdata")
 display_name = "Sword"
 kind = 1
 damage = 35.0
+magazine_size = 0
+reload_seconds = 0.0
 attack_interval = 1.2
+weapon_scene = ExtResource("1_scene")
 mesh = SubResource("BoxMesh_sword")

@@ -57,7 +57,9 @@ func _perform_combat_hit() -> void:
 	for i in range(ray_count):
 		var angle: float = -half_angle_rad + float(i) * step_angle
 		# Rayo proyectado en el plano horizontal de la vista del jugador
-		var dir: Vector3 = (-camera.global_basis.z).rotated(camera.global_basis.y, angle).normalized()
+		var dir: Vector3 = (
+			(-camera.global_basis.z).rotated(camera.global_basis.y, angle).normalized()
+		)
 		var to: Vector3 = from + dir * arc_range
 
 		var query := PhysicsRayQueryParameters3D.create(from, to, 0xFFFFFFFF, exclude)
@@ -89,22 +91,53 @@ func _play_weapon_animation(alternate: bool) -> void:
 
 	if alternate:
 		# Swing 1: corte descendente diagonal /
-		_slash_tween.tween_property(self, "rotation:x", _original_rotation.x + deg_to_rad(30.0), 0.07)
-		_slash_tween.parallel().tween_property(self, "rotation:y", _original_rotation.y + deg_to_rad(35.0), 0.07)
+		_slash_tween.tween_property(
+			self, "rotation:x", _original_rotation.x + deg_to_rad(30.0), 0.07
+		)
+		_slash_tween.parallel().tween_property(
+			self, "rotation:y", _original_rotation.y + deg_to_rad(35.0), 0.07
+		)
 
-		_slash_tween.tween_property(self, "rotation:x", _original_rotation.x - deg_to_rad(55.0), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		_slash_tween.parallel().tween_property(self, "rotation:y", _original_rotation.y - deg_to_rad(65.0), 0.12)
-		_slash_tween.parallel().tween_property(self, "rotation:z", _original_rotation.z - deg_to_rad(30.0), 0.12)
+		(
+			_slash_tween
+			. tween_property(self, "rotation:x", _original_rotation.x - deg_to_rad(55.0), 0.12)
+			. set_trans(Tween.TRANS_QUAD)
+			. set_ease(Tween.EASE_OUT)
+		)
+		_slash_tween.parallel().tween_property(
+			self, "rotation:y", _original_rotation.y - deg_to_rad(65.0), 0.12
+		)
+		_slash_tween.parallel().tween_property(
+			self, "rotation:z", _original_rotation.z - deg_to_rad(30.0), 0.12
+		)
 	else:
 		# Swing 2: corte descendente diagonal \
-		_slash_tween.tween_property(self, "rotation:x", _original_rotation.x + deg_to_rad(30.0), 0.07)
-		_slash_tween.parallel().tween_property(self, "rotation:y", _original_rotation.y - deg_to_rad(45.0), 0.07)
+		_slash_tween.tween_property(
+			self, "rotation:x", _original_rotation.x + deg_to_rad(30.0), 0.07
+		)
+		_slash_tween.parallel().tween_property(
+			self, "rotation:y", _original_rotation.y - deg_to_rad(45.0), 0.07
+		)
 
-		_slash_tween.tween_property(self, "rotation:x", _original_rotation.x - deg_to_rad(55.0), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		_slash_tween.parallel().tween_property(self, "rotation:y", _original_rotation.y + deg_to_rad(55.0), 0.12)
-		_slash_tween.parallel().tween_property(self, "rotation:z", _original_rotation.z + deg_to_rad(35.0), 0.12)
+		(
+			_slash_tween
+			. tween_property(self, "rotation:x", _original_rotation.x - deg_to_rad(55.0), 0.12)
+			. set_trans(Tween.TRANS_QUAD)
+			. set_ease(Tween.EASE_OUT)
+		)
+		_slash_tween.parallel().tween_property(
+			self, "rotation:y", _original_rotation.y + deg_to_rad(55.0), 0.12
+		)
+		_slash_tween.parallel().tween_property(
+			self, "rotation:z", _original_rotation.z + deg_to_rad(35.0), 0.12
+		)
 
-	_slash_tween.tween_property(self, "rotation", _original_rotation, 0.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	(
+		_slash_tween
+		. tween_property(self, "rotation", _original_rotation, 0.4)
+		. set_trans(Tween.TRANS_SINE)
+		. set_ease(Tween.EASE_OUT)
+	)
 
 
 # ==============================================================================

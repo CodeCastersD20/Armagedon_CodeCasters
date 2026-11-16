@@ -7,8 +7,8 @@ script = ExtResource("1_t8352")
 
 [node name="Vida" type="Label" parent="." unique_id=400544608]
 offset_left = 16.0
-offset_top = 64.0
+offset_top = 20.0
 offset_right = 239.0
-offset_bottom = 109.0
-theme_override_font_sizes/font_size = 32
+offset_bottom = 65.0
+theme_override_font_sizes/font_size = 16
 text = "Vida: 100 / 100"

@@ -30,7 +30,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		switch_weapon()
 	elif event.is_action_pressed("reload") and _current != null:
 		_current.try_reload()
-	elif event.is_action_pressed("attack") and _current != null and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+	elif (
+		event.is_action_pressed("attack")
+		and _current != null
+		and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+	):
 		_current.try_attack()
 
 

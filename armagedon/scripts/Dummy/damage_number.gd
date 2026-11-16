@@ -10,7 +10,9 @@ const COLOR_CRITICAL := Color(1.0, 0.1, 0.1)
 
 
 ## Crea el número en `world_pos` y lo añade a la escena actual.
-static func spawn(tree: SceneTree, world_pos: Vector3, amount: float, is_critical: bool = false) -> void:
+static func spawn(
+	tree: SceneTree, world_pos: Vector3, amount: float, is_critical: bool = false
+) -> void:
 	var number := DamageNumber.new()
 	number.top_level = true
 	number.text = str(roundi(amount))
@@ -33,7 +35,11 @@ func _init() -> void:
 
 func _animate() -> void:
 	var tween := create_tween().set_parallel(true)
-	tween.tween_property(self, "global_position:y", global_position.y + rise_height, lifetime).set_ease(Tween.EASE_OUT)
+	(
+		tween
+		. tween_property(self, "global_position:y", global_position.y + rise_height, lifetime)
+		. set_ease(Tween.EASE_OUT)
+	)
 	tween.tween_property(self, "modulate:a", 0.0, lifetime * 0.5).set_delay(lifetime * 0.5)
 	tween.tween_property(self, "outline_modulate:a", 0.0, lifetime * 0.5).set_delay(lifetime * 0.5)
 	tween.chain().tween_callback(queue_free)

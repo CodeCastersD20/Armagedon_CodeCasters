@@ -13,5 +13,9 @@ extends StaticBody3D
 
 func take_damage(amount: float, is_critical: bool = false) -> void:
 	is_critical = is_critical or randf() < debug_crit_chance
-	var offset := Vector3(randf_range(-number_spread, number_spread), 0.0, randf_range(-number_spread, number_spread))
-	DamageNumber.spawn(get_tree(), global_position + Vector3.UP * number_height + offset, amount, is_critical)
+	var offset := Vector3(
+		randf_range(-number_spread, number_spread), 0.0, randf_range(-number_spread, number_spread)
+	)
+	DamageNumber.spawn(
+		get_tree(), global_position + Vector3.UP * number_height + offset, amount, is_critical
+	)

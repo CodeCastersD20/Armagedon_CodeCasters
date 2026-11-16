@@ -1,6 +1,7 @@
 class_name Player
 extends CharacterBody3D
-## Zahariel en primera persona: movimiento WASD, mirar con mouse, salto, dash, correr (Ctrl) y agacharse (C).
+## Zahariel en primera persona: movimiento WASD, mirar con mouse, salto,
+## dash, correr (Ctrl) y agacharse (C).
 
 ## Cargas de dash actuales (fraccionarias mientras se recarga) y máximo. Para el HUD (#88).
 signal stamina_changed(current: float, maximum: float)
@@ -13,6 +14,9 @@ signal player_escaped
 
 @export var stats: PlayerStats
 
+## Multiplicador del daño recibido (1.0 = normal). El escudo (#42) lo baja, p. ej. a 0.5.
+var damage_taken_multiplier: float = 1.0
+
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _charges: float
 var _dash_time_left: float = 0.0
@@ -21,9 +25,6 @@ var _running: bool = false
 var _crouching: bool = false
 var _stand_height: float
 var _head_stand_y: float
-
-## Multiplicador del daño recibido (1.0 = normal). El escudo (#42) lo baja, p. ej. a 0.5.
-var damage_taken_multiplier: float = 1.0
 var _health: float
 var _time_since_damage: float = 0.0
 var _regen_timer: float = 0.0
@@ -74,7 +75,9 @@ func _physics_process(delta: float) -> void:
 	elif Input.is_action_just_pressed("jump"):
 		velocity.y = stats.jump_velocity
 
-	var input_dir: Vector2 = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	var input_dir: Vector2 = Input.get_vector(
+		"move_left", "move_right", "move_forward", "move_back"
+	)
 	var direction: Vector3 = (transform.basis * Vector3(input_dir.x, 0.0, input_dir.y)).normalized()
 
 	_update_crouch(delta)
@@ -148,6 +151,7 @@ func _recharge_dash(delta: float) -> void:
 	_charges = minf(_charges + delta / stats.dash_recharge_seconds, stats.stamina)
 	stamina_changed.emit(_charges, stats.stamina)
 
+
 func get_health() -> float:
 	return _health
 
@@ -206,7 +210,11 @@ func _update_shield_block() -> void:
 		damage_taken_multiplier = 1.0
 
 	# Bloqueo activo manteniendo clic derecho (solo con la espada equipada)
-	_is_blocking = has_sword_equipped and Input.is_action_pressed("block") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+	_is_blocking = (
+		has_sword_equipped
+		and Input.is_action_pressed("block")
+		and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+	)
 
 
 func is_blocking() -> bool:

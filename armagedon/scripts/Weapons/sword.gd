@@ -106,7 +106,11 @@ func _perform_combat_hit() -> void:
 
 ## Ninguna pared debe estar entre el jugador y el enemigo.
 func _has_line_of_sight(
-	space_state: PhysicsDirectSpaceState3D, from: Vector3, to: Vector3, exclude: Array[RID], target: CollisionObject3D
+	space_state: PhysicsDirectSpaceState3D,
+	from: Vector3,
+	to: Vector3,
+	exclude: Array[RID],
+	target: CollisionObject3D
 ) -> bool:
 	var ignore: Array[RID] = exclude.duplicate()
 	if target != null:
@@ -126,17 +130,47 @@ func _play_weapon_animation(alternate: bool) -> void:
 	# Tajo en diagonal frente a la cámara: "\" (arriba-izquierda a abajo-derecha) y
 	# "/" (arriba-derecha a abajo-izquierda) alternando. La punta pasa de atrás a adelante.
 	var start_side: float = 1.0 if alternate else -1.0
-	var start_pos: Vector3 = _original_position + Vector3(start_side * SLASH_REACH_X, SLASH_RAISE_Y, 0.0)
-	var end_pos: Vector3 = _original_position + Vector3(-start_side * SLASH_REACH_X, -SLASH_DROP_Y, 0.0)
-	var start_rot: Vector3 = _original_rotation + Vector3(deg_to_rad(10.0), 0.0, deg_to_rad(-start_side * 35.0))
-	var end_rot: Vector3 = _original_rotation + Vector3(deg_to_rad(-65.0), 0.0, deg_to_rad(start_side * 35.0))
+	var start_pos: Vector3 = (
+		_original_position + Vector3(start_side * SLASH_REACH_X, SLASH_RAISE_Y, 0.0)
+	)
+	var end_pos: Vector3 = (
+		_original_position + Vector3(-start_side * SLASH_REACH_X, -SLASH_DROP_Y, 0.0)
+	)
+	var start_rot: Vector3 = (
+		_original_rotation + Vector3(deg_to_rad(10.0), 0.0, deg_to_rad(-start_side * 35.0))
+	)
+	var end_rot: Vector3 = (
+		_original_rotation + Vector3(deg_to_rad(-65.0), 0.0, deg_to_rad(start_side * 35.0))
+	)
 
 	_slash_tween.tween_property(self, "position", start_pos, 0.07)
 	_slash_tween.parallel().tween_property(self, "rotation", start_rot, 0.07)
-	_slash_tween.tween_property(self, "position", end_pos, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_slash_tween.parallel().tween_property(self, "rotation", end_rot, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_slash_tween.tween_property(self, "position", _original_position, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	_slash_tween.parallel().tween_property(self, "rotation", _original_rotation, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	(
+		_slash_tween
+		. tween_property(self, "position", end_pos, 0.12)
+		. set_trans(Tween.TRANS_QUAD)
+		. set_ease(Tween.EASE_OUT)
+	)
+	(
+		_slash_tween
+		. parallel()
+		. tween_property(self, "rotation", end_rot, 0.12)
+		. set_trans(Tween.TRANS_QUAD)
+		. set_ease(Tween.EASE_OUT)
+	)
+	(
+		_slash_tween
+		. tween_property(self, "position", _original_position, 0.35)
+		. set_trans(Tween.TRANS_SINE)
+		. set_ease(Tween.EASE_OUT)
+	)
+	(
+		_slash_tween
+		. parallel()
+		. tween_property(self, "rotation", _original_rotation, 0.35)
+		. set_trans(Tween.TRANS_SINE)
+		. set_ease(Tween.EASE_OUT)
+	)
 
 
 # ==============================================================================
@@ -192,7 +226,9 @@ func _show_whoosh_effect(alternate: bool) -> void:
 
 
 ## Marca con puntos rojos en línea la superficie que recorre el tajo (diagonal, como el whoosh).
-func _mark_slash_line(space_state: PhysicsDirectSpaceState3D, camera: Camera3D, exclude: Array[RID]) -> void:
+func _mark_slash_line(
+	space_state: PhysicsDirectSpaceState3D, camera: Camera3D, exclude: Array[RID]
+) -> void:
 	var from: Vector3 = camera.global_position
 	var half_angle: float = deg_to_rad(data.arc_angle_degrees * 0.5)
 	for i in range(SLASH_MARKS):
@@ -200,7 +236,9 @@ func _mark_slash_line(space_state: PhysicsDirectSpaceState3D, camera: Camera3D, 
 		var yaw: float = lerpf(half_angle, -half_angle, t) * (1.0 if _slash_alternate else -1.0)
 		var pitch: float = lerpf(0.18, -0.24, t)
 		var dir: Vector3 = (camera.global_basis * Vector3(sin(yaw), pitch, -cos(yaw))).normalized()
-		var query := PhysicsRayQueryParameters3D.create(from, from + dir * data.max_range, 0xFFFFFFFF, exclude)
+		var query := PhysicsRayQueryParameters3D.create(
+			from, from + dir * data.max_range, 0xFFFFFFFF, exclude
+		)
 		var hit: Dictionary = space_state.intersect_ray(query)
 		if hit.is_empty() or (hit["collider"] as Object).has_method("take_damage"):
 			continue

@@ -12,7 +12,9 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	var text: String = "Vida: %d / %d" % [ceili(_player.get_health()), int(_player.stats.max_health)]
+	var text: String = (
+		"Vida: %d / %d" % [ceili(_player.get_health()), int(_player.stats.max_health)]
+	)
 	var seconds_left: float = _player.get_regen_seconds_left()
 	if seconds_left > 0.0:
 		text += "  (+%d en %.1f s)" % [int(_player.stats.regen_amount), seconds_left]

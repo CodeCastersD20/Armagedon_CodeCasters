@@ -10,6 +10,10 @@ enum Kind { FIRE, MELEE }
 ## Tamaño del cargador (munición infinita). 0 = sin cargador (melee).
 @export var magazine_size: int = 0
 @export var reload_seconds: float = 0.0
+## Probabilidad de crítico por golpe (0.05 = 5 %). GDD §6.3.
+@export_range(0.0, 1.0) var crit_chance: float = 0.05
+## Multiplicador de daño del crítico.
+@export var crit_multiplier: float = 2.0
 ## Segundos entre ataques. 650 RPM = 60 / 650 ≈ 0.092 s.
 # TODO(GDD): la cadencia de pistola, escopeta y subfusil es [PENDIENTE] (§6.2).
 @export var attack_interval: float = 0.5

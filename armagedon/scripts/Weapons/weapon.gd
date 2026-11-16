@@ -240,3 +240,10 @@ func prewarm() -> void:
 	await get_tree().process_frame
 	_pool_release(tracer, _tracer_pool)
 	_pool_release(impact, _impact_pool)
+
+
+## Devuelve el daño del golpe; tira el crítico. Sin relación con headshot ni Score.
+func roll_damage() -> Dictionary:
+	var is_crit: bool = randf() < data.crit_chance
+	var amount: float = data.damage * (data.crit_multiplier if is_crit else 1.0)
+	return {"damage": amount, "crit": is_crit}

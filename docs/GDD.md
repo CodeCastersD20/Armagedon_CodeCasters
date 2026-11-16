@@ -267,7 +267,7 @@ No hay cajas de munición porque la munición es infinita.
 - **Mira** al centro.
 - **Ronda actual** y **cronómetro** (3:30). **[PENDIENTE]** Score y combo en pantalla.
 
-**Menús:** splash ("Presiona ENTER para descender"), tienda del Mercante. **[PENDIENTE]** pausa, opciones, pantalla de escape con Score.
+**Menús:** splash ("Presiona ENTER para descender"), tienda del Mercante. **[PENDIENTE]** pausa, pantalla de escape con Score. **Opciones:** límite de FPS y V-Sync (ver §17.4); el resto de ajustes **[PENDIENTE]**.
 
 ---
 
@@ -353,6 +353,57 @@ El ejemplo del documento original (46,540 pts) ya no aplica y se recalculará.
 - Tope de 30 enemigos a la vez.
 - **Fuera de alcance de la beta:** multijugador, jefes secretos, eventos especiales, comportamientos distintos por enemigo, guardado entre partidas, círculos con nombre.
 
+Principio: medir antes de optimizar (Profiler y Monitors de Godot, siempre sobre un build exportado, no sobre el editor). Las técnicas de abajo se aplican poco a poco, cuando existe el contenido que las necesita.
+
+### 17.1 Culling (qué se dibuja)
+
+- **Frustum culling:** Godot lo hace **automáticamente**. Consiste en no dibujar lo que está fuera del campo de visión de la cámara. No requiere configuración ni código.
+- **Occlusion culling:** no dibujar lo que queda tapado por paredes u obstáculos grandes. Se usa `OccluderInstance3D` y se aplica al diseñar la arena (§10) y su blockout. En una arena muy abierta aporta poco.
+- **Visibility range (LOD manual):** `visibility_range_end` en los `GeometryInstance3D` para ocultar o simplificar objetos lejanos. Con modelos low-poly (§13) se usa solo si el Profiler lo pide.
+
+### 17.2 Física y colisiones
+
+- Solo formas simples (cápsula, caja, esfera). **Nunca** mallas trimesh en objetos dinámicos ni en enemigos.
+- Capas y máscaras de colisión nombradas en Project Settings (por ejemplo: Player, World, Enemy). Cada objeto colisiona únicamente con las capas que necesita, para no calcular colisiones inútiles. **[PENDIENTE]** tabla final de capas.
+- Arena final con `StaticBody3D` + `BoxShape3D`, no con `CSGBox3D` (el CSG es válido solo para el blockout). Paredes y suelo con grosor real, para evitar que raycasts o movimientos rápidos los atraviesen.
+
+### 17.3 IA de enemigos
+
+- Los enemigos **no** calculan su ruta en cada frame. Recalculan el destino con un temporizador de **0.1 a 0.2 s**.
+- El recálculo va **escalonado**: cada enemigo tiene un desfase propio, de modo que no todos recalculan en el mismo frame.
+- El tope de 30 enemigos simultáneos (§7) acota el costo total.
+- Intervalo y desfase son constantes configurables en `armagedon/data/`. **[PENDIENTE]** valor definitivo.
+
+### 17.4 Ajustes de rendimiento (opciones del jugador)
+
+- **Límite de FPS:** 30, 60, 144, 180 o ilimitado. **[PENDIENTE]** valor por defecto (propuesta: 60, igual que la meta).
+- **V-Sync:** activado o desactivado.
+- Se guardan como preferencia de usuario (archivo de configuración local). No cuentan como progreso entre partidas, así que no contradicen la regla de "sin progreso salvo el mejor Score".
+- Viven en el menú de opciones (§12).
+
+### 17.5 Caché, preload y pooling
+
+- **Preload:** las escenas y recursos de uso frecuente (enemigos, trazadores, impactos, efectos, sonidos) se cargan con `preload` y no con `load()` durante la partida.
+- **Pooling:** objetos que se crean y destruyen muy seguido se reutilizan en vez de instanciarse y liberarse. Aplica a enemigos (30 fijos), trazadores de disparo, marcas de impacto y números de daño.
+- **Caché de modelos y materiales de enemigos:** el modelo y sus materiales se cargan una sola vez y se comparten entre todas las instancias.
+- **Armas:** se instancian una vez y se alternan (visibilidad y procesado), no se destruyen y recrean en cada cambio.
+- **Precalentamiento de shaders:** al iniciar la partida o la ronda se muestra una vez cada efecto y enemigo fuera de cámara (o tras la pantalla de carga), para que la compilación no cause tirones durante el combate.
+
+### 17.6 Assets
+
+- Solo se importa y versiona lo que el juego usa (§13). Los packs completos sin usar se dejan fuera de `res://` o con `.gdignore`.
+
+### 17.7 Reglas de código de rendimiento
+
+Reglas que se aplican desde el inicio (la lista operativa vive en `AGENTS.md`, «Rendimiento: reglas desde el inicio»):
+- Recursos (mallas, materiales, formas, consultas de física) se crean una vez y se reutilizan; no se crean por disparo, golpe o frame.
+- Referencias a nodos (jugador, manager, cámara) se resuelven una vez y se guardan; no se buscan por grupo en cada frame ni en cada ataque.
+- El HUD se actualiza por señales y solo reasigna el texto cuando cambia.
+- Al guardar un arma se cancelan sus animaciones, tweens y golpes pendientes.
+- Los datos de los Resources y los nodos opcionales se validan antes de usarse (divisores en 0, `null`).
+- Las ayudas de depuración no corren en el juego exportado.
+- Hallazgo conocido: el renderer Forward+ es el más pesado para este estilo; evaluar Mobile o Compatibility si el QA de rendimiento (#94) lo pide. **[PENDIENTE]**
+
 ---
 
 ## 18. Pendientes consolidados
@@ -369,3 +420,4 @@ El ejemplo del documento original (46,540 pts) ya no aplica y se recalculará.
 10. Arena, boceto y storyboard.
 11. Menús (pausa, opciones, pantalla de escape).
 12. Confirmar licencias marcadas como "Verificar".
+13. Rendimiento (§17): tabla de capas de colisión, intervalo y desfase del recálculo de IA, FPS por defecto.

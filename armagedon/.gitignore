@@ -5,3 +5,9 @@
 # Blender: copias de respaldo y archivos fuente que superan los 100 MB de GitHub
 *.blend1
 assets/models/enemies/iron_oath_executioner/*.blend
+
+# Pack completo de Universal Animation Library 2 (7.7 MB). Se usa ual2_selected.res
+assets/animations/universal/UAL2_Standard.glb
+assets/animations/universal/UAL2_Standard.glb.import
+assets/animations/universal/UAL1_Standard.glb
+assets/animations/universal/UAL1_Standard.glb.import

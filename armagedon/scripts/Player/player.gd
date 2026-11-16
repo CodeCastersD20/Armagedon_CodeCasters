@@ -31,6 +31,7 @@ var _regen_timer: float = 0.0
 var _escaped: bool = false
 var _spawn_transform: Transform3D
 var _is_blocking: bool = false
+var _air_jumps_left: int = 0
 var _weapon_manager: WeaponManager
 
 @onready var _head: Node3D = $Head
@@ -45,6 +46,7 @@ func _ready() -> void:
 	_weapon_manager = get_tree().get_first_node_in_group("weapon_manager") as WeaponManager
 	_spawn_transform = global_transform
 	_collision.shape = _collision.shape.duplicate()
+	assert(_collision.shape is CapsuleShape3D, "El jugador necesita una CapsuleShape3D")
 	_stand_height = (_collision.shape as CapsuleShape3D).height
 	_head_stand_y = _head.position.y
 	_charges = stats.stamina
@@ -70,10 +72,16 @@ func _physics_process(delta: float) -> void:
 	_recharge_dash(delta)
 	_regen_health(delta)
 	_respawn_if_fallen()
-	if not is_on_floor():
+	if is_on_floor():
+		_air_jumps_left = stats.max_air_jumps
+	else:
 		velocity.y -= _gravity * delta
-	elif Input.is_action_just_pressed("jump"):
-		velocity.y = stats.jump_velocity
+	if Input.is_action_just_pressed("jump"):
+		if is_on_floor():
+			velocity.y = stats.jump_velocity
+		elif _air_jumps_left > 0:
+			_air_jumps_left -= 1
+			velocity.y = stats.air_jump_velocity
 
 	var input_dir: Vector2 = Input.get_vector(
 		"move_left", "move_right", "move_forward", "move_back"
@@ -141,14 +149,14 @@ func _try_dash(direction: Vector3) -> void:
 		direction = -transform.basis.z
 	_charges -= 1.0
 	_dash_time_left = stats.dash_duration
-	_dash_velocity = direction * (stats.dash_distance / stats.dash_duration)
+	_dash_velocity = direction * (stats.dash_distance / maxf(stats.dash_duration, 0.01))
 	stamina_changed.emit(_charges, stats.stamina)
 
 
 func _recharge_dash(delta: float) -> void:
 	if _charges >= stats.stamina:
 		return
-	_charges = minf(_charges + delta / stats.dash_recharge_seconds, stats.stamina)
+	_charges = minf(_charges + delta / maxf(stats.dash_recharge_seconds, 0.01), stats.stamina)
 	stamina_changed.emit(_charges, stats.stamina)
 
 

@@ -9,6 +9,12 @@ extends Resource
 @export var faith: float = 10.0
 @export var move_speed: float = 10.0  # velocidad al caminar
 @export var jump_velocity: float = 5.0
+## Saltos extra en el aire (1 = doble salto). 0 = sin doble salto.
+# TODO(GDD): el doble salto es la mejora "alas" (§ mejoras de personaje); los valores son
+# [PENDIENTE]. El jugador empieza en 0 y la mejora lo sube.
+@export var max_air_jumps: int = 0
+## Velocidad vertical del salto en el aire.
+@export var air_jump_velocity: float = 5.0
 ## Radianes de giro por píxel de mouse (0.002 ≈ sensibilidad media).
 @export_range(0.0005, 0.01, 0.0005) var mouse_sensitivity: float = 0.002
 @export_range(0.0, 90.0) var max_pitch_degrees: float = 89.0
@@ -49,3 +55,25 @@ extends Resource
 @export_range(0.0, 1.0, 0.05) var sword_shield_passive_reduction: float = 0.60
 ## Ángulo frontal de bloqueo efectivo con el escudo en grados (ej. 120° frontales).
 @export_range(30.0, 180.0, 5.0) var shield_block_angle_degrees: float = 120.0
+
+enum JumpStyle { NINJA, BASIC }
+
+# Movimiento de cámara tomado de animaciones (scripts/Player/head_cam.gd). Escala: 0 = sin
+# efecto, 1 = completo. APAGADO por defecto: pon los interruptores en true para probarlo.
+@export_group("Cámara animada")
+@export var head_cam_jump_enabled: bool = false
+@export var head_cam_move_enabled: bool = false
+## NINJA = NinjaJump (pack 2), BASIC = Jump (pack 1).
+@export var head_cam_jump_style: JumpStyle = JumpStyle.NINJA
+@export_range(0.0, 1.0, 0.05) var head_cam_jump_scale_position: float = 0.3
+@export_range(0.0, 1.0, 0.05) var head_cam_jump_scale_rotation: float = 0.3
+@export_range(0.0, 1.0, 0.05) var head_cam_move_scale_position: float = 0.5
+@export_range(0.0, 1.0, 0.05) var head_cam_move_scale_rotation: float = 0.5
+## Qué tan rápido (1/segundos) se desvanece la cámara animada al terminar la animación.
+@export var head_cam_fade_speed: float = 6.0
+
+# Interruptor general de las animaciones del pack Universal Animation Library en la espada y el
+# escudo (manos reales, tajo de la espada, escudo que se mueve al atacar). Apagado = se usan las
+# animaciones procedurales por código de siempre.
+@export_group("Animaciones del pack (espada y escudo)")
+@export var pack_animations_enabled: bool = false

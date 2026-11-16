@@ -18,6 +18,8 @@ height = 0.5
 albedo_color = Color(0.75, 0.6, 0.35, 1)
 
 [node name="TrainingDummy" type="StaticBody3D"]
+collision_layer = 4
+collision_mask = 0
 script = ExtResource("1_dummy")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]

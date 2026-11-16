@@ -10,12 +10,21 @@ var _rest_position: Vector3
 var _time: float = 0.0
 var _wall_push: float = 0.0
 var _applied_push: float = 0.0
+## Consulta reutilizada: solo cambian from/to en cada tick.
+var _query: PhysicsRayQueryParameters3D
 
 @onready var _camera: Node3D = get_parent()
 
 
 func _ready() -> void:
 	_rest_position = position
+	if player == null or bob_stats == null:
+		push_error("WeaponBob necesita player y bob_stats asignados")
+		set_process(false)
+		set_physics_process(false)
+		return
+	_query = PhysicsRayQueryParameters3D.create(Vector3.ZERO, Vector3.ZERO, player.collision_mask)
+	_query.exclude = [player.get_rid()]
 
 
 func _physics_process(_delta: float) -> void:
@@ -30,10 +39,9 @@ func _physics_process(_delta: float) -> void:
 func _push_from(local_origin: Vector3) -> float:
 	var from: Vector3 = _camera.to_global(local_origin)
 	var to: Vector3 = from - _camera.global_basis.z * bob_stats.weapon_reach
-	var query := PhysicsRayQueryParameters3D.create(
-		from, to, player.collision_mask, [player.get_rid()]
-	)
-	var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
+	_query.from = from
+	_query.to = to
+	var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(_query)
 	if hit.is_empty():
 		return 0.0
 	return bob_stats.weapon_reach - from.distance_to(hit.position)
@@ -44,7 +52,7 @@ func _process(delta: float) -> void:
 	var target := Vector2(_rest_position.x, _rest_position.y)
 	var weight: float = bob_stats.return_speed
 	if player.is_on_floor() and speed > 0.1:
-		var intensity: float = speed / player.stats.move_speed
+		var intensity: float = speed / maxf(player.stats.move_speed, 0.01)
 		_time += delta * bob_stats.frequency * intensity
 		target += Vector2(cos(_time * 0.5) * 0.5, sin(_time)) * bob_stats.amplitude
 		weight = bob_stats.smoothing

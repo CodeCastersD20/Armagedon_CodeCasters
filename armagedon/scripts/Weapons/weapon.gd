@@ -14,18 +14,28 @@ const RECOIL_RECOVERY_SPEED: float = 14.0
 const TRACER_DURATION: float = 0.08
 const IMPACT_DURATION: float = 1.5
 
+## Recursos compartidos por todos los disparos/impactos: se crean una vez, no por disparo.
+static var _tracer_material: StandardMaterial3D
+static var _impact_mesh: SphereMesh
+## Nodos de trazador/impacto libres para reutilizar (no se crean ni liberan por disparo).
+static var _tracer_pool: Array[MeshInstance3D] = []
+static var _impact_pool: Array[MeshInstance3D] = []
+
 @export var data: WeaponData
 
 var _ammo: int = 0
 var _cooldown: float = 0.0
 var _reload_left: float = 0.0
 var _mesh_instance: MeshInstance3D
+var _player_body: CollisionObject3D
 
 
 func _ready() -> void:
 	if data == null:
 		push_error("Weapon sin WeaponData: %s" % name)
 		return
+	if data.attack_interval <= 0.0 or data.max_range <= 0.0:
+		push_warning("WeaponData con valores inválidos (attack_interval/max_range <= 0): %s" % name)
 	_ammo = data.magazine_size
 	if data.mesh != null:
 		_mesh_instance = MeshInstance3D.new()
@@ -72,7 +82,7 @@ func try_attack() -> bool:
 	if uses_magazine() and _ammo <= 0:
 		try_reload()
 		return false
-	_cooldown = data.attack_interval
+	_cooldown = maxf(data.attack_interval, 0.01)
 	if uses_magazine():
 		_ammo -= 1
 		ammo_changed.emit(_ammo, data.magazine_size)
@@ -85,6 +95,11 @@ func try_attack() -> bool:
 func try_reload() -> bool:
 	if not uses_magazine() or is_reloading() or _ammo >= data.magazine_size:
 		return false
+	if data.reload_seconds <= 0.0:
+		# Recarga instantánea: evita dejar el arma vacía para siempre.
+		_ammo = data.magazine_size
+		ammo_changed.emit(_ammo, data.magazine_size)
+		return true
 	_reload_left = data.reload_seconds
 	reload_started.emit(data.reload_seconds)
 	return true
@@ -105,11 +120,7 @@ func _perform_attack() -> void:
 		return
 	var from: Vector3 = camera.global_position
 	var to: Vector3 = from - camera.global_basis.z * data.max_range
-	var exclude: Array[RID] = []
-	var player := get_tree().get_first_node_in_group("player") as CollisionObject3D
-	if player != null:
-		exclude.append(player.get_rid())
-	var query := PhysicsRayQueryParameters3D.create(from, to, 0xFFFFFFFF, exclude)
+	var query := PhysicsRayQueryParameters3D.create(from, to, 0xFFFFFFFF, _player_exclude())
 	var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
 	var muzzle: Vector3 = global_position - global_basis.z * 0.25
 	if hit.is_empty():
@@ -125,38 +136,107 @@ func _perform_attack() -> void:
 	hit_target.emit(collider, hit_pos, hit_norm)
 
 
-func _spawn_tracer(from: Vector3, to: Vector3) -> void:
-	var im := ImmediateMesh.new()
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.albedo_color = Color(1.0, 0.85, 0.2)
-	im.surface_begin(Mesh.PRIMITIVE_LINES, mat)
+## RID del jugador para excluirlo de los raycasts. El nodo se busca una vez y se guarda.
+func _player_exclude() -> Array[RID]:
+	if _player_body == null or not is_instance_valid(_player_body):
+		_player_body = get_tree().get_first_node_in_group("player") as CollisionObject3D
+	var exclude: Array[RID] = []
+	if _player_body != null:
+		exclude.append(_player_body.get_rid())
+	return exclude
+
+
+## Toma un nodo libre del pool o crea uno nuevo (solo la primera vez que hace falta).
+## Devuelve null si no hay escena activa.
+static func _pool_take(pool: Array[MeshInstance3D], scene: Node) -> MeshInstance3D:
+	var node: MeshInstance3D = null
+	while not pool.is_empty() and node == null:
+		var candidate: MeshInstance3D = pool.pop_back()
+		# Si cambió la escena, los nodos del pool pueden estar liberados.
+		if is_instance_valid(candidate) and candidate.is_inside_tree():
+			node = candidate
+	if node == null:
+		node = MeshInstance3D.new()
+		node.top_level = true
+		scene.add_child(node)
+	node.visible = true
+	return node
+
+
+static func _pool_release(node: MeshInstance3D, pool: Array[MeshInstance3D]) -> void:
+	if is_instance_valid(node) and not pool.has(node):
+		node.visible = false
+		pool.append(node)
+
+
+## Coloca un trazador (nodo del pool, sin temporizador de retorno).
+func _acquire_tracer(from: Vector3, to: Vector3) -> MeshInstance3D:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return null
+	if _tracer_material == null:
+		_tracer_material = StandardMaterial3D.new()
+		_tracer_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_tracer_material.albedo_color = Color(1.0, 0.85, 0.2)
+	var node := _pool_take(_tracer_pool, scene)
+	var im := node.mesh as ImmediateMesh
+	if im == null:
+		im = ImmediateMesh.new()
+		node.mesh = im
+	im.clear_surfaces()
+	im.surface_begin(Mesh.PRIMITIVE_LINES, _tracer_material)
 	im.surface_add_vertex(from)
 	im.surface_add_vertex(to)
 	im.surface_end()
-	var node := MeshInstance3D.new()
-	node.mesh = im
-	node.top_level = true
-	get_tree().current_scene.add_child(node)
-	get_tree().create_timer(TRACER_DURATION).timeout.connect(node.queue_free)
+	return node
+
+
+func _acquire_impact(pos: Vector3, normal: Vector3) -> MeshInstance3D:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return null
+	if _impact_mesh == null:
+		_impact_mesh = SphereMesh.new()
+		_impact_mesh.radius = 0.05
+		_impact_mesh.height = 0.1
+		var mat := StandardMaterial3D.new()
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mat.albedo_color = Color(1.0, 0.25, 0.1)
+		# Visible aunque el punto quede dentro del cuerpo del enemigo (golpes melee).
+		mat.no_depth_test = true
+		_impact_mesh.material = mat
+	var node := _pool_take(_impact_pool, scene)
+	node.mesh = _impact_mesh
+	node.global_position = pos + normal * 0.02
+	return node
+
+
+func _spawn_tracer(from: Vector3, to: Vector3) -> void:
+	var node := _acquire_tracer(from, to)
+	if node != null:
+		get_tree().create_timer(TRACER_DURATION).timeout.connect(
+			Weapon._pool_release.bind(node, _tracer_pool)
+		)
 
 
 func _spawn_impact(pos: Vector3, normal: Vector3) -> void:
-	var scene := get_tree().current_scene
-	if scene == null:
+	var node := _acquire_impact(pos, normal)
+	if node != null:
+		get_tree().create_timer(IMPACT_DURATION).timeout.connect(
+			Weapon._pool_release.bind(node, _impact_pool)
+		)
+
+
+## Dibuja una vez, frente a la cámara, cada efecto del arma para que sus shaders se compilen
+## al cargar y no en el primer disparo. Las subclases añaden sus propios efectos.
+func prewarm() -> void:
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	if camera == null:
 		return
-	var sphere := SphereMesh.new()
-	sphere.radius = 0.05
-	sphere.height = 0.1
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.albedo_color = Color(1.0, 0.25, 0.1)
-	# Visible aunque el punto quede dentro del cuerpo del enemigo (golpes melee).
-	mat.no_depth_test = true
-	sphere.material = mat
-	var node := MeshInstance3D.new()
-	node.mesh = sphere
-	node.top_level = true
-	scene.add_child(node)
-	node.global_position = pos + normal * 0.02
-	get_tree().create_timer(IMPACT_DURATION).timeout.connect(node.queue_free)
+	var pos: Vector3 = camera.global_position - camera.global_basis.z * 0.5
+	var tracer := _acquire_tracer(pos, pos + Vector3(0.0, 0.001, 0.0))
+	var impact := _acquire_impact(pos, Vector3.ZERO)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_pool_release(tracer, _tracer_pool)
+	_pool_release(impact, _impact_pool)

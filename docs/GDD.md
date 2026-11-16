@@ -279,7 +279,7 @@ No hay cajas de munición porque la munición es infinita.
 ## 13. Dirección de arte
 
 - Low-poly PSX: modelos de 300–1,200 triángulos, texturas de 256–500 px.
-- Resolución interna 640×480 o 320×240, Nearest-Neighbor, vertex snapping, dithering. Detalles de compatibilidad y rendimiento en §17.1 y §17.2.
+- Resolución interna 640×480 o 320×240, Nearest-Neighbor, vertex snapping, dithering. Detalles de compatibilidad y rendimiento en §17.8 y §17.9.
 - Paleta: rojos y negros del Infierno, dorado para Zahariel y lo divino, azul para el Mercante.
 
 | Uso | Autor / Pack | Licencia |

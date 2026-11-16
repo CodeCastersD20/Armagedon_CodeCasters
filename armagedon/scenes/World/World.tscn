@@ -3,6 +3,18 @@
 [ext_resource type="PackedScene" uid="uid://c7gojarrgqvgl" path="res://scenes/Player/player.tscn" id="1_6rd1t"]
 [ext_resource type="PackedScene" path="res://scenes/Dummy/TrainingDummy.tscn" id="2_dummy"]
 
+[ext_resource type="Shader" path="res://assets/shaders/psx.gdshader" id="3_psx"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_floor"]
+shader = ExtResource("3_psx")
+shader_parameter/albedo_color = Color(0.42, 0.4, 0.38, 1)
+shader_parameter/snap_resolution = 160.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wall"]
+shader = ExtResource("3_psx")
+shader_parameter/albedo_color = Color(0.6, 0.55, 0.5, 1)
+shader_parameter/snap_resolution = 160.0
+
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_6rd1t"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
 ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -27,18 +39,21 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
 use_collision = true
 collision_layer = 2
 size = Vector3(40, 0.2, 40)
+material = SubResource("ShaderMaterial_floor")
 
 [node name="pared" type="CSGBox3D" parent="." unique_id=112390329]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.37693357, 2.4946234, -4.1150413)
 use_collision = true
 collision_layer = 2
 size = Vector3(6.1, 5, 0.1)
+material = SubResource("ShaderMaterial_wall")
 
 [node name="paredD" type="CSGBox3D" parent="." unique_id=910465878]
 transform = Transform3D(-4.3711392e-08, 0, 1.0000001, 0, 1, 0, -1.0000001, 0, -4.3711392e-08, 20.1, 2.5, 0.0057662725)
 use_collision = true
 collision_layer = 2
 size = Vector3(39.97531, 5, 0.2)
+material = SubResource("ShaderMaterial_wall")
 
 [node name="TrainingDummy" parent="." unique_id=1883699490 instance=ExtResource("2_dummy")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -3)

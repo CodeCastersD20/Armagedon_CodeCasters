@@ -12,6 +12,7 @@ var _busy: bool = false  # disparo o recarga en curso
 
 
 func _ready() -> void:
+	PsxStyle.apply(self)
 	var found: Array[Node] = find_children("*", "AnimationPlayer", true, false)
 	if found.is_empty():
 		push_error("PlayerArms: no hay AnimationPlayer en el modelo.")

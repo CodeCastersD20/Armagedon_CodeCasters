@@ -14,6 +14,7 @@ config/name="Armagedon"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
+config/version="1.0.0"
 
 [display]
 

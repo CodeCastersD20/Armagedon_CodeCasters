@@ -1,3 +1,7 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Blender: copias de respaldo y archivos fuente que superan los 100 MB de GitHub
+*.blend1
+assets/models/enemies/iron_oath_executioner/*.blend

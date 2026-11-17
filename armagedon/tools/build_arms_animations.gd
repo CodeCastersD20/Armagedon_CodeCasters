@@ -14,19 +14,27 @@ extends SceneTree
 const ARMS_SCENE := "res://scenes/Player/player_arms.tscn"
 ## 1.0: A corta de derecha a izquierda (y B de izquierda a derecha); -1.0 los invierte.
 const SLASH_FLIP := 1.0
-## Hacia dónde apunta la hoja en ejes de la mano (sale de arms_grip_rotation_degrees de sword.tscn).
-const BLADE_IN_HAND := Vector3(-0.2728, 0.2126, 0.9383)
+## Giro del modelo de la espada respecto a la mano (grados): es arms_grip_rotation_degrees de sword.tscn.
+## Con él se sabe hacia dónde apunta la hoja (-Y del modelo) y el filo (X del modelo) en ejes de la mano.
+const GRIP_EULER_DEG := Vector3(7.3998, 72.1699, -102.3824)
 ## Poses del tajo A (derecha -> izquierda): [tiempo, dirección de la hoja en ejes de cámara
-## (x derecha, y arriba, z hacia atrás), desplazamiento de la mano en metros].
+## (x derecha, y arriba, z hacia atrás), hacia dónde mira el filo (Vector3.ZERO = como en reposo),
+## desplazamiento de la mano en metros, cuánto cruza hacia el centro del cuerpo en el tajo B (0 a 1)].
+## Entre poses se suaviza.
 const SLASH_KEYS := [
-	[0.00, Vector3(0.00, 1.00, -0.15), Vector3(0.00, 0.00, 0.00)],
-	[0.14, Vector3(0.45, 0.85, 0.25), Vector3(0.06, 0.08, 0.08)],
-	[0.26, Vector3(0.00, 0.30, -0.95), Vector3(-0.02, 0.00, -0.18)],
-	[0.34, Vector3(-0.85, -0.45, -0.30), Vector3(-0.18, -0.12, -0.08)],
-	[0.50, Vector3(-0.75, -0.30, -0.35), Vector3(-0.14, -0.08, -0.05)],
-	[0.95, Vector3(0.00, 1.00, -0.15), Vector3(0.00, 0.00, 0.00)],
+	[0.00, Vector3(0.00, 1.00, -0.15), Vector3.ZERO, Vector3(0.00, 0.00, 0.00), 0.0],
+	[0.18, Vector3(0.45, 0.85, 0.25), Vector3.ZERO, Vector3(0.06, 0.08, 0.08), 0.3],
+	[0.30, Vector3(0.05, 0.35, -0.93), Vector3(-1.0, 0.0, 0.0), Vector3(-0.02, 0.00, -0.18), 0.8],
+	[0.40, Vector3(-0.55, 0.00, -0.83), Vector3(-0.8, -0.5, 0.0), Vector3(-0.08, -0.02, -0.16), 1.0],
+	[0.52, Vector3(-0.75, -0.25, -0.60), Vector3(-0.5, -0.8, 0.2), Vector3(-0.12, -0.05, -0.10), 1.0],
+	[0.65, Vector3(-0.75, -0.25, -0.60), Vector3(-0.5, -0.8, 0.2), Vector3(-0.12, -0.05, -0.10), 1.0],
+	[1.00, Vector3(0.00, 1.00, -0.15), Vector3.ZERO, Vector3(0.00, 0.00, 0.00), 0.0],
 ]
-const SLASH_STEP := 0.04
+## En el tajo B la mano parte de la derecha: cruza esta distancia (m) hacia el centro para que la hoja no salga de cuadro.
+const SLASH_B_CROSS := 0.22
+const SLASH_STEP := 0.025
+## Peso de la orientación de la mano frente a su posición al resolver el tajo.
+const SLASH_ROT_WEIGHT := 3.0
 const OUT := "res://assets/animations/arms/arms_custom.res"
 const ARMS_POS := Vector3(0, -1.26423, 0.27001363)
 const ARM_BONES := {
@@ -55,6 +63,7 @@ var bones: Array[String] = []
 var default_pose := {}
 var fist := {}
 var mirror_mode: int = 0
+var rot_weight: float = 1.0
 var idle_arms := {}  # huesos de brazo de sword_idle (R y L), tal cual
 
 
@@ -178,7 +187,7 @@ func _loss(side: String, q: Dictionary, target: Transform3D) -> float:
 	var reg: float = 0.0
 	for n in ARM_BONES[side]:
 		reg += (q[n] as Quaternion).angle_to(default_pose[n])
-	return pos_err * 10.0 + rot_err * 1.0 + reg * 0.02
+	return pos_err * 10.0 + rot_err * rot_weight + reg * 0.02
 
 
 func solve(side: String, target: Transform3D, start: Dictionary) -> Dictionary:
@@ -265,9 +274,30 @@ func _build_animation(def: Array) -> Animation:
 
 # ---- tajos --------------------------------------------------------------------------------------
 
-## Pose del tajo en el instante t: dirección de la hoja y desplazamiento de la mano (con flip lateral).
-func _slash_at(t: float, flip: float) -> Array:
-	var keys: Array = SLASH_KEYS
+## Quita de `e` la parte paralela a `d` (el filo siempre es perpendicular a la hoja).
+func _orth(e: Vector3, d: Vector3) -> Vector3:
+	return (e - d * e.dot(d)).normalized()
+
+
+## Poses del tajo con el filo de reposo ya resuelto y sin saltos de signo entre poses.
+func _slash_keys(idle_edge: Vector3, flip: float) -> Array:
+	var out: Array = []
+	var prev_edge := Vector3.ZERO
+	for k in SLASH_KEYS:
+		var d: Vector3 = Vector3((k[1] as Vector3).x * flip, (k[1] as Vector3).y, (k[1] as Vector3).z).normalized()
+		var e: Vector3 = idle_edge if (k[2] as Vector3) == Vector3.ZERO else Vector3((k[2] as Vector3).x * flip, (k[2] as Vector3).y, (k[2] as Vector3).z)
+		e = _orth(e, d)
+		if prev_edge != Vector3.ZERO and e.dot(prev_edge) < 0.0:
+			e = -e  # la espada es simétrica: se elige el giro corto
+		prev_edge = e
+		var o: Vector3 = k[3]
+		var cross_x: float = -SLASH_B_CROSS * (k[4] as float) if flip < 0.0 else 0.0
+		out.append([k[0], d, e, Vector3(o.x * flip + cross_x, o.y, o.z)])
+	return out
+
+
+## Pose del tajo en el instante t: [dirección de la hoja, dirección del filo, desplazamiento de la mano].
+func _slash_at(keys: Array, t: float) -> Array:
 	var i := 0
 	while i < keys.size() - 2 and t > keys[i + 1][0]:
 		i += 1
@@ -276,33 +306,43 @@ func _slash_at(t: float, flip: float) -> Array:
 	var u: float = clampf((t - k0[0]) / (k1[0] - k0[0]), 0.0, 1.0)
 	u = u * u * (3.0 - 2.0 * u)  # arranque y frenada suaves
 	var dir: Vector3 = (k0[1] as Vector3).lerp(k1[1], u).normalized()
-	var off: Vector3 = (k0[2] as Vector3).lerp(k1[2], u)
-	return [Vector3(dir.x * flip, dir.y, dir.z).normalized(), Vector3(off.x * flip, off.y, off.z)]
+	var edge: Vector3 = _orth((k0[2] as Vector3).lerp(k1[2], u), dir)
+	return [dir, edge, (k0[3] as Vector3).lerp(k1[3], u)]
 
 
 func _build_hit(flip: float) -> Animation:
 	# Pose de reposo (la tuya): se aplica y se mide dónde queda la mano derecha.
 	apply_arm_pose(idle_arms)
 	var idle: Transform3D = hand_cam("R")
-	var idle_blade: Vector3 = (idle.basis * BLADE_IN_HAND).normalized()
-	var end_time: float = SLASH_KEYS[SLASH_KEYS.size() - 1][0]
+	var grip := Basis.from_euler(GRIP_EULER_DEG * (PI / 180.0))
+	var idle_edge: Vector3 = (idle.basis * grip * Vector3.RIGHT).normalized()
+	var slash := _slash_keys(idle_edge, flip)
+	var end_time: float = slash[slash.size() - 1][0]
 	var current := idle_arms.duplicate()
 	var keys := {}
 	for n in ARM_BONES["R"]:
 		keys[n] = []
+	rot_weight = SLASH_ROT_WEIGHT
+	var worst := 0.0
 	var t := 0.0
 	while true:
-		var pose := _slash_at(minf(t, end_time), flip)
-		# giro mínimo que lleva la hoja de su dirección de reposo a la deseada
-		var turn := Basis(Quaternion(idle_blade, pose[0]))
-		var target := Transform3D(turn * idle.basis, idle.origin + (pose[1] as Vector3))
+		var pose := _slash_at(slash, minf(t, end_time))
+		# Espada deseada en ejes de cámara: X = filo, Y = -hoja (la hoja es -Y del modelo), Z = el resto.
+		var edge: Vector3 = pose[1]
+		var down: Vector3 = -(pose[0] as Vector3)
+		var sword := Basis(edge, down, edge.cross(down))
+		var target := Transform3D(sword * grip.inverse(), idle.origin + (pose[2] as Vector3))
 		var q := solve("R", target, current)
 		for n in q:
 			current[n] = q[n]
 			keys[n].append([minf(t, end_time), q[n]])
+		var got: Vector3 = (hand_cam("R").basis * grip * Vector3(0, -1, 0)).normalized()
+		worst = maxf(worst, rad_to_deg(got.angle_to(pose[0])))
 		if t >= end_time:
 			break
 		t += SLASH_STEP
+	rot_weight = 1.0
+	print("   error máximo de la hoja: ", snappedf(worst, 0.1), "°")
 	var anim := Animation.new()
 	anim.length = end_time
 	anim.loop_mode = Animation.LOOP_NONE

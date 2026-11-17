@@ -19,6 +19,9 @@ const ARM_BONES := {
 ## Estilo de dedos por mano y animación.
 const SWORD := "sword"
 const GUN := "gun"
+## Giro de la muñeca derecha (grados, sobre el eje de los dedos) con la espada: deja la espada vertical
+## (empuñadura a lo largo de los nudillos, pulgar hacia arriba).
+const SWORD_ROLL_DEG := 90.0
 
 ## nombre, clip del pack, paso entre claves (s), bucle, dedos mano derecha
 const ANIMS := [
@@ -193,6 +196,8 @@ func _build_animation(def: Array) -> Animation:
 	for time in times:
 		var targets := _sample_pack(clip, time)
 		# restaurar pose por defecto antes de resolver (el pack movió los huesos)
+		if def[4] == SWORD:
+			targets["R"].basis = (targets["R"] as Transform3D).basis * Basis(Vector3.UP, deg_to_rad(SWORD_ROLL_DEG))
 		for side in ["R", "L"]:
 			var q := solve(side, targets[side], current)
 			for n in q:

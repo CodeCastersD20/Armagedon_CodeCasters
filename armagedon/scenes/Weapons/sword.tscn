@@ -6,8 +6,8 @@
 
 [node name="Sword" type="Node3D" unique_id=1876723126]
 script = ExtResource("1_sword")
-arms_grip_position = Vector3(-0.02, 0.07, 0)
-arms_grip_rotation_degrees = Vector3(-68.4765, 145.3276, -165.8093)
+arms_grip_position = Vector3(-0.0192, 0.0744, -0.0075)
+arms_grip_rotation_degrees = Vector3(7.3998, 72.1699, -102.3824)
 arms_model_grip_point = Vector3(0, 0.836, 0)
 
 [node name="Espada PS1" parent="." unique_id=727790975 instance=ExtResource("2_5k2nm")]

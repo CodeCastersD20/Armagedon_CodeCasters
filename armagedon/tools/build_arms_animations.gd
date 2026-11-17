@@ -2,14 +2,21 @@ extends SceneTree
 ## Genera assets/animations/arms/arms_custom.res: animaciones de los brazos (espada, escudo, pistola).
 ## Uso: godot --headless --path armagedon -s res://tools/build_arms_animations.gd
 ##
-## - Los dedos salen de la pose de puño que hiciste a mano en `sword_idle` (scenes/Test/arms_test.tscn);
-##   la mano izquierda usa el puño reflejado.
+## - Los dedos salen de la pose de puño de `sword_idle` TAL COMO ESTÁ en el recurso (la que retocaste a mano);
+##   la mano izquierda usa el puño reflejado. `sword_idle` no se regenera, solo se actualizan sus dedos izquierdos.
+## - `sword_hit_a/b` usan la rotación de la muñeca y el recorrido de la mano de los tajos de Universal
+##   Animations (assets/animations/universal/viewmodel_hands.res) aplicados sobre tu pose de `sword_idle`.
 ## - El recorrido de cada mano se toma de las animaciones del pack (knife_*, guard_idle, finger_gun_*)
 ##   y un resolutor calcula hombro-codo-muñeca para que la mano pase por esos puntos con TUS dedos.
 ## - Cada animación queda con claves cada pocas décimas: ábrelas en el editor y retócalas.
 
 const ARMS_SCENE := "res://scenes/Player/player_arms.tscn"
-const USER_SCENE := "res://scenes/Test/arms_test.tscn"
+const UAL_HANDS := "res://assets/animations/universal/viewmodel_hands.res"
+## Cuánto del desplazamiento de la mano de Universal Animations se usa (1 = completo).
+const UAL_POS_SCALE := 0.1
+## Segundos de recuperación (UAL) que se conservan antes de volver a la pose de reposo.
+const UAL_REC_SECONDS := 0.0
+const BACK_TO_IDLE_SECONDS := 0.45
 const OUT := "res://assets/animations/arms/arms_custom.res"
 const ARMS_POS := Vector3(0, -1.26423, 0.27001363)
 const ARM_BONES := {
@@ -25,9 +32,6 @@ const SWORD_ROLL_DEG := 90.0
 
 ## nombre, clip del pack, paso entre claves (s), bucle, dedos mano derecha
 const ANIMS := [
-	["sword_idle", "knife_idle", 0.5, true, SWORD],
-	["sword_hit_a", "knife_hit_01", 0.1, false, SWORD],
-	["sword_hit_b", "knife_hit_02", 0.1, false, SWORD],
 	["guard", "guard_idle", 0.5, true, SWORD],
 	["gun_idle", "finger_gun_idle", 0.5, true, GUN],
 	["gun_fire", "finger_gun_fire", 0.05, false, GUN],
@@ -41,22 +45,36 @@ var bones: Array[String] = []
 var default_pose := {}
 var fist := {}
 var mirror_mode: int = 0
+var idle_arms := {}  # huesos de brazo de sword_idle (R y L), tal cual
+var ual: AnimationLibrary
 
 
 func _init() -> void:
 	await process_frame
 	_setup()
 	await process_frame
-	_read_user_fist()
-	var lib := AnimationLibrary.new()
+	var lib: AnimationLibrary = ResourceLoader.load(OUT, "", ResourceLoader.CACHE_MODE_IGNORE) as AnimationLibrary
+	if lib == null or not lib.has_animation("sword_idle"):
+		push_error("Falta %s con sword_idle: no hay pose base." % OUT)
+		quit(1)
+		return
+	ual = load(UAL_HANDS)
+	_read_idle(lib)
+	_patch_idle_left_fingers(lib)
 	for def in ANIMS:
-		var anim := _build_animation(def)
-		lib.add_animation(def[0], anim)
-		print("listo: ", def[0], " (", anim.length, " s)")
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT.get_base_dir()))
+		_replace(lib, def[0], _build_animation(def))
+	for hit in [["sword_hit_a", "slash_a", "slash_a_rec"], ["sword_hit_b", "slash_b", "slash_b_rec"]]:
+		_replace(lib, hit[0], _build_hit(hit[1], hit[2]))
 	var err := ResourceSaver.save(lib, OUT)
 	print("guardado ", OUT, " -> ", error_string(err))
 	quit()
+
+
+func _replace(lib: AnimationLibrary, anim_name: String, anim: Animation) -> void:
+	if lib.has_animation(anim_name):
+		lib.remove_animation(anim_name)
+	lib.add_animation(anim_name, anim)
+	print("listo: ", anim_name, " (", snappedf(anim.length, 0.01), " s)")
 
 
 func _setup() -> void:
@@ -78,15 +96,30 @@ func _setup() -> void:
 		default_pose[sk.get_bone_name(i)] = sk.get_bone_pose_rotation(i)
 
 
-func _read_user_fist() -> void:
-	var user: Node = load(USER_SCENE).instantiate()
-	var player := user.find_child("CustomAnim", true, false) as AnimationPlayer
-	var anim: Animation = player.get_animation("sword_idle")
+func _read_idle(lib: AnimationLibrary) -> void:
+	var anim: Animation = lib.get_animation("sword_idle")
 	for i in anim.get_track_count():
 		var path := str(anim.track_get_path(i))
-		if anim.track_get_type(i) == Animation.TYPE_ROTATION_3D and path.begins_with("Skeleton3D:"):
-			fist[path.get_slice(":", 1)] = anim.rotation_track_interpolate(i, 0.0)
-	user.free()
+		if anim.track_get_type(i) != Animation.TYPE_ROTATION_3D or not path.begins_with("Skeleton3D:"):
+			continue
+		var bone := path.get_slice(":", 1)
+		var q: Quaternion = anim.rotation_track_interpolate(i, 0.0)
+		if bone.ends_with(".R") and _is_finger(bone):
+			fist[bone] = q
+		if ARM_BONES["R"].has(bone) or ARM_BONES["L"].has(bone):
+			idle_arms[bone] = q
+
+
+## Reescribe en sword_idle solo los dedos de la mano izquierda (reflejo del puño derecho actual).
+func _patch_idle_left_fingers(lib: AnimationLibrary) -> void:
+	var anim: Animation = lib.get_animation("sword_idle")
+	var left := finger_pose(SWORD)
+	for b in left:
+		if not (b as String).ends_with(".L"):
+			continue
+		var t := anim.find_track(NodePath("Skeleton3D:" + b), Animation.TYPE_ROTATION_3D)
+		if t >= 0:
+			anim.track_set_key_value(t, 0, left[b])
 
 
 # ---- dedos ----------------------------------------------------------------------------------
@@ -220,3 +253,74 @@ func _build_animation(def: Array) -> Animation:
 		else:
 			anim.rotation_track_insert_key(track, 0.0, default_pose[b])
 	return anim
+
+
+# ---- tajos con rotación de muñeca (Universal Animations) --------------------------------------
+
+func _ual_sample(clip: String, t: float) -> Dictionary:
+	var anim: Animation = ual.get_animation(clip)
+	# En viewmodel_hands.res las manos son pistas de valor (RightHand:position / :quaternion).
+	var pos_t := anim.find_track(NodePath("RightHand:position"), Animation.TYPE_VALUE)
+	var rot_t := anim.find_track(NodePath("RightHand:quaternion"), Animation.TYPE_VALUE)
+	t = clampf(t, 0.0, anim.length)
+	return {"pos": anim.value_track_interpolate(pos_t, t), "rot": anim.value_track_interpolate(rot_t, t)}
+
+
+func _build_hit(strike_clip: String, rec_clip: String) -> Animation:
+	# Pose de reposo (la tuya): se aplica y se mide dónde queda la mano derecha.
+	apply_arm_pose(idle_arms)
+	var idle: Transform3D = hand_cam("R")
+	var first: Dictionary = _ual_sample(strike_clip, 0.0)
+	var base_rot: Quaternion = first["rot"]
+	var strike_len: float = ual.get_animation(strike_clip).length
+	# (tiempo de la animación, clip, tiempo dentro del clip)
+	var samples: Array = []
+	var t := 0.0
+	while t < strike_len - 0.001:
+		samples.append([t, strike_clip, t])
+		t += 0.04
+	samples.append([strike_len, strike_clip, strike_len])
+	t = 0.1
+	while t <= UAL_REC_SECONDS + 0.001:
+		samples.append([strike_len + t, rec_clip, t])
+		t += 0.1
+	var end_time: float = strike_len + UAL_REC_SECONDS + BACK_TO_IDLE_SECONDS
+	var current := idle_arms.duplicate()
+	var keys := {}
+	for n in ARM_BONES["R"]:
+		keys[n] = []
+	var first_pos: Vector3 = first["pos"]
+	for smp in samples:
+		var u: Dictionary = _ual_sample(smp[1], smp[2])
+		# giro de la mano respecto al inicio del tajo, en ejes de cámara
+		var delta: Basis = Basis((u["rot"] as Quaternion) * base_rot.inverse())
+		var target := Transform3D(delta * idle.basis, idle.origin + ((u["pos"] as Vector3) - first_pos) * UAL_POS_SCALE)
+		var q := solve("R", target, current)
+		for n in q:
+			current[n] = q[n]
+			keys[n].append([smp[0], q[n]])
+	for n in ARM_BONES["R"]:
+		keys[n].append([end_time, idle_arms[n]])  # vuelve a la pose de reposo
+	var anim := Animation.new()
+	anim.length = end_time
+	anim.loop_mode = Animation.LOOP_NONE
+	var fingers := finger_pose(SWORD)
+	for b in bones:
+		var track := anim.add_track(Animation.TYPE_ROTATION_3D)
+		anim.track_set_path(track, NodePath("Skeleton3D:" + b))
+		anim.track_set_interpolation_type(track, Animation.INTERPOLATION_LINEAR)
+		if keys.has(b):
+			for k in keys[b]:
+				anim.rotation_track_insert_key(track, k[0], k[1])
+		elif idle_arms.has(b):
+			anim.rotation_track_insert_key(track, 0.0, idle_arms[b])  # mano izquierda quieta con el escudo
+		elif fingers.has(b):
+			anim.rotation_track_insert_key(track, 0.0, fingers[b])
+		else:
+			anim.rotation_track_insert_key(track, 0.0, default_pose[b])
+	return anim
+
+
+func apply_arm_pose(pose: Dictionary) -> void:
+	for b in pose:
+		sk.set_bone_pose_rotation(sk.find_bone(b), pose[b])

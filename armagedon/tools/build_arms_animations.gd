@@ -4,19 +4,29 @@ extends SceneTree
 ##
 ## - Los dedos salen de la pose de puño de `sword_idle` TAL COMO ESTÁ en el recurso (la que retocaste a mano);
 ##   la mano izquierda usa el puño reflejado. `sword_idle` no se regenera, solo se actualizan sus dedos izquierdos.
-## - `sword_hit_a/b` usan la rotación de la muñeca y el recorrido de la mano de los tajos de Universal
-##   Animations (assets/animations/universal/viewmodel_hands.res) aplicados sobre tu pose de `sword_idle`.
+## - `sword_hit_a/b` se definen por poses de la HOJA (hacia dónde apunta) y de la mano, en ejes de cámara,
+##   partiendo de tu pose de `sword_idle`. A corta de arriba-derecha a abajo-izquierda y B al revés.
+##   Si el giro te queda al lado contrario, cambia SLASH_FLIP a -1.0.
 ## - El recorrido de cada mano se toma de las animaciones del pack (knife_*, guard_idle, finger_gun_*)
 ##   y un resolutor calcula hombro-codo-muñeca para que la mano pase por esos puntos con TUS dedos.
 ## - Cada animación queda con claves cada pocas décimas: ábrelas en el editor y retócalas.
 
 const ARMS_SCENE := "res://scenes/Player/player_arms.tscn"
-const UAL_HANDS := "res://assets/animations/universal/viewmodel_hands.res"
-## Cuánto del desplazamiento de la mano de Universal Animations se usa (1 = completo).
-const UAL_POS_SCALE := 0.1
-## Segundos de recuperación (UAL) que se conservan antes de volver a la pose de reposo.
-const UAL_REC_SECONDS := 0.0
-const BACK_TO_IDLE_SECONDS := 0.45
+## 1.0: A corta de derecha a izquierda (y B de izquierda a derecha); -1.0 los invierte.
+const SLASH_FLIP := 1.0
+## Hacia dónde apunta la hoja en ejes de la mano (sale de arms_grip_rotation_degrees de sword.tscn).
+const BLADE_IN_HAND := Vector3(-0.2728, 0.2126, 0.9383)
+## Poses del tajo A (derecha -> izquierda): [tiempo, dirección de la hoja en ejes de cámara
+## (x derecha, y arriba, z hacia atrás), desplazamiento de la mano en metros].
+const SLASH_KEYS := [
+	[0.00, Vector3(0.00, 1.00, -0.15), Vector3(0.00, 0.00, 0.00)],
+	[0.14, Vector3(0.45, 0.85, 0.25), Vector3(0.06, 0.08, 0.08)],
+	[0.26, Vector3(0.00, 0.30, -0.95), Vector3(-0.02, 0.00, -0.18)],
+	[0.34, Vector3(-0.85, -0.45, -0.30), Vector3(-0.18, -0.12, -0.08)],
+	[0.50, Vector3(-0.75, -0.30, -0.35), Vector3(-0.14, -0.08, -0.05)],
+	[0.95, Vector3(0.00, 1.00, -0.15), Vector3(0.00, 0.00, 0.00)],
+]
+const SLASH_STEP := 0.04
 const OUT := "res://assets/animations/arms/arms_custom.res"
 const ARMS_POS := Vector3(0, -1.26423, 0.27001363)
 const ARM_BONES := {
@@ -46,7 +56,6 @@ var default_pose := {}
 var fist := {}
 var mirror_mode: int = 0
 var idle_arms := {}  # huesos de brazo de sword_idle (R y L), tal cual
-var ual: AnimationLibrary
 
 
 func _init() -> void:
@@ -58,13 +67,12 @@ func _init() -> void:
 		push_error("Falta %s con sword_idle: no hay pose base." % OUT)
 		quit(1)
 		return
-	ual = load(UAL_HANDS)
 	_read_idle(lib)
 	_patch_idle_left_fingers(lib)
 	for def in ANIMS:
 		_replace(lib, def[0], _build_animation(def))
-	for hit in [["sword_hit_a", "slash_a", "slash_a_rec"], ["sword_hit_b", "slash_b", "slash_b_rec"]]:
-		_replace(lib, hit[0], _build_hit(hit[1], hit[2]))
+	_replace(lib, "sword_hit_a", _build_hit(SLASH_FLIP))
+	_replace(lib, "sword_hit_b", _build_hit(-SLASH_FLIP))
 	var err := ResourceSaver.save(lib, OUT)
 	print("guardado ", OUT, " -> ", error_string(err))
 	quit()
@@ -255,52 +263,46 @@ func _build_animation(def: Array) -> Animation:
 	return anim
 
 
-# ---- tajos con rotación de muñeca (Universal Animations) --------------------------------------
+# ---- tajos --------------------------------------------------------------------------------------
 
-func _ual_sample(clip: String, t: float) -> Dictionary:
-	var anim: Animation = ual.get_animation(clip)
-	# En viewmodel_hands.res las manos son pistas de valor (RightHand:position / :quaternion).
-	var pos_t := anim.find_track(NodePath("RightHand:position"), Animation.TYPE_VALUE)
-	var rot_t := anim.find_track(NodePath("RightHand:quaternion"), Animation.TYPE_VALUE)
-	t = clampf(t, 0.0, anim.length)
-	return {"pos": anim.value_track_interpolate(pos_t, t), "rot": anim.value_track_interpolate(rot_t, t)}
+## Pose del tajo en el instante t: dirección de la hoja y desplazamiento de la mano (con flip lateral).
+func _slash_at(t: float, flip: float) -> Array:
+	var keys: Array = SLASH_KEYS
+	var i := 0
+	while i < keys.size() - 2 and t > keys[i + 1][0]:
+		i += 1
+	var k0: Array = keys[i]
+	var k1: Array = keys[i + 1]
+	var u: float = clampf((t - k0[0]) / (k1[0] - k0[0]), 0.0, 1.0)
+	u = u * u * (3.0 - 2.0 * u)  # arranque y frenada suaves
+	var dir: Vector3 = (k0[1] as Vector3).lerp(k1[1], u).normalized()
+	var off: Vector3 = (k0[2] as Vector3).lerp(k1[2], u)
+	return [Vector3(dir.x * flip, dir.y, dir.z).normalized(), Vector3(off.x * flip, off.y, off.z)]
 
 
-func _build_hit(strike_clip: String, rec_clip: String) -> Animation:
+func _build_hit(flip: float) -> Animation:
 	# Pose de reposo (la tuya): se aplica y se mide dónde queda la mano derecha.
 	apply_arm_pose(idle_arms)
 	var idle: Transform3D = hand_cam("R")
-	var first: Dictionary = _ual_sample(strike_clip, 0.0)
-	var base_rot: Quaternion = first["rot"]
-	var strike_len: float = ual.get_animation(strike_clip).length
-	# (tiempo de la animación, clip, tiempo dentro del clip)
-	var samples: Array = []
-	var t := 0.0
-	while t < strike_len - 0.001:
-		samples.append([t, strike_clip, t])
-		t += 0.04
-	samples.append([strike_len, strike_clip, strike_len])
-	t = 0.1
-	while t <= UAL_REC_SECONDS + 0.001:
-		samples.append([strike_len + t, rec_clip, t])
-		t += 0.1
-	var end_time: float = strike_len + UAL_REC_SECONDS + BACK_TO_IDLE_SECONDS
+	var idle_blade: Vector3 = (idle.basis * BLADE_IN_HAND).normalized()
+	var end_time: float = SLASH_KEYS[SLASH_KEYS.size() - 1][0]
 	var current := idle_arms.duplicate()
 	var keys := {}
 	for n in ARM_BONES["R"]:
 		keys[n] = []
-	var first_pos: Vector3 = first["pos"]
-	for smp in samples:
-		var u: Dictionary = _ual_sample(smp[1], smp[2])
-		# giro de la mano respecto al inicio del tajo, en ejes de cámara
-		var delta: Basis = Basis((u["rot"] as Quaternion) * base_rot.inverse())
-		var target := Transform3D(delta * idle.basis, idle.origin + ((u["pos"] as Vector3) - first_pos) * UAL_POS_SCALE)
+	var t := 0.0
+	while true:
+		var pose := _slash_at(minf(t, end_time), flip)
+		# giro mínimo que lleva la hoja de su dirección de reposo a la deseada
+		var turn := Basis(Quaternion(idle_blade, pose[0]))
+		var target := Transform3D(turn * idle.basis, idle.origin + (pose[1] as Vector3))
 		var q := solve("R", target, current)
 		for n in q:
 			current[n] = q[n]
-			keys[n].append([smp[0], q[n]])
-	for n in ARM_BONES["R"]:
-		keys[n].append([end_time, idle_arms[n]])  # vuelve a la pose de reposo
+			keys[n].append([minf(t, end_time), q[n]])
+		if t >= end_time:
+			break
+		t += SLASH_STEP
 	var anim := Animation.new()
 	anim.length = end_time
 	anim.loop_mode = Animation.LOOP_NONE

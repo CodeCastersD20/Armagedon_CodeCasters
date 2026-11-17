@@ -10,6 +10,6 @@ kind = 1
 damage = 35.0
 attack_interval = 1.2
 max_range = 2.5
-hit_delay_seconds = 0.1
+hit_delay_seconds = 0.22
 weapon_scene = ExtResource("1_scene")
 use_pack_animation = true

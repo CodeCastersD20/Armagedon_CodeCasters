@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://bkpranon87p1x" path="res://scripts/Player/player.gd" id="1_1kbk7"]
 [ext_resource type="Resource" uid="uid://b52lr3pe5h3mm" path="res://data/player_stats.tres" id="2_gqjuk"]
 [ext_resource type="Script" uid="uid://cgwbqawqxlxe2" path="res://scripts/WeaponBob/weapon_bob.gd" id="3_bob"]
-[ext_resource type="Resource" path="res://data/weapon_bob_stats.tres" id="4_bobstats"]
+[ext_resource type="Resource" uid="uid://y16jw3k8jghg" path="res://data/weapon_bob_stats.tres" id="4_bobstats"]
 [ext_resource type="Script" uid="uid://b4nj6qifhgs43" path="res://scripts/Weapons/shield.gd" id="5_shield"]
 [ext_resource type="Script" uid="uid://cujw4666a0c1f" path="res://scripts/Weapons/weapon_manager.gd" id="5_uiqp4"]
 [ext_resource type="Resource" uid="uid://bgk1r21ac0jqu" path="res://data/weapons/pistol.tres" id="6_pistol"]
@@ -55,7 +55,7 @@ rest_position = Vector3(-0.81, -1.06, -1.03)
 block_position = Vector3(-0.2, -0.55, -0.9)
 
 [node name="Shield2" parent="Head/Camera3D/Shield" unique_id=936461788 instance=ExtResource("9_wwtew")]
-transform = Transform3D(-3.4969112e-08, 0, 0.8, 0, 0.8, 0, -0.8, 0, -3.4969112e-08, 0, 0, 0)
+transform = Transform3D(-3.4969112e-08, 0, 0.8, 0, 0.8, 0, -0.8, 0, -3.4969112e-08, 0, -0.5, 0)
 
 [node name="ShieldPose" type="Node3D" parent="Head/Camera3D/Shield" unique_id=408486640]
 

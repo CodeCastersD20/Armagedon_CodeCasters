@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="WeaponBobStats" format=3 uid="uid://bh7wqtr7gvldl"]
+[gd_resource type="Resource" script_class="WeaponBobStats" format=3 uid="uid://y16jw3k8jghg"]
 
 [ext_resource type="Script" uid="uid://blw2g3vy2jusu" path="res://scripts/WeaponBob/weapon_bob_stats.gd" id="1_bobstats"]
 

@@ -5,8 +5,9 @@
 [resource]
 script = ExtResource("1_stats")
 max_air_jumps = 1
+dash_distance = 8.0
 dash_in_air = true
 head_cam_move_enabled = true
 head_cam_jump_style = 1
-head_cam_move_scale_position = 0.3
-head_cam_move_scale_rotation = 0.3
+head_cam_move_scale_position = 0.15
+head_cam_move_scale_rotation = 0.15

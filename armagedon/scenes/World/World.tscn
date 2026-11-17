@@ -2,18 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://c7gojarrgqvgl" path="res://scenes/Player/player.tscn" id="1_6rd1t"]
 [ext_resource type="PackedScene" path="res://scenes/Dummy/TrainingDummy.tscn" id="2_dummy"]
-
-[ext_resource type="Shader" path="res://assets/shaders/psx.gdshader" id="3_psx"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_floor"]
-shader = ExtResource("3_psx")
-shader_parameter/albedo_color = Color(0.42, 0.4, 0.38, 1)
-shader_parameter/snap_resolution = 160.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_wall"]
-shader = ExtResource("3_psx")
-shader_parameter/albedo_color = Color(0.6, 0.55, 0.5, 1)
-shader_parameter/snap_resolution = 160.0
+[ext_resource type="Shader" uid="uid://8cvg1se3q1g0" path="res://assets/shaders/psx.gdshader" id="3_psx"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_6rd1t"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -25,16 +14,28 @@ sky_material = SubResource("ProceduralSkyMaterial_6rd1t")
 [sub_resource type="Environment" id="Environment_mbmvx"]
 background_mode = 2
 sky = SubResource("Sky_1bnsl")
+glow_enabled = true
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_floor"]
+render_priority = 0
+shader = ExtResource("3_psx")
+shader_parameter/albedo_color = Color(0.42, 0.4, 0.38, 1)
+shader_parameter/snap_resolution = 160.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wall"]
+render_priority = 0
+shader = ExtResource("3_psx")
+shader_parameter/albedo_color = Color(0.6, 0.55, 0.5, 1)
+shader_parameter/snap_resolution = 160.0
 
 [node name="World" type="Node3D" unique_id=1111263311]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=149825168]
 environment = SubResource("Environment_mbmvx")
 
-[node name="Sol" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 8, 0)
+[node name="Sol" type="DirectionalLight3D" parent="." unique_id=638401752]
+transform = Transform3D(0.899554, -0.432538, 0.06093937, -0.31086242, -0.5359126, 0.78496003, -0.30686688, -0.7250576, -0.6165421, 1.633307, 12.122532, -13.46772)
 light_energy = 0.9
-shadow_enabled = false
 
 [node name="Player" parent="." unique_id=1210332556 instance=ExtResource("1_6rd1t")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0056672096, 0.009530306, 0.007673621)

@@ -1,14 +1,12 @@
-[gd_resource type="Resource" script_class="PlayerArmsSettings" format=3]
+[gd_resource type="Resource" script_class="PlayerArmsSettings" format=3 uid="uid://b6ahtbv7uw3f4"]
 
-[ext_resource type="Script" path="res://scripts/player_arms_settings.gd" id="1_set"]
+[ext_resource type="Script" uid="uid://bmcmyhqjceuit" path="res://scripts/player_arms_settings.gd" id="1_set"]
 
 [resource]
 script = ExtResource("1_set")
 idle_anim = &"gun_idle"
-walk_anim = &""
 fire_anim = &"gun_fire"
 reload_anim = &"gun_reload"
-blend_time = 0.1
 melee_idle_anim = &"sword_idle"
 melee_hit_anims = Array[StringName]([&"sword_hit_a", &"sword_hit_b"])
 guard_anim = &"guard"

@@ -4,6 +4,8 @@
 [ext_resource type="Resource" path="res://data/player_arms.tres" id="2_set"]
 [ext_resource type="PackedScene" uid="uid://yaoioqknxax4" path="res://assets/models/arms/psx_first_person_arms/arms_rig.glb" id="3_glb"]
 
+[ext_resource type="AnimationLibrary" path="res://assets/animations/arms/arms_custom.res" id="4_lib"]
+
 [node name="PlayerArms" type="Node3D" unique_id=90769109]
 script = ExtResource("1_arms")
 settings = ExtResource("2_set")
@@ -74,5 +76,9 @@ bones/50/position = Vector3(0.6604739, 1.3061002, -0.05074787)
 bones/50/rotation = Quaternion(-0.02143595, 0.04266431, 0.8901127, -0.4532325)
 bones/51/position = Vector3(0.4639069, 1.429291, -0.26763627)
 bones/51/rotation = Quaternion(0.34815243, -0.6154591, 0.6154591, -0.34815246)
+
+[node name="ArmsAnim" type="AnimationPlayer" parent="."]
+root_node = NodePath("../ArmsRig/ArmsRig")
+libraries/ = ExtResource("4_lib")
 
 [editable path="ArmsRig"]

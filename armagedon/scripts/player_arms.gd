@@ -27,11 +27,14 @@ var _melee_index: int = 0
 func _ready() -> void:
 	add_to_group("player_arms")
 	PsxStyle.apply(self)
-	var found: Array[Node] = find_children("*", "AnimationPlayer", true, false)
-	if found.is_empty():
-		push_error("PlayerArms: no hay AnimationPlayer en el modelo.")
-		return
-	_player = found[0] as AnimationPlayer
+	# Animaciones propias (ArmsAnim, tools/build_arms_animations.gd); si no existe, las del modelo.
+	_player = get_node_or_null("ArmsAnim") as AnimationPlayer
+	if _player == null:
+		var found: Array[Node] = find_children("*", "AnimationPlayer", true, false)
+		if found.is_empty():
+			push_error("PlayerArms: no hay AnimationPlayer en el modelo.")
+			return
+		_player = found[0] as AnimationPlayer
 	_player.animation_finished.connect(_on_animation_finished)
 	for anim: StringName in [settings.idle_anim, settings.walk_anim, settings.melee_idle_anim, settings.guard_anim]:
 		if _player.has_animation(anim):

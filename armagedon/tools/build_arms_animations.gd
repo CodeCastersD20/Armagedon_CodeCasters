@@ -23,12 +23,11 @@ const GRIP_EULER_DEG := Vector3(7.3998, 72.1699, -102.3824)
 ## Entre poses se suaviza.
 const SLASH_KEYS := [
 	[0.00, Vector3(0.00, 1.00, -0.15), Vector3.ZERO, Vector3(0.00, 0.00, 0.00), 0.0],
-	[0.18, Vector3(0.45, 0.85, 0.25), Vector3.ZERO, Vector3(0.06, 0.08, 0.08), 0.3],
-	[0.30, Vector3(0.05, 0.35, -0.93), Vector3(-1.0, 0.0, 0.0), Vector3(-0.02, 0.00, -0.18), 0.8],
-	[0.40, Vector3(-0.55, 0.00, -0.83), Vector3(-0.8, -0.5, 0.0), Vector3(-0.08, -0.02, -0.16), 1.0],
-	[0.52, Vector3(-0.75, -0.25, -0.60), Vector3(-0.5, -0.8, 0.2), Vector3(-0.12, -0.05, -0.10), 1.0],
-	[0.65, Vector3(-0.75, -0.25, -0.60), Vector3(-0.5, -0.8, 0.2), Vector3(-0.12, -0.05, -0.10), 1.0],
-	[1.00, Vector3(0.00, 1.00, -0.15), Vector3.ZERO, Vector3(0.00, 0.00, 0.00), 0.0],
+	[0.14, Vector3(0.45, 0.85, 0.25), Vector3.ZERO, Vector3(0.06, 0.08, 0.08), 0.3],
+	[0.26, Vector3(0.00, 0.30, -0.95), Vector3(-1.0, 0.0, 0.0), Vector3(-0.02, 0.00, -0.18), 0.8],
+	[0.34, Vector3(-0.85, -0.45, -0.30), Vector3(-0.6, -0.7, 0.2), Vector3(-0.18, -0.12, -0.08), 1.0],
+	[0.50, Vector3(-0.75, -0.30, -0.35), Vector3(-0.6, -0.7, 0.2), Vector3(-0.14, -0.08, -0.05), 1.0],
+	[0.95, Vector3(0.00, 1.00, -0.15), Vector3.ZERO, Vector3(0.00, 0.00, 0.00), 0.0],
 ]
 ## En el tajo B la mano parte de la derecha: cruza esta distancia (m) hacia el centro para que la hoja no salga de cuadro.
 const SLASH_B_CROSS := 0.22

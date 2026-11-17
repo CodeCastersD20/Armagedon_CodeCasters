@@ -15,6 +15,7 @@ signal reload_finished
 var _fire: Weapon
 var _melee: Weapon
 var _current: Weapon
+var _player: Player
 
 
 func _ready() -> void:
@@ -30,19 +31,24 @@ func _unhandled_input(event: InputEvent) -> void:
 		switch_weapon()
 	elif event.is_action_pressed("reload") and _current != null:
 		_current.try_reload()
-	elif (
-		event.is_action_pressed("attack")
-		and _current != null
-		and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
-	):
+	elif event.is_action_pressed("attack") and _can_attack():
 		_current.try_attack()
 
 
 func _process(_delta: float) -> void:
 	if _current == null or Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		return
-	if _current.data.automatic and Input.is_action_pressed("attack"):
+	if _current.data.automatic and Input.is_action_pressed("attack") and _can_attack():
 		_current.try_attack()
+
+
+## No se ataca con el cursor suelto ni con la espada mientras se cubre con el escudo.
+func _can_attack() -> bool:
+	if _current == null or Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		return false
+	if _player == null:
+		_player = get_tree().get_first_node_in_group("player") as Player
+	return not (_player != null and _player.is_blocking())
 
 
 func get_current_weapon() -> Weapon:

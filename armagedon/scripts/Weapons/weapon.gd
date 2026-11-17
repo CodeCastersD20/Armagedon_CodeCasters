@@ -151,6 +151,8 @@ func _spawn_impact(pos: Vector3, normal: Vector3) -> void:
 	var mat := StandardMaterial3D.new()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.albedo_color = Color(1.0, 0.25, 0.1)
+	# Visible aunque el punto quede dentro del cuerpo del enemigo (golpes melee).
+	mat.no_depth_test = true
 	sphere.material = mat
 	var node := MeshInstance3D.new()
 	node.mesh = sphere

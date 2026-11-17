@@ -7,6 +7,8 @@ extends CharacterBody3D
 signal stamina_changed(current: float, maximum: float)
 ## Vida actual y máxima. Para el HUD (#88).
 signal health_changed(current: float, maximum: float)
+## Emite cuando el escudo bloquea exitosamente un ataque frontal (para sonido/efecto).
+signal attack_blocked(damage_blocked: float)
 ## HP llegó a 0: no es muerte, es el escape (aro de luz). Lo escucha el RoundManager (#72).
 signal player_escaped
 
@@ -28,6 +30,8 @@ var _time_since_damage: float = 0.0
 var _regen_timer: float = 0.0
 var _escaped: bool = false
 var _spawn_transform: Transform3D
+var _is_blocking: bool = false
+var _weapon_manager: WeaponManager
 
 @onready var _head: Node3D = $Head
 @onready var _collision: CollisionShape3D = $Colison
@@ -37,6 +41,8 @@ func _ready() -> void:
 	if stats == null:
 		stats = PlayerStats.new()
 	add_to_group("player")
+	# El WeaponManager se registra en su grupo en su propio _ready (hijo, corre antes que este).
+	_weapon_manager = get_tree().get_first_node_in_group("weapon_manager") as WeaponManager
 	_spawn_transform = global_transform
 	_collision.shape = _collision.shape.duplicate()
 	_stand_height = (_collision.shape as CapsuleShape3D).height
@@ -76,6 +82,7 @@ func _physics_process(delta: float) -> void:
 
 	_update_crouch(delta)
 	_update_running(input_dir)
+	_update_shield_block()
 
 	if Input.is_action_just_pressed("dash"):
 		_try_dash(direction)
@@ -159,9 +166,27 @@ func get_regen_seconds_left() -> float:
 
 
 ## Aplica daño (ya con el multiplicador). Al llegar a 0 emite player_escaped una sola vez.
-func take_damage(amount: float) -> void:
+## Acepta damage_source_position opcional para comprobar si el escudo lo bloquea de frente.
+func take_damage(amount: float, damage_source_position: Vector3 = Vector3.INF) -> void:
 	if _escaped or amount <= 0.0:
 		return
+
+	# Si se está cubriendo con el escudo y el ataque viene de frente, bloquea el 100%
+	if _is_blocking and damage_source_position != Vector3.INF:
+		var to_source: Vector3 = (damage_source_position - global_position).normalized()
+		# Usamos la dirección frontal del jugador (horizontal)
+		var forward: Vector3 = -global_basis.z
+		to_source.y = 0.0
+		forward.y = 0.0
+		to_source = to_source.normalized()
+		forward = forward.normalized()
+		var dot: float = forward.dot(to_source)
+		var min_dot: float = cos(deg_to_rad(stats.shield_block_angle_degrees * 0.5))
+		if dot >= min_dot:
+			# Bloqueo exitoso frontal
+			attack_blocked.emit(amount)
+			return
+
 	_health = maxf(_health - amount * damage_taken_multiplier, 0.0)
 	_time_since_damage = 0.0
 	_regen_timer = 0.0
@@ -169,6 +194,31 @@ func take_damage(amount: float) -> void:
 	if _health <= 0.0:
 		_escaped = true
 		player_escaped.emit()
+
+
+## Actualiza el estado de cobertura del escudo y el multiplicador pasivo (GDD §6.1).
+func _update_shield_block() -> void:
+	var has_sword_equipped: bool = false
+	if _weapon_manager != null:
+		var current_w: Weapon = _weapon_manager.get_current_weapon()
+		has_sword_equipped = current_w != null and current_w.is_melee()
+
+	# Pasiva GDD §6.1: llevar espada + escudo reduce el daño un 60%
+	if has_sword_equipped:
+		damage_taken_multiplier = 1.0 - stats.sword_shield_passive_reduction
+	else:
+		damage_taken_multiplier = 1.0
+
+	# Bloqueo activo manteniendo clic derecho (solo con la espada equipada)
+	_is_blocking = (
+		has_sword_equipped
+		and Input.is_action_pressed("block")
+		and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+	)
+
+
+func is_blocking() -> bool:
+	return _is_blocking
 
 
 func _regen_health(delta: float) -> void:

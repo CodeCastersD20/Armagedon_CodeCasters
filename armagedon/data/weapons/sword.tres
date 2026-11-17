@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://g3xkb2ao6fsg" path="res://scripts/Weapons/weapon_data.gd" id="1_wdata"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_sword"]
-size = Vector3(0.05, 0.05, 1)
+size = Vector3(0.05, 0.8, 0.05)
 
 [resource]
 script = ExtResource("1_wdata")
@@ -14,5 +14,8 @@ damage = 35.0
 magazine_size = 0
 reload_seconds = 0.0
 attack_interval = 1.2
+max_range = 2.5
+arc_angle_degrees = 90.0
+hit_delay_seconds = 0.1
 weapon_scene = ExtResource("1_scene")
 mesh = SubResource("BoxMesh_sword")

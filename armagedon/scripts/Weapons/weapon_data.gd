@@ -15,8 +15,12 @@ enum Kind { FIRE, MELEE }
 @export var attack_interval: float = 0.5
 ## Si es true, mantener clic izquierdo sigue disparando según la cadencia.
 @export var automatic: bool = true
-## Alcance máximo del rayo hitscan en metros (armas de fuego).
+## Alcance máximo en metros: rayo hitscan (fuego) o alcance del arco (melee).
 @export var max_range: float = 100.0
+## Solo melee: ángulo total del arco frontal en grados.
+@export_range(10.0, 360.0, 5.0) var arc_angle_degrees: float = 90.0
+## Solo melee: segundos desde el clic hasta que el golpe conecta (sincroniza con la animación).
+@export var hit_delay_seconds: float = 0.0
 ## Escena con un script que herede de Weapon (#41, #45...). Si está vacía se usa Weapon base.
 @export var weapon_scene: PackedScene
 ## Modelo provisional mientras no haya escena propia.

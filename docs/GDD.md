@@ -168,10 +168,10 @@ Ejemplo propuesto (ajustable):
 | Enemigo | HP base | Daño base | Aparece desde |
 |---|---|---|---|
 | Esqueleto Condenado | 30 | 10 | Ronda 1 |
-| Demonio del Averno | 80 | 20 | Ronda 2 |
-| The Wrapped | 250 | 35 | Ronda 4 |
-| **Jefe** (rondas 10, 20…) | **[PEND.]** mayor | **[PEND.]** mayor | Cada 10 rondas |
-| Lucifer (ronda 100) | **[PEND.]** | **[PEND.]** | Ronda 100 |
+| Demonio del Averno | 80 | 21 | Ronda 2 |
+| The Wrapped | 325 | 30 | Ronda 4 |
+| **Jefe** (rondas 10, 20…) | 3,534 | 40 | Cada 10 rondas |
+| Lucifer (ronda 100) | 30,000 | 150 | Ronda 100 |
 
 Los stats de la tabla son los de la ronda 1 y escalan con la ronda (§9).
 

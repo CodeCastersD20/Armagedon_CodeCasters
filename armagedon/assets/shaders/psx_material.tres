@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://ctnixfjcvbg3s"]
+
+[ext_resource type="Shader" uid="uid://8cvg1se3q1g0" path="res://assets/shaders/psx.gdshader" id="1_pearc"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_pearc")
+shader_parameter/albedo_color = Color(1, 1, 1, 1)
+shader_parameter/snap_resolution = 160.0

@@ -169,8 +169,8 @@ Ejemplo propuesto (ajustable):
 |---|---|---|---|
 | Esqueleto Condenado | 30 | 10 | Ronda 1 |
 | Demonio del Averno | 80 | 21 | Ronda 2 |
-| The Wrapped | 325 | 38 | Ronda 4 |
-| **Jefe** (rondas 10, 20…) | 3,534 | 26 | Cada 10 rondas |
+| The Wrapped | 325 | 30 | Ronda 4 |
+| **Jefe** (rondas 10, 20…) | 3,534 | 40 | Cada 10 rondas |
 | Lucifer (ronda 100) | 30,000 | 150 | Ronda 100 |
 
 Los stats de la tabla son los de la ronda 1 y escalan con la ronda (§9).
@@ -361,11 +361,10 @@ El ejemplo del documento original (46,540 pts) ya no aplica y se recalculará.
 2. Nombre definitivo del Castillo de Lucifer (rondas 91–99).
 3. Estamina: consumo y recarga; espera de la regeneración de vida.
 4. Cadencias de pistola, escopeta y subfusil.
-5. Stats de jefes y Lucifer.
-6. Tabla de mejoras (precios y valores) — §8.1.
-7. Fórmula de escalado de stats por ronda y cantidad de enemigos en pantalla.
-8. Multiplicador de combo, puntos de jefe/ronda/Fe, golpe recibido, rangos.
-9. Drops: cantidad y probabilidad.
-10. Arena, boceto y storyboard.
-11. Menús (pausa, opciones, pantalla de escape).
-12. Confirmar licencias marcadas como "Verificar".
+5. Tabla de mejoras (precios y valores) — §8.1.
+6. Fórmula de escalado de stats por ronda y cantidad de enemigos en pantalla.
+7. Multiplicador de combo, puntos de jefe/ronda/Fe, golpe recibido, rangos.
+8. Drops: cantidad y probabilidad.
+9. Arena, boceto y storyboard.
+10. Menús (pausa, opciones, pantalla de escape).
+11. Confirmar licencias marcadas como "Verificar".

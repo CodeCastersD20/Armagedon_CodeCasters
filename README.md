@@ -66,3 +66,4 @@ Cada épica (T01–T13) tiene sub-issues pequeñas. Ver [Issues](https://github.
 - Puck — [Skeleton](https://puszke.itch.io/psx-low-poly-skeleton) (CC0), [Rifle](https://puszke.itch.io/psx-rifle)
 - Elbolilloduro — [Characters PSX](https://elbolilloduro.itch.io/characters-psx)
 - Codyanka — [The Wrapped](https://codyanka.itch.io/the-wrapped)
+- Crimsongcat — [Espada PS1](https://crimsongcat.itch.io/psx-sword-espada-ps1) (licencia por verificar)

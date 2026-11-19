@@ -4,6 +4,7 @@
 
 [ext_resource type="PackedScene" path="res://scenes/Dummy/TrainingDummy.tscn" id="2_dummy"]
 [ext_resource type="Shader" uid="uid://8cvg1se3q1g0" path="res://assets/shaders/psx.gdshader" id="3_psx"]
+[ext_resource type="PackedScene" path="res://scenes/Enemies/Squeletor.tscn" id="4_squeletor"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_6rd1t"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -28,6 +29,10 @@ render_priority = 0
 shader = ExtResource("3_psx")
 shader_parameter/albedo_color = Color(0.6, 0.55, 0.5, 1)
 shader_parameter/snap_resolution = 160.0
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_floor"]
+vertices = PackedVector3Array(-20, 0, -20, 20, 0, -20, 20, 0, 20, -20, 0, 20)
+polygons = [PackedInt32Array(0, 1, 2), PackedInt32Array(0, 2, 3)]
 
 [node name="World" type="Node3D" unique_id=1111263311]
 
@@ -62,5 +67,11 @@ collision_layer = 2
 size = Vector3(39.97531, 5, 0.2)
 material = SubResource("ShaderMaterial_wall")
 
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("NavigationMesh_floor")
+
 [node name="TrainingDummy" parent="." unique_id=1883699490 instance=ExtResource("2_dummy")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -3)
+
+[node name="Squeletor" parent="." instance=ExtResource("4_squeletor")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -6)

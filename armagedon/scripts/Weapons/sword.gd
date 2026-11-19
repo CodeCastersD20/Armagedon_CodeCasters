@@ -97,7 +97,8 @@ func _perform_combat_hit() -> void:
 		if not _has_line_of_sight(space_state, origin, target_point, exclude, collider):
 			continue
 		hit_targets.append(collider)
-		collider.call("take_damage", data.damage)
+		var roll: Dictionary = roll_damage()
+		collider.call("take_damage", roll["damage"], roll["crit"])
 		var normal: Vector3 = -to_target.normalized()
 		_spawn_impact(target_point, normal)
 		hit_enemy.emit(collider, target_point)

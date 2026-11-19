@@ -98,8 +98,6 @@ func cancel_reload() -> void:
 	position.z = 0.0
 
 
-## Disparo hitscan desde el centro de la cámara para armas de fuego.
-func _perform_attack() -> void:
 ## Devuelve el daño del golpe; tira el crítico. Sin relación con headshot ni Score.
 func roll_damage() -> Dictionary:
 	var is_crit: bool = randf() < data.crit_chance

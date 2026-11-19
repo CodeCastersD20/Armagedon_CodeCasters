@@ -168,10 +168,10 @@ Ejemplo propuesto (ajustable):
 | Enemigo | HP base | Daño base | Aparece desde |
 |---|---|---|---|
 | Esqueleto Condenado | 30 | 10 | Ronda 1 |
-| Demonio del Averno | 80 | 20 | Ronda 2 |
-| The Wrapped | 250 | 35 | Ronda 4 |
-| **Jefe** (rondas 10, 20…) | **[PEND.]** mayor | **[PEND.]** mayor | Cada 10 rondas |
-| Lucifer (ronda 100) | **[PEND.]** | **[PEND.]** | Ronda 100 |
+| Demonio del Averno | 80 | 21 | Ronda 2 |
+| The Wrapped | 325 | 30 | Ronda 4 |
+| **Jefe** (rondas 10, 20…) | 3,534 | 40 | Cada 10 rondas |
+| Lucifer (ronda 100) | 30,000 | 150 | Ronda 100 |
 
 Los stats de la tabla son los de la ronda 1 y escalan con la ronda (§9).
 
@@ -231,9 +231,19 @@ Sugerencia: llenar primero precio y valor por nivel de lo que ya está en la tie
 
 ## 9. Oleadas
 
-- **La cantidad de enemigos no crece con las rondas.** Lo que crece son los **stats de todos los enemigos** (vida, daño y velocidad). **[PENDIENTE]** fórmula de escalado (propuesta: `stat = base × (1 + 0.1 × (ronda − 1))`) y qué enemigos salen en cada rango de rondas.
-- **Tope simultáneo:** 30 enemigos; al morir uno se repone otro. **[PENDIENTE]** cantidad objetivo en pantalla.
-- **Ronda con jefe:** cada 10 rondas aparece el jefe; **[PENDIENTE]** si aparece solo o junto a la horda.
+- **Cantidad constante:** 12 enemigos simultáneos en todas las rondas (1–100); al morir uno se repone otro. El tope duro de 30 (§17) es un límite de seguridad, no un objetivo de aparición.
+- **Escalado de stats:** la vida, el daño y la velocidad de cada enemigo se calculan con `stat = base × (1 + 0.1 × (ronda − 1))`. La velocidad se aplica como multiplicador sobre la velocidad base configurada en `data/`.
+- **Composición por rango de rondas:**
+
+  | Rondas | Enemigos en la horda |
+  |---|---|
+  | 1 | Esqueleto Condenado |
+  | 2–3 | Esqueleto Condenado + Demonio del Averno |
+  | 4–9 | Esqueleto Condenado + Demonio del Averno + The Wrapped |
+  | 10+ (excepto la 100) | La horda anterior; en las rondas múltiplos de 10 se añade el jefe |
+  | 100 | La horda anterior y Lucifer en lugar del jefe |
+
+- **Ronda con jefe:** cada 10 rondas aparece el jefe junto a la horda, nunca solo.
 - **Eventos especiales:** ninguno por ahora.
 - **Arena y puntos de aparición:** **[PENDIENTE]** la arena aún no se ha diseñado.
 
@@ -274,7 +284,7 @@ No hay cajas de munición porque la munición es infinita.
 ## 13. Dirección de arte
 
 - Low-poly PSX: modelos de 300–1,200 triángulos, texturas de 256–500 px.
-- Resolución interna 640×480 o 320×240, Nearest-Neighbor, vertex snapping, dithering.
+- Resolución interna 640×480 o 320×240, Nearest-Neighbor, vertex snapping, dithering. Detalles de compatibilidad y rendimiento en §17.1 y §17.2.
 - Paleta: rojos y negros del Infierno, dorado para Zahariel y lo divino, azul para el Mercante.
 
 | Uso | Autor / Pack | Licencia |
@@ -353,6 +363,28 @@ El ejemplo del documento original (46,540 pts) ya no aplica y se recalculará.
 - Tope de 30 enemigos a la vez.
 - **Fuera de alcance de la beta:** multijugador, jefes secretos, eventos especiales, comportamientos distintos por enemigo, guardado entre partidas, círculos con nombre.
 
+### 17.1 Compatibilidad y costo del shader PSX
+
+- **Multiplataforma:** el shader (`assets/shaders/psx.gdshader`) es shader estándar de Godot 4 (`.gdshader`), sin código específico de plataforma. Godot lo compila para Vulkan (Linux), Direct3D 12 (Windows, ver `project.godot`) y Compatibility. No usa extensiones ni texturas especiales.
+- **Estado de la verificación:** probado solo en Linux (AMD RX 7600, Vulkan, Forward+). **[PENDIENTE]** probarlo en Windows y en la PC más modesta (iGPU) antes de cerrar #37.
+- **Costo:** el vertex snapping es una multiplicación de matriz, una división y un `floor` por vértice; con modelos de 300–1,200 triángulos es despreciable. El fragment shader (`lambert`, sin especular) es más barato que el material estándar. El costo real en una iGPU está en los píxeles (resolución, sombras, glow, luces), no en el shader.
+- **Cómo medirlo:** ejecutar `scenes/Test/psx_test.tscn` (F6) y anotar FPS y tiempo de frame (Debugger → Monitors) con y sin el shader en cada PC. Meta: 60 FPS (16.6 ms por frame).
+
+### 17.2 Optimización (modelos, enemigos y escena)
+
+| Área | Regla |
+|---|---|
+| Modelos | Respetar 300–1,200 triángulos; sin mallas ocultas ni caras que nunca se ven. |
+| Texturas | 256–500 px, sin mipmaps innecesarios, filtro Nearest. Compartir un atlas por familia de enemigos. |
+| Materiales | Pocos y compartidos. `PsxStyle.apply()` cachea el `ShaderMaterial` por material original, textura y rejilla: 30 enemigos del mismo tipo comparten un solo material. |
+| Resolución | Renderizar a 640×480 o 320×240 (#38): es la mayor ganancia en una iGPU, porque reduce el costo por píxel. |
+| Iluminación | Una luz direccional y pocas luces dinámicas. Sombras desactivadas o solo en la luz principal; sin SSAO, SSR ni SDFGI. Revisar el `glow` de `WorldEnvironment`. |
+| Enemigos | Tope de 30 simultáneos. Esqueleto con pocos huesos; animaciones simples; no instanciar ni liberar en cada frame. |
+| Pooling | Reutilizar objetos de efectos frecuentes (trazos de disparo, marcas de impacto) en vez de crearlos y liberarlos por golpe. **[PENDIENTE]** `DamageNumber` (número flotante del muñeco de pruebas) crea un `Label3D` por golpe: hoy es solo herramienta de depuración; decidir si pasa al juego final (y con pooling) o se quita. |
+| Física e IA | Colisiones con formas simples (cápsula, caja); evitar `ConcavePolygonShape3D` salvo la arena estática. Recalcular rutas del NavMesh con intervalo, no cada frame. |
+| Escena | Props repetidos con `MultiMeshInstance3D`; `VisibleOnScreenNotifier`/visibility range para lo lejano; la arena es pequeña, así que el occlusion culling solo si hace falta. |
+| Proceso | Medir antes de optimizar (Profiler y Monitors). Probar en la PC más modesta antes de mergear cualquier cambio visual pesado. |
+
 ---
 
 ## 18. Pendientes consolidados
@@ -363,9 +395,10 @@ El ejemplo del documento original (46,540 pts) ya no aplica y se recalculará.
 4. Cadencias de pistola, escopeta y subfusil.
 5. Stats de jefes y Lucifer.
 6. Tabla de mejoras (precios y valores) — §8.1.
-7. Fórmula de escalado de stats por ronda y cantidad de enemigos en pantalla.
-8. Multiplicador de combo, puntos de jefe/ronda/Fe, golpe recibido, rangos.
-9. Drops: cantidad y probabilidad.
-10. Arena, boceto y storyboard.
-11. Menús (pausa, opciones, pantalla de escape).
-12. Confirmar licencias marcadas como "Verificar".
+7. Multiplicador de combo, puntos de jefe/ronda/Fe, golpe recibido, rangos.
+8. Drops: cantidad y probabilidad.
+9. Arena, boceto y storyboard.
+10. Menús (pausa, opciones, pantalla de escape).
+11. Confirmar licencias marcadas como "Verificar".
+12. `DamageNumber`: decidir si el número flotante de daño pasa al juego final (con pooling) o queda solo como depuración del muñeco.
+13. Verificar el shader PSX en Windows y en la PC con iGPU (§17.1).

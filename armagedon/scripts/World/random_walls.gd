@@ -44,9 +44,7 @@ func randomize_walls() -> void:
 		wall.rotation.y = _rng.randf_range(0.0, TAU)
 
 
-func _find_valid_position(
-	placed: Array[Vector2], protected_points: Array[Vector2]
-) -> Variant:
+func _find_valid_position(placed: Array[Vector2], protected_points: Array[Vector2]) -> Variant:
 	var min_spacing_sq: float = min_spacing * min_spacing
 	var center_radius_sq: float = safe_center_radius * safe_center_radius
 	var protected_radius_sq: float = protected_radius * protected_radius

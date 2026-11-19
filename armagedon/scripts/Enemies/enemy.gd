@@ -181,8 +181,8 @@ func _resolve_spawn_overlap() -> void:
 		var radius: float = step * float(ring)
 		for slot in range(8):
 			var angle: float = TAU * float(slot) / 8.0
-			var candidate: Vector3 = global_position + Vector3(
-				cos(angle) * radius, 0.0, sin(angle) * radius
+			var candidate: Vector3 = (
+				global_position + Vector3(cos(angle) * radius, 0.0, sin(angle) * radius)
 			)
 			if _is_spot_clear(candidate, others, min_sq):
 				global_position = candidate

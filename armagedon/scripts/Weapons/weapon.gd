@@ -120,7 +120,6 @@ func roll_damage() -> Dictionary:
 	return {"damage": amount, "crit": is_crit}
 
 
-
 ## Disparo hitscan desde el centro de la cámara para armas de fuego.
 func _perform_attack() -> void:
 	if is_melee():

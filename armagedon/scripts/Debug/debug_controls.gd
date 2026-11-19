@@ -136,16 +136,12 @@ func _build_ui() -> void:
 		spawn_row, "Spawn Squeletor (+1)", _on_spawn_enemies_pressed.bind(1)
 	)
 	spawn_one.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var spawn_five := _add_action_button(
-		spawn_row, "x5", _on_spawn_enemies_pressed.bind(5)
-	)
+	var spawn_five := _add_action_button(spawn_row, "x5", _on_spawn_enemies_pressed.bind(5))
 	spawn_five.custom_minimum_size = Vector2(48.0, 0.0)
 
 	_add_action_button(vbox, "Matar todos los enemigos", _on_kill_all_pressed)
 
-	_next_round_btn = _add_action_button(
-		vbox, "Pasar de ronda (pendiente)", _on_next_round_pressed
-	)
+	_next_round_btn = _add_action_button(vbox, "Pasar de ronda (pendiente)", _on_next_round_pressed)
 	_add_shards_btn = _add_action_button(
 		vbox, "+1000 Esquirlas (pendiente)", _on_add_shards_pressed
 	)
@@ -182,9 +178,10 @@ func _refresh_ui() -> void:
 		_add_shards_btn.text = "+%d Esquirlas" % DEBUG_SHARDS
 
 	var enemy_count: int = get_tree().get_nodes_in_group("enemies").size()
-	_status_label.text = "Tiempo: x%s | Dios: %s | Enemigos: %d" % [
-		str(Engine.time_scale), "ON" if god_on else "OFF", enemy_count
-	]
+	_status_label.text = (
+		"Tiempo: x%s | Dios: %s | Enemigos: %d"
+		% [str(Engine.time_scale), "ON" if god_on else "OFF", enemy_count]
+	)
 	_update_badge()
 
 
@@ -278,8 +275,8 @@ func _find_free_spawn_position(desired: Vector3, occupied: Array[Vector3]) -> Ve
 		var radius: float = SPAWN_SPACING * float(ring)
 		for slot in range(8):
 			var angle: float = TAU * float(slot) / 8.0
-			var candidate: Vector3 = desired + Vector3(
-				cos(angle) * radius, 0.0, sin(angle) * radius
+			var candidate: Vector3 = (
+				desired + Vector3(cos(angle) * radius, 0.0, sin(angle) * radius)
 			)
 			if _is_spawn_clear(candidate, occupied, min_sq):
 				return candidate

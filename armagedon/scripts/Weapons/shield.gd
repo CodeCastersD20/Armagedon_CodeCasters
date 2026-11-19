@@ -21,6 +21,7 @@ func _ready() -> void:
 	position = rest_position
 	rotation_degrees = rest_rotation_degrees
 	_build_mesh()
+	PsxStyle.apply(self)
 	# El WeaponManager es hijo del jugador y se registra antes que este nodo.
 	var manager := get_tree().get_first_node_in_group("weapon_manager") as WeaponManager
 	if manager != null:

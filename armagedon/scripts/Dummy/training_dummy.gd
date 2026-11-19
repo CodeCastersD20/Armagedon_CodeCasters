@@ -11,6 +11,10 @@ extends StaticBody3D
 @export_range(0.0, 1.0, 0.05) var debug_crit_chance: float = 0.2
 
 
+func _ready() -> void:
+	PsxStyle.apply(self)
+
+
 func take_damage(amount: float, is_critical: bool = false) -> void:
 	is_critical = is_critical or randf() < debug_crit_chance
 	var offset := Vector3(

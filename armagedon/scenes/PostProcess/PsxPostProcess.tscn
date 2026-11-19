@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/psx_post_process.gd" id="1_post"]
+[ext_resource type="Shader" path="res://assets/shaders/psx_dither.gdshader" id="2_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dither"]
+shader = ExtResource("2_shader")
+
+[node name="PsxPostProcess" type="CanvasLayer"]
+layer = 100
+script = ExtResource("1_post")
+
+[node name="Dither" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_dither")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

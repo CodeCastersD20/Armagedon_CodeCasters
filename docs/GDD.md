@@ -231,9 +231,19 @@ Sugerencia: llenar primero precio y valor por nivel de lo que ya está en la tie
 
 ## 9. Oleadas
 
-- **La cantidad de enemigos no crece con las rondas.** Lo que crece son los **stats de todos los enemigos** (vida, daño y velocidad). **[PENDIENTE]** fórmula de escalado (propuesta: `stat = base × (1 + 0.1 × (ronda − 1))`) y qué enemigos salen en cada rango de rondas.
-- **Tope simultáneo:** 30 enemigos; al morir uno se repone otro. **[PENDIENTE]** cantidad objetivo en pantalla.
-- **Ronda con jefe:** cada 10 rondas aparece el jefe; **[PENDIENTE]** si aparece solo o junto a la horda.
+- **Cantidad constante:** 12 enemigos simultáneos en todas las rondas (1–100); al morir uno se repone otro. El tope duro de 30 (§17) es un límite de seguridad, no un objetivo de aparición.
+- **Escalado de stats:** la vida, el daño y la velocidad de cada enemigo se calculan con `stat = base × (1 + 0.1 × (ronda − 1))`. La velocidad se aplica como multiplicador sobre la velocidad base configurada en `data/`.
+- **Composición por rango de rondas:**
+
+  | Rondas | Enemigos en la horda |
+  |---|---|
+  | 1 | Esqueleto Condenado |
+  | 2–3 | Esqueleto Condenado + Demonio del Averno |
+  | 4–9 | Esqueleto Condenado + Demonio del Averno + The Wrapped |
+  | 10+ (excepto la 100) | La horda anterior; en las rondas múltiplos de 10 se añade el jefe |
+  | 100 | La horda anterior y Lucifer en lugar del jefe |
+
+- **Ronda con jefe:** cada 10 rondas aparece el jefe junto a la horda, nunca solo.
 - **Eventos especiales:** ninguno por ahora.
 - **Arena y puntos de aparición:** **[PENDIENTE]** la arena aún no se ha diseñado.
 
@@ -385,11 +395,10 @@ El ejemplo del documento original (46,540 pts) ya no aplica y se recalculará.
 4. Cadencias de pistola, escopeta y subfusil.
 5. Stats de jefes y Lucifer.
 6. Tabla de mejoras (precios y valores) — §8.1.
-7. Fórmula de escalado de stats por ronda y cantidad de enemigos en pantalla.
-8. Multiplicador de combo, puntos de jefe/ronda/Fe, golpe recibido, rangos.
-9. Drops: cantidad y probabilidad.
-10. Arena, boceto y storyboard.
-11. Menús (pausa, opciones, pantalla de escape).
-12. Confirmar licencias marcadas como "Verificar".
-13. `DamageNumber`: decidir si el número flotante de daño pasa al juego final (con pooling) o queda solo como depuración del muñeco.
-14. Verificar el shader PSX en Windows y en la PC con iGPU (§17.1).
+7. Multiplicador de combo, puntos de jefe/ronda/Fe, golpe recibido, rangos.
+8. Drops: cantidad y probabilidad.
+9. Arena, boceto y storyboard.
+10. Menús (pausa, opciones, pantalla de escape).
+11. Confirmar licencias marcadas como "Verificar".
+12. `DamageNumber`: decidir si el número flotante de daño pasa al juego final (con pooling) o queda solo como depuración del muñeco.
+13. Verificar el shader PSX en Windows y en la PC con iGPU (§17.1).

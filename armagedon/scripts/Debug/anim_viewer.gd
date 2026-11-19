@@ -121,7 +121,9 @@ func _build_ui() -> void:
 	_pack_option = OptionButton.new()
 	for pack_name: String in PACKS:
 		_pack_option.add_item(pack_name)
-	_pack_option.item_selected.connect(func(i: int) -> void: _load_pack(_pack_option.get_item_text(i)))
+	_pack_option.item_selected.connect(
+		func(i: int) -> void: _load_pack(_pack_option.get_item_text(i))
+	)
 	box.add_child(_pack_option)
 
 	_anim_option = OptionButton.new()
@@ -180,10 +182,11 @@ func _update_value_labels() -> void:
 
 ## Texto con los valores que hay que pasar a la versión final.
 func _values_text() -> String:
-	return (
-		"grip_roll_degrees = %.1f\ngrip_offset = Vector3(-0.02, %.3f, 0.0)\nblade_dir = %s\nwide_dir = %s\ngrip_center_model = %s"
-		% [_roll_slider.value, _grip_slider.value, _blade_dir, _wide_dir, _grip_center]
+	var template: String = (
+		"grip_roll_degrees = %.1f\ngrip_offset = Vector3(-0.02, %.3f, 0.0)\n"
+		+ "blade_dir = %s\nwide_dir = %s\ngrip_center_model = %s"
 	)
+	return template % [_roll_slider.value, _grip_slider.value, _blade_dir, _wide_dir, _grip_center]
 
 
 func _copy_values() -> void:
@@ -246,8 +249,12 @@ func _load_pack(pack_name: String) -> void:
 ## Mide el modelo de la espada: dirección de la hoja, ancho de la guarda y centro del mango.
 ## La hoja es el lado largo (de la guarda a la punta); el mango, el lado corto (guarda a pomo).
 func _analyze_sword() -> void:
-	var mesh_instance := _sword.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
-	var to_sword: Transform3D = _sword.global_transform.affine_inverse() * mesh_instance.global_transform
+	var mesh_instance := (
+		_sword.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
+	)
+	var to_sword: Transform3D = (
+		_sword.global_transform.affine_inverse() * mesh_instance.global_transform
+	)
 	var arrays: Array = mesh_instance.mesh.surface_get_arrays(0)
 	var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var points: Array[Vector3] = []
@@ -299,8 +306,8 @@ func _analyze_sword() -> void:
 	_grip_center[long_axis] = (guard_pos + grip_end) * 0.5
 
 
-## Coloca la espada en el puño derecho: el mango cruza la palma y la hoja sale por el lado del pulgar.
-## Ejes de la mano en este rig: +Y = dedos, +Z = pulgar, -X = palma.
+## Coloca la espada en el puño derecho: el mango cruza la palma y la hoja sale
+## por el lado del pulgar. Ejes de la mano en este rig: +Y = dedos, +Z = pulgar, -X = palma.
 func _fit_sword() -> void:
 	if _sword == null or _roll_slider == null:
 		return
@@ -326,7 +333,9 @@ func _apply_loop() -> void:
 	if _anim_option.item_count == 0:
 		return
 	var animation := _anim.get_animation(_anim_option.get_item_text(_anim_option.selected))
-	animation.loop_mode = Animation.LOOP_LINEAR if _loop_check.button_pressed else Animation.LOOP_NONE
+	animation.loop_mode = (
+		Animation.LOOP_LINEAR if _loop_check.button_pressed else Animation.LOOP_NONE
+	)
 
 
 func _process(_delta: float) -> void:
@@ -350,10 +359,13 @@ func _draw_bones() -> void:
 			continue
 		var a: Vector3 = _bone_world(parent)
 		var b: Vector3 = _bone_world(i)
-		var is_hand: bool = _skeleton.get_bone_name(i).ends_with("_r") and (
-			_skeleton.get_bone_name(i).begins_with("upperarm")
-			or _skeleton.get_bone_name(i).begins_with("lowerarm")
-			or _skeleton.get_bone_name(i).begins_with("hand")
+		var is_hand: bool = (
+			_skeleton.get_bone_name(i).ends_with("_r")
+			and (
+				_skeleton.get_bone_name(i).begins_with("upperarm")
+				or _skeleton.get_bone_name(i).begins_with("lowerarm")
+				or _skeleton.get_bone_name(i).begins_with("hand")
+			)
 		)
 		var color: Color = Color(1.0, 0.8, 0.1) if is_hand else Color(0.3, 0.9, 1.0)
 		_bones_mesh.surface_set_color(color)
@@ -413,8 +425,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			_update_camera()
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_H:
 		_toggle_menu()
-	elif event.is_action_pressed("ui_accept") or (
-		event is InputEventKey and event.pressed and event.keycode == KEY_SPACE
+	elif (
+		event.is_action_pressed("ui_accept")
+		or (event is InputEventKey and event.pressed and event.keycode == KEY_SPACE)
 	):
 		if _anim.is_playing():
 			_anim.pause()

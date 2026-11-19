@@ -58,9 +58,7 @@ func _play_recoil() -> void:
 	_pose_tween.tween_property(self, "rotation:x", kick, total * KICK_IN)
 	_pose_tween.parallel().tween_property(self, "position:y", up, total * KICK_IN)
 	_pose_tween.tween_property(self, "rotation:x", _base_rotation.x, total * (1.0 - KICK_IN))
-	_pose_tween.parallel().tween_property(
-		self, "position:y", _base_y, total * (1.0 - KICK_IN)
-	)
+	_pose_tween.parallel().tween_property(self, "position:y", _base_y, total * (1.0 - KICK_IN))
 
 
 ## Inclina el arma mientras el cargador sale y entra.

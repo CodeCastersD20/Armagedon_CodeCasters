@@ -18,7 +18,15 @@ const SLASH_DROP_Y: float = 0.25
 ## Qué tan rápido (1/segundos) se desvanece la pose del pack al terminar la animación.
 const PACK_FADE_SPEED: float = 8.0
 ## Giro de 180° en Y: pasa del personaje (mira a +Z) a la cámara (mira a -Z).
-const CAMERA_FLIP: Basis = Basis(Vector3(-1.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0), Vector3(0.0, 0.0, -1.0))
+const CAMERA_FLIP: Basis = Basis(
+	Vector3(-1.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0), Vector3(0.0, 0.0, -1.0)
+)
+
+## Medidas del modelo "Espada PS1" (las da el visor scenes/Debug/anim_viewer.tscn):
+## dirección de la hoja, dirección del ancho de la guarda y centro del mango.
+@export var model_blade_dir: Vector3 = Vector3(0.0, -1.0, 0.0)
+@export var model_wide_dir: Vector3 = Vector3(1.0, 0.0, 0.0)
+@export var model_grip_center: Vector3 = Vector3(0.0, 0.835771, 0.0)
 
 var _original_rotation: Vector3
 var _original_position: Vector3
@@ -30,13 +38,6 @@ var _pose_weight: float = 0.0
 var _idle_model_transform: Transform3D
 var _hand_rest_quat: Quaternion = Quaternion.IDENTITY
 var _pivot_rest_origin: Vector3 = Vector3.ZERO
-
-## Medidas del modelo "Espada PS1" (las da el visor scenes/Debug/anim_viewer.tscn):
-## dirección de la hoja, dirección del ancho de la guarda y centro del mango.
-@export var model_blade_dir: Vector3 = Vector3(0.0, -1.0, 0.0)
-@export var model_wide_dir: Vector3 = Vector3(1.0, 0.0, 0.0)
-@export var model_grip_center: Vector3 = Vector3(0.0, 0.835771, 0.0)
-
 var _hands: ViewmodelHands
 ## Estela de corte reutilizada en cada ataque (un solo nodo, malla y material).
 var _whoosh_node: MeshInstance3D
@@ -93,7 +94,9 @@ func _apply_pack_pose(delta: float) -> void:
 	if _hands != null and _hands.is_active():
 		# Modo "mano real": el modelo va donde está la mano de la animación, medida desde la cabeza.
 		var camera: Camera3D = _hands.first_person_camera()
-		_model.global_transform = camera.global_transform * _hands.right_in_camera() * _grip_transform()
+		_model.global_transform = (
+			camera.global_transform * _hands.right_in_camera() * _grip_transform()
+		)
 		return
 	if _pivot == null or _pack_anim == null:
 		return
@@ -103,9 +106,13 @@ func _apply_pack_pose(delta: float) -> void:
 		_model.transform = _idle_model_transform
 		return
 	var hand_basis: Basis = Basis(
-		_hand_rest_quat.slerp(_pivot.quaternion, clampf(data.pack_animation_rotation_scale, 0.0, 1.0))
+		_hand_rest_quat.slerp(
+			_pivot.quaternion, clampf(data.pack_animation_rotation_scale, 0.0, 1.0)
+		)
 	)
-	var hand_origin: Vector3 = _pivot_rest_origin + _pivot.position * data.pack_animation_position_scale
+	var hand_origin: Vector3 = (
+		_pivot_rest_origin + _pivot.position * data.pack_animation_position_scale
+	)
 	var animated: Transform3D = Transform3D(hand_basis, hand_origin) * _grip_transform()
 	_model.transform = _idle_model_transform.interpolate_with(animated, _pose_weight)
 

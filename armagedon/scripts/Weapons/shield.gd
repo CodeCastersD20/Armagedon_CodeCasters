@@ -115,11 +115,15 @@ func _apply_hand_pose() -> bool:
 ## Ejes de la mano izquierda: +Y dedos, +Z pulgar, +X palma. Se gira 180° en Y como la animación.
 func _grip_transform() -> Transform3D:
 	var scale_vec := Vector3(model_scale, model_scale, model_scale)
-	var model_to_hand := Basis(Vector3(-1.0, 0.0, 0.0), Vector3(0.0, 0.0, 1.0), Vector3(0.0, 1.0, 0.0))
+	var model_to_hand := Basis(
+		Vector3(-1.0, 0.0, 0.0), Vector3(0.0, 0.0, 1.0), Vector3(0.0, 1.0, 0.0)
+	)
 	if grip_flip_front:
 		model_to_hand = model_to_hand * Basis(Vector3.UP, PI)
 	var roll := Basis(Vector3(0.0, 0.0, 1.0), deg_to_rad(grip_roll_degrees))
-	var camera_flip := Basis(Vector3(-1.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0), Vector3(0.0, 0.0, -1.0))
+	var camera_flip := Basis(
+		Vector3(-1.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0), Vector3(0.0, 0.0, -1.0)
+	)
 	var grip_basis: Basis = camera_flip * (roll * model_to_hand)
 	var origin: Vector3 = camera_flip * grip_offset - grip_basis * (model_grip_center * scale_vec)
 	return Transform3D(grip_basis * Basis.from_scale(scale_vec), origin)
@@ -141,7 +145,9 @@ func _apply_attack_pose(delta: float, is_blocking: bool) -> void:
 		_model.transform = _model_base
 		return
 	var playing: bool = attack_anim_enabled and _attack_anim.is_playing() and not is_blocking
-	_pose_weight = move_toward(_pose_weight, 1.0 if playing else 0.0, delta * attack_anim_fade_speed)
+	_pose_weight = move_toward(
+		_pose_weight, 1.0 if playing else 0.0, delta * attack_anim_fade_speed
+	)
 	if _pose_weight <= 0.0 and not playing:
 		_model.transform = _model_base
 		return
@@ -151,8 +157,7 @@ func _apply_attack_pose(delta: float, is_blocking: bool) -> void:
 		_pose.quaternion, clampf(attack_anim_rotation_scale, 0.0, 1.0)
 	)
 	var animated := Transform3D(
-		basis.inverse() * Basis(turn) * basis * _model_base.basis,
-		_model_base.origin + offset
+		basis.inverse() * Basis(turn) * basis * _model_base.basis, _model_base.origin + offset
 	)
 	_model.transform = _model_base.interpolate_with(animated, _pose_weight)
 

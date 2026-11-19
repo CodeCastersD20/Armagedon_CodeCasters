@@ -2,6 +2,8 @@ class_name PlayerStats
 extends Resource
 ## Valores de balance del jugador. Se editan en data/player_stats.tres.
 
+enum JumpStyle { NINJA, BASIC }
+
 # TODO(GDD): velocidad, salto y sensibilidad no están definidos en el GDD (§4, §5).
 # Todos estos valores pueden ser inventados al inicio en el medio o QA del desarollo
 # seran cambiados para balancear y mejorar todo
@@ -55,8 +57,6 @@ extends Resource
 @export_range(0.0, 1.0, 0.05) var sword_shield_passive_reduction: float = 0.60
 ## Ángulo frontal de bloqueo efectivo con el escudo en grados (ej. 120° frontales).
 @export_range(30.0, 180.0, 5.0) var shield_block_angle_degrees: float = 120.0
-
-enum JumpStyle { NINJA, BASIC }
 
 # Movimiento de cámara tomado de animaciones (scripts/Player/head_cam.gd). Escala: 0 = sin
 # efecto, 1 = completo. APAGADO por defecto: pon los interruptores en true para probarlo.

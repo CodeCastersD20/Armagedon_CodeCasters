@@ -41,16 +41,27 @@ func _physics_process(_delta: float) -> void:
 		return
 	var on_floor: bool = _player.is_on_floor()
 	var jump_name: String = _jump_prefix(stats)
-	var in_jump: bool = _anim.current_animation.begins_with("ninja/") or _anim.current_animation.begins_with("basic/")
+	var in_jump: bool = (
+		_anim.current_animation.begins_with("ninja/")
+		or _anim.current_animation.begins_with("basic/")
+	)
 
 	if stats.head_cam_jump_enabled:
 		if _was_on_floor and not on_floor and _player.velocity.y > 0.0:
-			_play(jump_name + "/jump_start", stats.head_cam_jump_scale_position, stats.head_cam_jump_scale_rotation)
+			_play(
+				jump_name + "/jump_start",
+				stats.head_cam_jump_scale_position,
+				stats.head_cam_jump_scale_rotation
+			)
 			_anim.queue(jump_name + "/jump_idle")
 			_was_on_floor = on_floor
 			return
 		if not _was_on_floor and on_floor:
-			_play(jump_name + "/jump_land", stats.head_cam_jump_scale_position, stats.head_cam_jump_scale_rotation)
+			_play(
+				jump_name + "/jump_land",
+				stats.head_cam_jump_scale_position,
+				stats.head_cam_jump_scale_rotation
+			)
 			_was_on_floor = on_floor
 			return
 	_was_on_floor = on_floor

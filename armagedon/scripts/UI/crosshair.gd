@@ -24,12 +24,18 @@ func _draw() -> void:
 	var center: Vector2 = size * 0.5
 	var arms: Array[Rect2] = [
 		Rect2(center + Vector2(gap, -thickness * 0.5), Vector2(arm_length, thickness)),
-		Rect2(center + Vector2(-gap - arm_length, -thickness * 0.5), Vector2(arm_length, thickness)),
+		Rect2(
+			center + Vector2(-gap - arm_length, -thickness * 0.5), Vector2(arm_length, thickness)
+		),
 		Rect2(center + Vector2(-thickness * 0.5, gap), Vector2(thickness, arm_length)),
-		Rect2(center + Vector2(-thickness * 0.5, -gap - arm_length), Vector2(thickness, arm_length)),
+		Rect2(
+			center + Vector2(-thickness * 0.5, -gap - arm_length), Vector2(thickness, arm_length)
+		),
 	]
 	if show_dot:
-		arms.append(Rect2(center - Vector2(thickness, thickness) * 0.5, Vector2(thickness, thickness)))
+		arms.append(
+			Rect2(center - Vector2(thickness, thickness) * 0.5, Vector2(thickness, thickness))
+		)
 	for rect in arms:
 		draw_rect(rect.grow(1.0), outline_color)
 	for rect in arms:

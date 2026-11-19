@@ -3,8 +3,9 @@ extends Node3D
 ## Vista en tercera persona SOLO PARA DEPURAR. Con la tecla V alterna entre la cámara de primera
 ## persona y una cámara detrás del jugador. Muestra el maniquí de Universal Animation Library 2 con
 ## sus huesos y la espada en la mano derecha, y reproduce su animación de espada cuando atacas.
-## El arma y el escudo de primera persona siguen colgados de la cámara, así se compara el movimiento.
-## Solo funciona en compilaciones de depuración. Si falta el modelo (está en .gitignore), usa una cápsula.
+## El arma y el escudo de primera persona siguen colgados de la cámara,
+## así se compara el movimiento. Solo funciona en depuración. Si falta el modelo
+## (está en .gitignore), usa una cápsula.
 
 const MANNEQUIN_PATH: String = "res://assets/animations/universal/UAL2_Standard.glb"
 const SWORD_PATH: String = "res://assets/models/weapons/espada_ps1/Espada PS1.fbx"
@@ -186,8 +187,13 @@ func _draw_bones() -> void:
 		if parent < 0:
 			continue
 		var name: String = _skeleton.get_bone_name(i)
-		var is_arm: bool = name.ends_with("_r") and (
-			name.begins_with("upperarm") or name.begins_with("lowerarm") or name.begins_with("hand")
+		var is_arm: bool = (
+			name.ends_with("_r")
+			and (
+				name.begins_with("upperarm")
+				or name.begins_with("lowerarm")
+				or name.begins_with("hand")
+			)
 		)
 		var color: Color = Color(1.0, 0.8, 0.1) if is_arm else Color(0.3, 0.9, 1.0)
 		_bones_mesh.surface_set_color(color)
@@ -198,7 +204,9 @@ func _draw_bones() -> void:
 
 
 func _bone_position(index: int) -> Vector3:
-	return _holder.to_local((_skeleton.global_transform * _skeleton.get_bone_global_pose(index)).origin)
+	return _holder.to_local(
+		(_skeleton.global_transform * _skeleton.get_bone_global_pose(index)).origin
+	)
 
 
 func _unhandled_input(event: InputEvent) -> void:

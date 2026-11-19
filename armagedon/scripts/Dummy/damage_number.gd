@@ -5,11 +5,11 @@ extends Label3D
 const COLOR_NORMAL := Color.WHITE
 const COLOR_CRITICAL := Color(1.0, 0.1, 0.1)
 
-@export var rise_height: float = 1.0
-@export var lifetime: float = 1.2
-
 ## Números libres para reutilizar: evita crear y liberar un nodo por golpe.
 static var _pool: Array[DamageNumber] = []
+
+@export var rise_height: float = 1.0
+@export var lifetime: float = 1.2
 
 
 ## Crea el número en `world_pos` y lo añade a la escena actual.

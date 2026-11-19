@@ -19,6 +19,8 @@ static var _cache: Dictionary = {}
 static func apply(
 	root: Node, fallback_texture: Texture2D = null, snap_resolution: float = 0.0
 ) -> void:
+	if root is MeshInstance3D:
+		_apply_to_mesh(root as MeshInstance3D, fallback_texture, snap_resolution)
 	for node in root.find_children("*", "MeshInstance3D", true, false):
 		_apply_to_mesh(node as MeshInstance3D, fallback_texture, snap_resolution)
 

@@ -60,6 +60,7 @@ Mantén los números de balance en `armagedon/data/` (Resources), no en el códi
   - Tipos: `feat`, `fix`, `docs`, `chore`, `ci`, `test`, `refactor`, `perf`, `art`, `audio`.
   - Zonas: `repo`, `gdd`, `art`, `player`, `weapons`, `arena`, `enemies`, `rounds`, `shop`, `audio`, `ui`, `score`, `qa`, `release`.
 - PR siempre a `develop`, con `Closes #N` y revisión de al menos un compañero. Nunca push directo a `main`.
+- **CI obligatorio en cada PR:** todos los workflows de GitHub Actions (`.github/workflows/*.yml`, como `godot-ci.yml`) deben pasar en verde en cada PR; no se mergea un PR con checks fallando.
 - **Metadatos del PR (obligatorio al abrirlo):**
   - **Assignees:** la persona del equipo que hace el trabajo (la responsable de la issue), nunca un agente.
   - **Labels:** las mismas de la issue vinculada (tipo y zona).

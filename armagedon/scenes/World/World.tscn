@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/Dummy/TrainingDummy.tscn" id="2_dummy"]
 [ext_resource type="Shader" uid="uid://8cvg1se3q1g0" path="res://assets/shaders/psx.gdshader" id="3_psx"]
 [ext_resource type="PackedScene" path="res://scenes/Enemies/Squeletor.tscn" id="4_squeletor"]
+[ext_resource type="Script" path="res://scripts/World/random_walls.gd" id="5_walls"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_6rd1t"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -17,16 +18,16 @@ background_mode = 2
 sky = SubResource("Sky_1bnsl")
 glow_enabled = true
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_floor"]
-render_priority = 0
-shader = ExtResource("3_psx")
-shader_parameter/albedo_color = Color(0.42, 0.4, 0.38, 1)
-shader_parameter/snap_resolution = 160.0
-
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_wall"]
 render_priority = 0
 shader = ExtResource("3_psx")
 shader_parameter/albedo_color = Color(0.6, 0.55, 0.5, 1)
+shader_parameter/snap_resolution = 160.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_floor"]
+render_priority = 0
+shader = ExtResource("3_psx")
+shader_parameter/albedo_color = Color(0.42, 0.4, 0.38, 1)
 shader_parameter/snap_resolution = 160.0
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_floor"]
@@ -45,32 +46,100 @@ light_energy = 0.9
 [node name="Player" parent="." unique_id=1210332556 instance=ExtResource("1_6rd1t")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0056672096, 0.009530306, 0.007673621)
 
-[node name="Suelo" type="CSGBox3D" parent="." unique_id=671298003]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+[node name="Paredes" type="Node3D" parent="." unique_id=848401380]
+
+[node name="paredD" type="CSGBox3D" parent="Paredes" unique_id=910465878]
+transform = Transform3D(-4.3711392e-08, 0, 1.0000001, 0, 1, 0, -1.0000001, 0, -4.3711392e-08, 20, 2.5, 0)
 use_collision = true
 collision_layer = 2
-size = Vector3(40, 0.2, 40)
+size = Vector3(40, 5, 0)
+material = SubResource("ShaderMaterial_wall")
+
+[node name="paredD2" type="CSGBox3D" parent="Paredes" unique_id=1198095461]
+transform = Transform3D(1.0000001, 0, 0, 0, 1, 0, 0, 0, 1.0000001, 0, 2.5, -20)
+use_collision = true
+collision_layer = 2
+size = Vector3(40, 5, 0)
+material = SubResource("ShaderMaterial_wall")
+
+[node name="paredD3" type="CSGBox3D" parent="Paredes" unique_id=217040859]
+transform = Transform3D(-4.37114e-08, 0, 1.0000002, 0, 1, 0, -1.0000002, 0, -4.37114e-08, -20, 2.5, 0)
+use_collision = true
+collision_layer = 2
+size = Vector3(40, 5, 0)
+material = SubResource("ShaderMaterial_wall")
+
+[node name="paredD4" type="CSGBox3D" parent="Paredes" unique_id=1944263146]
+transform = Transform3D(1.0000005, 0, 0, 0, 1, 0, 0, 0, 1.0000005, 0, 2.5, 20)
+use_collision = true
+collision_layer = 2
+size = Vector3(40, 5, 0)
+material = SubResource("ShaderMaterial_wall")
+
+[node name="Muros" type="Node3D" parent="." unique_id=297399709]
+script = ExtResource("5_walls")
+protected_nodes = Array[NodePath]([NodePath("../Player"), NodePath("../TrainingDummy"), NodePath("../Squeletor")])
+
+[node name="Muro" type="CSGBox3D" parent="Muros" unique_id=112390329]
+transform = Transform3D(0.9238795, 0, -0.38268343, 0, 1, 0, 0.38268343, 0, 0.9238795, -12.4, 2.5, -9.8)
+use_collision = true
+collision_layer = 2
+size = Vector3(1.5, 5, 1.5)
+material = SubResource("ShaderMaterial_wall")
+
+[node name="Muro2" type="CSGBox3D" parent="Muros" unique_id=1142705214]
+transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 13.1, 2.5, -5.4)
+use_collision = true
+collision_layer = 2
+size = Vector3(1.5, 5, 1.5)
+material = SubResource("ShaderMaterial_wall")
+
+[node name="Muro3" type="CSGBox3D" parent="Muros" unique_id=687363247]
+transform = Transform3D(0.8660254, 0, -0.5, 0, 1, 0, 0.5, 0, 0.8660254, 9.2, 2.5, 12.6)
+use_collision = true
+collision_layer = 2
+size = Vector3(3.2, 5, 1.2)
+material = SubResource("ShaderMaterial_wall")
+
+[node name="Muro4" type="CSGBox3D" parent="Muros" unique_id=1134719857]
+transform = Transform3D(0.9659258, 0, 0.25881904, 0, 1, 0, -0.25881904, 0, 0.9659258, -3.4, 2.5, -14.2)
+use_collision = true
+collision_layer = 2
+size = Vector3(2.8, 5, 1.2)
+material = SubResource("ShaderMaterial_wall")
+
+[node name="Muro5" type="CSGBox3D" parent="Muros" unique_id=1882732666]
+transform = Transform3D(0.5, 0, 0.8660254, 0, 1, 0, -0.8660254, 0, 0.5, -4.6, 2.5, -3.2)
+use_collision = true
+collision_layer = 2
+size = Vector3(2.2, 5, 1.2)
+material = SubResource("ShaderMaterial_wall")
+
+[node name="Muro6" type="CSGBox3D" parent="Muros" unique_id=209323415]
+transform = Transform3D(0.809017, 0, -0.58778524, 0, 1, 0, 0.58778524, 0, 0.809017, -6.9, 2.5, 11.4)
+use_collision = true
+collision_layer = 2
+size = Vector3(3.0, 5, 1.2)
+material = SubResource("ShaderMaterial_wall")
+
+[node name="Muro7" type="CSGBox3D" parent="Muros" unique_id=1539139209]
+transform = Transform3D(0.9396926, 0, 0.34202015, 0, 1, 0, -0.34202015, 0, 0.9396926, 4.4, 2.5, 3.6)
+use_collision = true
+collision_layer = 2
+size = Vector3(1.5, 5, 1.5)
+material = SubResource("ShaderMaterial_wall")
+
+[node name="Suelo" type="CSGBox3D" parent="." unique_id=671298003]
+use_collision = true
+collision_layer = 2
+size = Vector3(40, 0, 40)
 material = SubResource("ShaderMaterial_floor")
 
-[node name="pared" type="CSGBox3D" parent="." unique_id=112390329]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.37693357, 2.4946234, -4.1150413)
-use_collision = true
-collision_layer = 2
-size = Vector3(6.1, 5, 0.1)
-material = SubResource("ShaderMaterial_wall")
-
-[node name="paredD" type="CSGBox3D" parent="." unique_id=910465878]
-transform = Transform3D(-4.3711392e-08, 0, 1.0000001, 0, 1, 0, -1.0000001, 0, -4.3711392e-08, 20.1, 2.5, 0.0057662725)
-use_collision = true
-collision_layer = 2
-size = Vector3(39.97531, 5, 0.2)
-material = SubResource("ShaderMaterial_wall")
-
-[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=416018032]
 navigation_mesh = SubResource("NavigationMesh_floor")
 
 [node name="TrainingDummy" parent="." unique_id=1883699490 instance=ExtResource("2_dummy")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -3)
 
-[node name="Squeletor" parent="." instance=ExtResource("4_squeletor")]
+[node name="Squeletor" parent="." unique_id=1904340952 instance=ExtResource("4_squeletor")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -6)

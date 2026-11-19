@@ -43,7 +43,7 @@ var _slash_alternate: bool = true
 func _ready() -> void:
 	set_process(false)
 	if not OS.is_debug_build():
-		set_process_unhandled_input(false)
+		queue_free()
 		return
 	_build.call_deferred()
 
@@ -186,13 +186,13 @@ func _draw_bones() -> void:
 		var parent: int = _skeleton.get_bone_parent(i)
 		if parent < 0:
 			continue
-		var name: String = _skeleton.get_bone_name(i)
+		var bone_name: String = _skeleton.get_bone_name(i)
 		var is_arm: bool = (
-			name.ends_with("_r")
+			bone_name.ends_with("_r")
 			and (
-				name.begins_with("upperarm")
-				or name.begins_with("lowerarm")
-				or name.begins_with("hand")
+				bone_name.begins_with("upperarm")
+				or bone_name.begins_with("lowerarm")
+				or bone_name.begins_with("hand")
 			)
 		)
 		var color: Color = Color(1.0, 0.8, 0.1) if is_arm else Color(0.3, 0.9, 1.0)

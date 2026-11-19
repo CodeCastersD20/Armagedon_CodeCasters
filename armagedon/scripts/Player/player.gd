@@ -32,6 +32,7 @@ var _escaped: bool = false
 var _spawn_transform: Transform3D
 var _is_blocking: bool = false
 var _air_jumps_left: int = 0
+var _god_mode: bool = false
 var _weapon_manager: WeaponManager
 
 @onready var _head: Node3D = $Head
@@ -164,6 +165,25 @@ func get_health() -> float:
 	return _health
 
 
+func set_god_mode(enabled: bool) -> void:
+	_god_mode = enabled
+
+
+func is_god_mode() -> bool:
+	return _god_mode
+
+
+## Suma vida respetando max_health y emite health_changed.
+func heal(amount: float) -> void:
+	if _escaped or amount <= 0.0:
+		return
+	var next_health: float = minf(_health + amount, stats.max_health)
+	if is_equal_approx(next_health, _health):
+		return
+	_health = next_health
+	health_changed.emit(_health, stats.max_health)
+
+
 ## Segundos hasta el próximo HP regenerado (0 si la vida está llena o ya escapó).
 func get_regen_seconds_left() -> float:
 	if _escaped or _health >= stats.max_health:
@@ -176,7 +196,7 @@ func get_regen_seconds_left() -> float:
 ## Aplica daño (ya con el multiplicador). Al llegar a 0 emite player_escaped una sola vez.
 ## Acepta damage_source_position opcional para comprobar si el escudo lo bloquea de frente.
 func take_damage(amount: float, damage_source_position: Vector3 = Vector3.INF) -> void:
-	if _escaped or amount <= 0.0:
+	if _escaped or _god_mode or amount <= 0.0:
 		return
 
 	# Si se está cubriendo con el escudo y el ataque viene de frente, bloquea el 100%

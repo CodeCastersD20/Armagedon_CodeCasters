@@ -38,6 +38,20 @@ Mantén los números de balance en `armagedon/data/` (Resources), no en el códi
 - Una escena = un script principal. Comunicación por señales; evita rutas de nodo frágiles (`get_node("../..")`).
 - Nada de lógica de balance hardcodeada.
 
+### Reutilización y especialización
+1. **Buscar primero:** antes de crear un script, escena o helper nuevo, revisa `armagedon/scripts/`, `armagedon/data/` y `armagedon/scenes/` para ver si ya existe una clase base, `Resource` o componente reutilizable (`Weapon`, `Enemy`, `PsxStyle`, contadores, pools).
+2. **Nivel 1 — Reutilizar por datos (`.tres`):** si una nueva entidad comparte exactamente la misma mecánica que otra y solo cambian stats, mallas, animaciones o parámetros numéricos, usa la escena/script base con un nuevo `.tres` (ej. enemigos estándar con `Enemy` + `EnemyData`).
+3. **Nivel 2 — Generalizar + configurar por `Resource`:** cuando exista una **segunda variante** que comparta ~80 %+ del ciclo de vida con un script específico (ej. `Pistol` → `Firearm` al implementar subfusil, rifle o escopeta), generaliza el script compartido y configura las diferencias desde el `.tres`.
+   - **Cuándo NO aplicar:** no hagas abstracción prematura si hoy solo hay un elemento y la issue no lo pide, ni rompas escenas/UIDs existentes sin actualizar y verificar todas sus referencias.
+4. **Nivel 3 — Especializar (`extends` o `@export` explícito):** usa una subclase dedicada para mecánicas únicas o complejas (`Sword`, `Shield`, `Lucifer`). Si una variante en un script compartido requiere un ajuste puntual, usa un `@export` explícito en el `.tres` (booleano, `enum` o parámetro) o una subclase pequeña; **nunca** compares nombres visibles (`if display_name == "..."`).
+5. **Antipatrones prohibidos:** no crear "scripts dios" llenos de cadenas `if/elif`, no mezclar sistemas distintos (ej. lógica melee y de fuego en el mismo script hijo) y no refactorizar código fuera del alcance de la issue.
+
+### Zona de debug y pruebas aislada
+- Todo script de depuración vive en `armagedon/scripts/Debug/` y toda escena de prueba en `armagedon/scenes/Test/`.
+- Todo nodo o autoload de debug debe ejecutar `if not OS.is_debug_build(): queue_free(); return` en `_ready()` para tener costo cero y quedar inactivo en builds de producción.
+- Las escenas y visores independientes de `scenes/Test/` y `scripts/Debug/` se excluyen en `armagedon/export_presets.cfg` (`exclude_filter`) cuando no estén referenciados por escenas de juego o autoloads.
+- Prohibido dejar atajos de teclado de debug, trampas o `print()` permanentes dentro de scripts de gameplay (`Player`, `Weapon`, `Enemy`, etc.). Los controles de debug se conectan desde `DebugControls` hacia APIs públicas limpias (`take_damage()`, `heal()`, `set_god_mode()`).
+
 ## Git
 - Ramas: `main` (estable) y `develop` (integración) están **a la par** salvo mientras se prepara un PR; las ramas de tarea salen de `develop`.
 - **Nombre de rama:** `tipo/numero-alcance-descripcion`, donde `numero` es el número de la issue. Ej.: `feat/35-player-dash-estamina`, `docs/12-gdd-tabla-mejoras`.
@@ -102,3 +116,4 @@ Se optimiza desde el principio, no al final (detalle y motivos en `docs/GDD.md` 
 | El arma guardada reanuda una animación o un golpe al volver a equiparla | `PROCESS_MODE_DISABLED` pausa tweens y clips en vez de cancelarlos; un `await` sigue pendiente | Sobrescribir `cancel_reload()` del arma: matar tweens, parar el `AnimationPlayer`, restaurar la pose y subir `_attack_id` |
 | Crash por `null` al instanciar un arma o leer un Resource | `instantiate() as Weapon` devuelve `null`; Resources con `0` en divisores | Comprobar el `null` (`push_error` + valor por defecto) y usar `maxf(x, 0.01)` |
 | Hit y colisiones de armas cuerpo a cuerpo desfasados o erráticos | Mezclar la orientación/rotación de la animación procedural del nodo del arma con el cálculo de los raycasts de daño | Separar completamente la lógica: el registro de impacto debe calcularse en espacio de mundo directamente desde la cámara (`camera.global_basis`), independiente de los tweens o rotaciones locales de la malla |
+| Enemigos spawneados salen disparados o orbitan alrededor del jugador | Dos `CharacterBody3D` (`Enemy`) nacen en las mismas coordenadas o con cápsulas superpuestas; `move_and_slide()` aplica un impulso brusco de despenetración | El spawner debe buscar una posición libre con separación mínima (`>= 2 × radio`), y `Enemy._ready()` debe resolver cualquier solapamiento inicial (`_resolve_spawn_overlap.call_deferred()`) antes de moverse |

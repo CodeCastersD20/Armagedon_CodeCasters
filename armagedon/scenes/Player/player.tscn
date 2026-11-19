@@ -4,7 +4,7 @@
 [ext_resource type="Resource" uid="uid://b52lr3pe5h3mm" path="res://data/player_stats.tres" id="2_gqjuk"]
 [ext_resource type="Script" uid="uid://cgwbqawqxlxe2" path="res://scripts/WeaponBob/weapon_bob.gd" id="3_bob"]
 [ext_resource type="Resource" uid="uid://y16jw3k8jghg" path="res://data/weapon_bob_stats.tres" id="4_bobstats"]
-[ext_resource type="Script" uid="uid://b4nj6qifhgs43" path="res://scripts/Weapons/shield.gd" id="5_shield"]
+[ext_resource type="Script" uid="uid://b4nj6qifhgs43" path="res://scripts/Weapons/weapon/shield.gd" id="5_shield"]
 [ext_resource type="Script" uid="uid://cujw4666a0c1f" path="res://scripts/Weapons/weapon_manager.gd" id="5_uiqp4"]
 [ext_resource type="Resource" uid="uid://bgk1r21ac0jqu" path="res://data/weapons/pistol.tres" id="6_pistol"]
 [ext_resource type="Resource" uid="uid://7txwl60gdnn2" path="res://data/weapons/sword.tres" id="7_sword"]
@@ -14,7 +14,7 @@
 [ext_resource type="AnimationLibrary" path="res://assets/animations/universal/head_basic_jump.res" id="22_basic"]
 [ext_resource type="AnimationLibrary" path="res://assets/animations/universal/head_move.res" id="23_move"]
 [ext_resource type="AnimationLibrary" path="res://assets/animations/universal/shield_hand.res" id="24_shieldhand"]
-[ext_resource type="Script" uid="uid://cj3txvpmxs7du" path="res://scripts/Player/debug_view.gd" id="25_debugview"]
+[ext_resource type="Script" uid="uid://cj3txvpmxs7du" path="res://scripts/Debug/debug_view.gd" id="25_debugview"]
 [ext_resource type="Script" uid="uid://lctoyojfq02j" path="res://scripts/Player/viewmodel_hands.gd" id="26_vmhands"]
 [ext_resource type="AnimationLibrary" path="res://assets/animations/universal/viewmodel_hands.res" id="27_vmlib"]
 

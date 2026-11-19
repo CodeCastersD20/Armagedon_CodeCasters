@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cerj4pjjt0e6v"]
 
-[ext_resource type="Script" uid="uid://buiaf4dxkxw6p" path="res://scripts/Weapons/pistol.gd" id="0_weapon"]
+[ext_resource type="Script" uid="uid://buiaf4dxkxw6p" path="res://scripts/Weapons/weapon/pistol.gd" id="0_weapon"]
 [ext_resource type="PackedScene" uid="uid://dot56ij5nux1q" path="res://assets/models/weapons/retro_weapon_pack/RetroWeaponsPack/Guns/Pistol_01/FbxFiles/Pistol_01.fbx" id="1_8l185"]
 [ext_resource type="AnimationLibrary" uid="uid://cft7s38hop64s" path="res://assets/animations/pistol/pistol_anims.res" id="3_anims"]
 [ext_resource type="PackedScene" uid="uid://2c3g10jn4ve" path="res://assets/models/weapons/retro_weapon_pack/RetroWeaponsPack/Guns/Pistol_01/FbxFiles/Pistol_01_AdditionalMeshes.fbx" id="4_mags"]

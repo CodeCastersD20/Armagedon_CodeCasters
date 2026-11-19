@@ -3,6 +3,9 @@ extends Node3D
 ## Lleva un arma de fuego y una melee; solo una equipada. Q o rueda del mouse alternan.
 
 signal weapon_changed(weapon: Weapon)
+signal ammo_changed(current: int, magazine: int)
+signal reload_started(seconds: float)
+signal reload_finished
 
 @export var fire_data: WeaponData
 @export var melee_data: WeaponData
@@ -12,9 +15,11 @@ signal weapon_changed(weapon: Weapon)
 var _fire: Weapon
 var _melee: Weapon
 var _current: Weapon
+var _player: Player
 
 
 func _ready() -> void:
+	add_to_group("weapon_manager")
 	_fire = _spawn(fire_data)
 	_melee = _spawn(melee_data)
 	var first: Weapon = _melee if start_with_melee else _fire
@@ -24,6 +29,26 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("switch_weapon"):
 		switch_weapon()
+	elif event.is_action_pressed("reload") and _current != null:
+		_current.try_reload()
+	elif event.is_action_pressed("attack") and _can_attack():
+		_current.try_attack()
+
+
+func _process(_delta: float) -> void:
+	if _current == null or Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		return
+	if _current.data.automatic and Input.is_action_pressed("attack") and _can_attack():
+		_current.try_attack()
+
+
+## No se ataca con el cursor suelto ni con la espada mientras se cubre con el escudo.
+func _can_attack() -> bool:
+	if _current == null or Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		return false
+	if _player == null:
+		_player = get_tree().get_first_node_in_group("player") as Player
+	return not (_player != null and _player.is_blocking())
 
 
 func get_current_weapon() -> Weapon:
@@ -64,6 +89,9 @@ func _spawn(data: WeaponData) -> Weapon:
 		weapon = Weapon.new()
 	weapon.data = data
 	weapon.name = data.display_name if data.display_name != "" else "Weapon"
+	weapon.ammo_changed.connect(_on_weapon_ammo_changed.bind(weapon))
+	weapon.reload_started.connect(_on_weapon_reload_started.bind(weapon))
+	weapon.reload_finished.connect(_on_weapon_reload_finished.bind(weapon))
 	_set_active(weapon, false)
 	add_child(weapon)
 	return weapon
@@ -78,8 +106,24 @@ func _equip(weapon: Weapon) -> void:
 	_current = weapon
 	_set_active(_current, true)
 	weapon_changed.emit(_current)
+	ammo_changed.emit(_current.get_ammo(), _current.data.magazine_size)
 
 
 func _set_active(weapon: Weapon, active: bool) -> void:
 	weapon.visible = active
 	weapon.process_mode = Node.PROCESS_MODE_INHERIT if active else Node.PROCESS_MODE_DISABLED
+
+
+func _on_weapon_ammo_changed(current: int, magazine: int, weapon: Weapon) -> void:
+	if weapon == _current:
+		ammo_changed.emit(current, magazine)
+
+
+func _on_weapon_reload_started(seconds: float, weapon: Weapon) -> void:
+	if weapon == _current:
+		reload_started.emit(seconds)
+
+
+func _on_weapon_reload_finished(weapon: Weapon) -> void:
+	if weapon == _current:
+		reload_finished.emit()

@@ -22,21 +22,12 @@ static var _tracer_pool: Array[MeshInstance3D] = []
 static var _impact_pool: Array[MeshInstance3D] = []
 
 @export var data: WeaponData
-@export_group("Agarre en la mano derecha")
-## Dónde queda el punto de agarre del arma, en ejes de la mano (la coloca PlayerArms).
-@export var arms_grip_position: Vector3 = Vector3.ZERO
-@export var arms_grip_rotation_degrees: Vector3 = Vector3.ZERO
-## Punto del modelo (coordenadas locales) que va dentro del puño.
-@export var arms_model_grip_point: Vector3 = Vector3.ZERO
 
 var _ammo: int = 0
 var _cooldown: float = 0.0
 var _reload_left: float = 0.0
 var _mesh_instance: MeshInstance3D
 var _player_body: CollisionObject3D
-var _arms: PlayerArms
-var _model_scale: Vector3 = Vector3.ONE
-var _model_scale_cached: bool = false
 
 
 func _ready() -> void:
@@ -52,36 +43,6 @@ func _ready() -> void:
 		add_child(_mesh_instance)
 	# Estilo PSX (vertex snapping) en todas las mallas del arma; los materiales se cachean.
 	PsxStyle.apply(self)
-	_bind_arms.call_deferred()
-
-
-## Se engancha a los brazos: cada vez que sus manos se actualizan, el modelo se coloca en la mano.
-func _bind_arms() -> void:
-	_arms = get_tree().get_first_node_in_group("player_arms") as PlayerArms
-	if _arms != null:
-		_arms.hands_updated.connect(_on_hands_updated)
-
-
-## true si los brazos sostienen el arma (en vez de la animación anterior del pack UAL).
-func _arms_active() -> bool:
-	return _arms != null and _arms.is_active()
-
-
-## Modelo que va en la mano; lo definen las armas concretas.
-func _grip_model() -> Node3D:
-	return null
-
-
-func _on_hands_updated() -> void:
-	var model: Node3D = _grip_model()
-	if model == null or not visible or not is_inside_tree():
-		return
-	if not _model_scale_cached:
-		_model_scale = model.transform.basis.get_scale()
-		_model_scale_cached = true
-	_arms.place_in_hand(
-		model, true, arms_grip_position, arms_grip_rotation_degrees, arms_model_grip_point, _model_scale
-	)
 
 
 func _process(delta: float) -> void:

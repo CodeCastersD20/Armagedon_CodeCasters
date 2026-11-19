@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://drd4tr5j7ofy6"]
+
+[ext_resource type="Script" uid="uid://c1fgbw3jtekfy" path="res://scripts/Enemies/enemy_data.gd" id="1_edata"]
+
+[resource]
+script = ExtResource("1_edata")
+display_name = "Esqueleto Condenado"
+max_health = 30.0
+contact_damage = 10.0
+move_speed = 3.0
+contact_cooldown = 1.0
+contact_range = 1.5
+scaling_per_round = 0.1
+damage_number_height = 1.8

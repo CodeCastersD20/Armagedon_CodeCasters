@@ -113,6 +113,14 @@ func cancel_reload() -> void:
 	position.z = 0.0
 
 
+## Devuelve el daño del golpe; tira el crítico. Sin relación con headshot ni Score.
+func roll_damage() -> Dictionary:
+	var is_crit: bool = randf() < data.crit_chance
+	var amount: float = data.damage * (data.crit_multiplier if is_crit else 1.0)
+	return {"damage": amount, "crit": is_crit}
+
+
+
 ## Disparo hitscan desde el centro de la cámara para armas de fuego.
 func _perform_attack() -> void:
 	if is_melee():
@@ -134,7 +142,8 @@ func _perform_attack() -> void:
 	_spawn_impact(hit_pos, hit_norm)
 	var collider: Object = hit["collider"]
 	if collider.has_method("take_damage"):
-		collider.call("take_damage", data.damage)
+		var roll: Dictionary = roll_damage()
+		collider.call("take_damage", roll["damage"], roll["crit"])
 	hit_target.emit(collider, hit_pos, hit_norm)
 
 
@@ -242,10 +251,3 @@ func prewarm() -> void:
 	await get_tree().process_frame
 	_pool_release(tracer, _tracer_pool)
 	_pool_release(impact, _impact_pool)
-
-
-## Devuelve el daño del golpe; tira el crítico. Sin relación con headshot ni Score.
-func roll_damage() -> Dictionary:
-	var is_crit: bool = randf() < data.crit_chance
-	var amount: float = data.damage * (data.crit_multiplier if is_crit else 1.0)
-	return {"damage": amount, "crit": is_crit}

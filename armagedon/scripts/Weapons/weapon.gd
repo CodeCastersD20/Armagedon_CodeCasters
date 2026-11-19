@@ -41,7 +41,7 @@ func _ready() -> void:
 		_mesh_instance = MeshInstance3D.new()
 		_mesh_instance.mesh = data.mesh
 		add_child(_mesh_instance)
-	# Estilo PSX (vertex snapping) en todas las mallas del arma; los materiales se cachean.
+	# Estilo PSX (Nearest y vertex snapping) en todas las mallas del arma; los materiales se cachean.
 	PsxStyle.apply(self)
 
 

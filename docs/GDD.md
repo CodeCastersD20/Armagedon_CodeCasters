@@ -173,10 +173,10 @@ Ejemplo propuesto (ajustable):
 | Enemigo | HP base | Daño base | Aparece desde |
 |---|---|---|---|
 | Esqueleto Condenado | 30 | 10 | Ronda 1 |
-| Demonio del Averno | 80 | 20 | Ronda 2 |
-| The Wrapped | 250 | 35 | Ronda 4 |
-| **Jefe** (rondas 10, 20…) | **[PEND.]** mayor | **[PEND.]** mayor | Cada 10 rondas |
-| Lucifer (ronda 100) | **[PEND.]** | **[PEND.]** | Ronda 100 |
+| Demonio del Averno | 80 | 21 | Ronda 2 |
+| The Wrapped | 325 | 30 | Ronda 4 |
+| **Jefe** (rondas 10, 20…) | 3,534 | 40 | Cada 10 rondas |
+| Lucifer (ronda 100) | 30,000 | 150 | Ronda 100 |
 
 Los stats de la tabla son los de la ronda 1 y escalan con la ronda (§9).
 
@@ -236,9 +236,19 @@ Sugerencia: llenar primero precio y valor por nivel de lo que ya está en la tie
 
 ## 9. Oleadas
 
-- **La cantidad de enemigos no crece con las rondas.** Lo que crece son los **stats de todos los enemigos** (vida, daño y velocidad). **[PENDIENTE]** fórmula de escalado (propuesta: `stat = base × (1 + 0.1 × (ronda − 1))`) y qué enemigos salen en cada rango de rondas.
-- **Tope simultáneo:** 30 enemigos; al morir uno se repone otro. **[PENDIENTE]** cantidad objetivo en pantalla.
-- **Ronda con jefe:** cada 10 rondas aparece el jefe junto con **todos los enemigos sobrantes** de rondas anteriores (ver §3).
+- **Cantidad constante:** 12 enemigos simultáneos en todas las rondas (1–100); al morir uno se repone otro. El tope duro de 30 (§17) es un límite de seguridad, no un objetivo de aparición.
+- **Escalado de stats:** la vida, el daño y la velocidad de cada enemigo se calculan con `stat = base × (1 + 0.1 × (ronda − 1))`. La velocidad se aplica como multiplicador sobre la velocidad base configurada en `data/`.
+- **Composición por rango de rondas:**
+
+  | Rondas | Enemigos en la horda |
+  |---|---|
+  | 1 | Esqueleto Condenado |
+  | 2–3 | Esqueleto Condenado + Demonio del Averno |
+  | 4–9 | Esqueleto Condenado + Demonio del Averno + The Wrapped |
+  | 10+ (excepto la 100) | La horda anterior; en las rondas múltiplos de 10 se añade el jefe |
+  | 100 | La horda anterior y Lucifer en lugar del jefe |
+
+- **Ronda con jefe:** cada 10 rondas aparece el jefe junto a la horda, nunca solo.
 - **Eventos especiales:** ninguno por ahora.
 - **Arena y puntos de aparición:** **[PENDIENTE]** la arena aún no se ha diseñado.
 
@@ -441,12 +451,11 @@ Reglas que se aplican desde el inicio (la lista operativa vive en `AGENTS.md`, �
 4. ~~Cadencias de pistola, escopeta y subfusil~~ (resuelto, §6.2; valores provisionales).
 5. Stats de jefes y Lucifer.
 6. Tabla de mejoras (precios y valores) — §8.1.
-7. Fórmula de escalado de stats por ronda y cantidad de enemigos en pantalla.
-8. Multiplicador de combo, puntos de jefe/ronda/Fe, golpe recibido, rangos.
-9. Drops: cantidad y probabilidad.
-10. Arena, boceto y storyboard.
-11. Menús (pausa, opciones, pantalla de escape).
-12. Confirmar licencias marcadas como "Verificar".
-13. Rendimiento (§17): tabla de capas de colisión, intervalo y desfase del recálculo de IA, FPS por defecto.
-14. `DamageNumber`: decidir si el número flotante de daño pasa al juego final (ya tiene pooling) o queda solo como depuración del muñeco.
-15. Verificar el shader PSX en Windows y en la PC con iGPU (§17.8).
+7. Multiplicador de combo, puntos de jefe/ronda/Fe, golpe recibido, rangos.
+8. Drops: cantidad y probabilidad.
+9. Arena, boceto y storyboard.
+10. Menús (pausa, opciones, pantalla de escape).
+11. Confirmar licencias marcadas como "Verificar".
+12. Rendimiento (§17): tabla de capas de colisión, intervalo y desfase del recálculo de IA, FPS por defecto.
+13. `DamageNumber`: decidir si el número flotante de daño pasa al juego final (ya tiene pooling) o queda solo como depuración del muñeco.
+14. Verificar el shader PSX en Windows y en la PC con iGPU (§17.8).

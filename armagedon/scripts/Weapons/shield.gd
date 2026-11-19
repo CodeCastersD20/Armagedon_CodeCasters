@@ -56,6 +56,9 @@ func _ready() -> void:
 		_model_base = _model.transform
 		_model_scale = Vector3.ONE * model_scale
 		PsxStyle.apply(_model)
+	else:
+		_build_mesh()
+		PsxStyle.apply(self)
 	# El WeaponManager es hijo del jugador y se registra antes que este nodo.
 	var manager := get_tree().get_first_node_in_group("weapon_manager") as WeaponManager
 	if manager != null:

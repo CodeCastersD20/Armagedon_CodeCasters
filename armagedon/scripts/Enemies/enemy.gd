@@ -9,8 +9,6 @@ signal health_changed(current: float, maximum: float)
 ## Ronda usada para el escalado inicial de stats (GDD §9).
 @export var start_round: int = 1
 
-@onready var _nav_agent: NavigationAgent3D = get_node_or_null("NavigationAgent3D")
-
 var _health: float = 0.0
 var _max_health: float = 0.0
 var _move_speed: float = 0.0
@@ -20,9 +18,12 @@ var _player: Node3D
 var _dead: bool = false
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
+@onready var _nav_agent: NavigationAgent3D = get_node_or_null("NavigationAgent3D")
+
 
 func _ready() -> void:
 	add_to_group("enemies")
+	PsxStyle.apply(self)
 	if data == null:
 		push_error("Enemy sin EnemyData: %s" % name)
 		set_physics_process(false)
@@ -89,10 +90,7 @@ func take_damage(amount: float, is_critical: bool = false) -> void:
 		return
 	_health = maxf(_health - amount, 0.0)
 	DamageNumber.spawn(
-		get_tree(),
-		global_position + Vector3.UP * data.damage_number_height,
-		amount,
-		is_critical
+		get_tree(), global_position + Vector3.UP * data.damage_number_height, amount, is_critical
 	)
 	health_changed.emit(_health, _max_health)
 	if _health <= 0.0:

@@ -75,7 +75,12 @@ Inicio → cinemática de caída (8 s, omitible)
    Escape: aro de luz → Cielo → pantalla de Score
 ```
 
-- **Duración de ronda:** 3 min 30 s. **[PENDIENTE]** ¿la ronda termina al agotarse el tiempo, al matar a todos, o lo que ocurra primero?
+- **Duración de ronda:** 3 min 30 s. La ronda termina con **lo que ocurra primero**:
+  - **Matar a todos antes de tiempo:** la ronda acaba y se otorgan **100 puntos de Score por cada segundo sobrante**. Empieza el descanso.
+  - **Se agota el tiempo:** dejan de aparecer enemigos nuevos (si aún no habían salido todos) y arranca la cuenta de **40 s del descanso**. El Mercante y la tienda quedan **activos** mientras se **sigue combatiendo**: matar es tiempo de tienda que no se pierde.
+  - **Deuda de enemigos:** los enemigos vivos al terminar el descanso **pasan a la siguiente ronda**. Esa ronda genera solo los que faltan para el tope de 30 (ej.: sobreviven 4 → salen 26) y, al morir cualquiera (de la ronda anterior o de la actual), aparece uno nuevo hasta completar la cuota de la ronda. La deuda se puede arrastrar durante varias rondas.
+  - **Ronda con jefe:** aparece el jefe **junto con todos los enemigos sobrantes**.
+  - Todos estos valores (3:30, 40 s, 100 pts/s) son provisionales y se ajustan durante el desarrollo y la fase de QA.
 - **Ronda 10, 20, …:** ronda con jefe.
 - **Cuando HP llega a 0:** no es una muerte real. Un **aro de luz** protege a Zahariel y lo lleva de vuelta al Cielo "para que la siguiente vez vuelva mejor". La partida termina y se guarda el mayor Score.
 - **Ronda 100:** final contra Lucifer. Aun así el juego continúa en la **101+ (El Vacío)** con rondas infinitas.
@@ -108,8 +113,8 @@ Cámara en primera persona, FOV 90°, balanceo ligero de arma.
 | Atributo | Valor |
 |---|---|
 | Vida | 100 HP |
-| Regeneración | Tras varios segundos sin recibir daño, regenera **1 HP cada 1.2 s**. **[PENDIENTE]** cuántos segundos de espera (propuesta: 5 s) |
-| Estamina | 3 cargas (el dash consume carga). **[PENDIENTE]** consumo y tiempo de recarga por carga |
+| Regeneración | Tras varios segundos sin recibir daño, regenera **1 HP cada 1.2 s**. Espera de **5 s** sin recibir daño antes de empezar (ajustable en QA) |
+| Estamina | 3 cargas. Cada dash consume **1 carga**; cada carga se recupera en **3 s** (ajustable en QA) |
 | Dash | Shift |
 | Armas | Una de fuego y una melee; solo una equipada. Ambas se pueden **reemplazar por otra** en cada descanso |
 | Arma inicial | Espada + escudo |
@@ -134,7 +139,7 @@ Munición **infinita**: el número de munición es el tamaño del cargador antes
 
 **Escudo**
 - **Clic derecho:** cubre todo el daño que viene de frente.
-- **Pasivo:** llevar espada y escudo reduce el daño recibido un **60%**. **[PENDIENTE]** confirmar que este 60% aplica siempre y no solo cubriéndose.
+- **Pasivo:** mientras se lleve **equipada** la combinación espada + escudo, el daño recibido se reduce un **30%** de forma permanente (no hace falta cubrirse). Cubrirse con clic derecho sigue bloqueando todo el daño frontal. Otras espadas futuras (p. ej. espada larga) no llevarán escudo y no tendrán este pasivo. El 30% es provisional y se ajusta en QA.
 
 **Habilidad única de la espada:** *Tajo a distancia* — ataque a distancia hacia adelante. Cada arma tendrá una habilidad única; por ahora solo está pensada la de la espada.
 
@@ -142,9 +147,9 @@ Munición **infinita**: el número de munición es el tamaño del cargador antes
 
 | Arma | Daño | Cargador | Recarga | Cadencia | Notas |
 |---|---|---|---|---|---|
-| Pistola | 10 | 12 | 2 s | **[PEND.]** | Arma de fuego inicial |
-| Escopeta | 50 (pegada al enemigo) | 6 | 3.5 s | **[PEND.]** | Más daño cerca, menos lejos; golpea a varios enemigos |
-| Subfusil | 14 | 30 | 3 s | **[PEND.]** | |
+| Pistola | 10 | 12 | 2 s | 0.3 s entre disparos (200 RPM) | Arma de fuego inicial |
+| Escopeta | 50 (pegada al enemigo) | 6 | 3.5 s | 0.9 s entre disparos (≈67 RPM) | Más daño cerca, menos lejos; golpea a varios enemigos |
+| Subfusil | 14 | 30 | 3 s | 0.08 s entre disparos (750 RPM) | |
 | Rifle FX-05 | 28 | 60 | 3.5 s | 650 RPM | |
 
 Las armas se desbloquean/cambian en la tienda (ver §8).
@@ -389,10 +394,10 @@ El ejemplo del documento original (46,540 pts) ya no aplica y se recalculará.
 
 ## 18. Pendientes consolidados
 
-1. Fin de ronda (tiempo / matar todos) y cuándo aparece el jefe.
+1. ~~Fin de ronda y aparición del jefe~~ (resuelto, §3 y §9).
 2. Nombre definitivo del Castillo de Lucifer (rondas 91–99).
-3. Estamina: consumo y recarga; espera de la regeneración de vida.
-4. Cadencias de pistola, escopeta y subfusil.
+3. ~~Estamina, espera de regeneración~~ (resuelto, §5).
+4. ~~Cadencias de pistola, escopeta y subfusil~~ (resuelto, §6.2; valores provisionales).
 5. Stats de jefes y Lucifer.
 6. Tabla de mejoras (precios y valores) — §8.1.
 7. Multiplicador de combo, puntos de jefe/ronda/Fe, golpe recibido, rangos.

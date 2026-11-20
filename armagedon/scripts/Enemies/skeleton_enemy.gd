@@ -11,10 +11,10 @@ const ANIM_IDLE: String = "Zombie_Idle"
 const ANIM_WALK: String = "Zombie_Walk_Fwd"
 const ANIM_SCRATCH: String = "Zombie_Scratch"
 
+var _current_animation: String = ""
+
 @onready var _model: Node3D = get_node_or_null("Model")
 @onready var _anim: AnimationPlayer = get_node_or_null("AnimationPlayer")
-
-var _current_animation: String = ""
 
 
 func _ready() -> void:
@@ -65,9 +65,7 @@ func _fit_model() -> void:
 		return
 	var factor: float = MODEL_HEIGHT / bounds.size.y
 	var center: Vector3 = bounds.get_center()
-	var correction: Vector3 = Vector3(
-		-center.x, -bounds.position.y, -center.z
-	) * factor
+	var correction: Vector3 = Vector3(-center.x, -bounds.position.y, -center.z) * factor
 	_model.scale = Vector3.ONE * factor
 	_model.position = _model.transform.basis.orthonormalized() * correction
 

@@ -1,9 +1,7 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3 uid="uid://bgk1r21ac0jqu"]
 
 [ext_resource type="Script" uid="uid://g3xkb2ao6fsg" path="res://scripts/Weapons/weapon_data.gd" id="1_wdata"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_pistol"]
-size = Vector3(0.08, 0.1, 0.4)
+[ext_resource type="PackedScene" uid="uid://cerj4pjjt0e6v" path="res://scenes/Weapons/pistol.tscn" id="2_a40w6"]
 
 [resource]
 script = ExtResource("1_wdata")
@@ -11,4 +9,9 @@ display_name = "Pistol"
 magazine_size = 12
 reload_seconds = 2.0
 attack_interval = 0.3
-mesh = SubResource("BoxMesh_pistol")
+weapon_scene = ExtResource("2_a40w6")
+recoil_kick_degrees = 9.0
+recoil_lift = 0.015
+reload_tilt_pitch_degrees = 17.0
+reload_tilt_roll_degrees = 26.0
+reload_tilt_drop = 0.04

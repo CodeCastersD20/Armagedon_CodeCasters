@@ -282,14 +282,14 @@ No hay cajas de munición porque la munición es infinita.
 - **Mira** al centro.
 - **Ronda actual** y **cronómetro** (3:30). **[PENDIENTE]** Score y combo en pantalla.
 
-**Menús:** splash ("Presiona ENTER para descender"), tienda del Mercante. **[PENDIENTE]** pausa, opciones, pantalla de escape con Score.
+**Menús:** splash ("Presiona ENTER para descender"), tienda del Mercante. **[PENDIENTE]** pausa, pantalla de escape con Score. **Opciones:** límite de FPS y V-Sync (ver §17.4); el resto de ajustes **[PENDIENTE]**.
 
 ---
 
 ## 13. Dirección de arte
 
 - Low-poly PSX: modelos de 300–1,200 triángulos, texturas de 256–500 px.
-- Resolución interna 640×480 o 320×240, Nearest-Neighbor, vertex snapping, dithering. Detalles de compatibilidad y rendimiento en §17.1 y §17.2.
+- Resolución interna 640×480 o 320×240, Nearest-Neighbor, vertex snapping, dithering. Detalles de compatibilidad y rendimiento en §17.8 y §17.9.
 - Paleta: rojos y negros del Infierno, dorado para Zahariel y lo divino, azul para el Mercante.
 
 | Uso | Autor / Pack | Licencia |
@@ -368,14 +368,65 @@ El ejemplo del documento original (46,540 pts) ya no aplica y se recalculará.
 - Tope de 30 enemigos a la vez.
 - **Fuera de alcance de la beta:** multijugador, jefes secretos, eventos especiales, comportamientos distintos por enemigo, guardado entre partidas, círculos con nombre.
 
-### 17.1 Compatibilidad y costo del shader PSX
+Principio: medir antes de optimizar (Profiler y Monitors de Godot, siempre sobre un build exportado, no sobre el editor). Las técnicas de abajo se aplican poco a poco, cuando existe el contenido que las necesita.
+
+### 17.1 Culling (qué se dibuja)
+
+- **Frustum culling:** Godot lo hace **automáticamente**. Consiste en no dibujar lo que está fuera del campo de visión de la cámara. No requiere configuración ni código.
+- **Occlusion culling:** no dibujar lo que queda tapado por paredes u obstáculos grandes. Se usa `OccluderInstance3D` y se aplica al diseñar la arena (§10) y su blockout. En una arena muy abierta aporta poco.
+- **Visibility range (LOD manual):** `visibility_range_end` en los `GeometryInstance3D` para ocultar o simplificar objetos lejanos. Con modelos low-poly (§13) se usa solo si el Profiler lo pide.
+
+### 17.2 Física y colisiones
+
+- Solo formas simples (cápsula, caja, esfera). **Nunca** mallas trimesh en objetos dinámicos ni en enemigos.
+- Capas y máscaras de colisión nombradas en Project Settings (por ejemplo: Player, World, Enemy). Cada objeto colisiona únicamente con las capas que necesita, para no calcular colisiones inútiles. **[PENDIENTE]** tabla final de capas.
+- Arena final con `StaticBody3D` + `BoxShape3D`, no con `CSGBox3D` (el CSG es válido solo para el blockout). Paredes y suelo con grosor real, para evitar que raycasts o movimientos rápidos los atraviesen.
+
+### 17.3 IA de enemigos
+
+- Los enemigos **no** calculan su ruta en cada frame. Recalculan el destino con un temporizador de **0.1 a 0.2 s**.
+- El recálculo va **escalonado**: cada enemigo tiene un desfase propio, de modo que no todos recalculan en el mismo frame.
+- El tope de 30 enemigos simultáneos (§7) acota el costo total.
+- Intervalo y desfase son constantes configurables en `armagedon/data/`. **[PENDIENTE]** valor definitivo.
+
+### 17.4 Ajustes de rendimiento (opciones del jugador)
+
+- **Límite de FPS:** 30, 60, 144, 180 o ilimitado. **[PENDIENTE]** valor por defecto (propuesta: 60, igual que la meta). Mientras no exista el menú, el autoload `DisplayConfig` (`scripts/Settings/display_config.gd`) aplica 180 FPS y V-Sync activado, y guarda la elección en `user://settings.cfg`.
+- **V-Sync:** activado o desactivado.
+- Se guardan como preferencia de usuario (archivo de configuración local). No cuentan como progreso entre partidas, así que no contradicen la regla de "sin progreso salvo el mejor Score".
+- Viven en el menú de opciones (§12).
+
+### 17.5 Caché, preload y pooling
+
+- **Preload:** las escenas y recursos de uso frecuente (enemigos, trazadores, impactos, efectos, sonidos) se cargan con `preload` y no con `load()` durante la partida.
+- **Pooling:** objetos que se crean y destruyen muy seguido se reutilizan en vez de instanciarse y liberarse. Aplica a enemigos (30 fijos), trazadores de disparo, marcas de impacto y números de daño.
+- **Caché de modelos y materiales de enemigos:** el modelo y sus materiales se cargan una sola vez y se comparten entre todas las instancias.
+- **Armas:** se instancian una vez y se alternan (visibilidad y procesado), no se destruyen y recrean en cada cambio.
+- **Precalentamiento de shaders:** al iniciar la partida o la ronda se muestra una vez cada efecto y enemigo fuera de cámara (o tras la pantalla de carga), para que la compilación no cause tirones durante el combate.
+
+### 17.6 Assets
+
+- Solo se importa y versiona lo que el juego usa (§13). Los packs completos sin usar se dejan fuera de `res://` o con `.gdignore`.
+
+### 17.7 Reglas de código de rendimiento
+
+Reglas que se aplican desde el inicio (la lista operativa vive en `AGENTS.md`, «Rendimiento: reglas desde el inicio»):
+- Recursos (mallas, materiales, formas, consultas de física) se crean una vez y se reutilizan; no se crean por disparo, golpe o frame.
+- Referencias a nodos (jugador, manager, cámara) se resuelven una vez y se guardan; no se buscan por grupo en cada frame ni en cada ataque.
+- El HUD se actualiza por señales y solo reasigna el texto cuando cambia.
+- Al guardar un arma se cancelan sus animaciones, tweens y golpes pendientes.
+- Los datos de los Resources y los nodos opcionales se validan antes de usarse (divisores en 0, `null`).
+- Las ayudas de depuración no corren en el juego exportado.
+- Hallazgo conocido: el renderer Forward+ es el más pesado para este estilo; evaluar Mobile o Compatibility si el QA de rendimiento (#94) lo pide. **[PENDIENTE]**
+
+### 17.8 Compatibilidad y costo del shader PSX
 
 - **Multiplataforma:** el shader (`assets/shaders/psx.gdshader`) es shader estándar de Godot 4 (`.gdshader`), sin código específico de plataforma. Godot lo compila para Vulkan (Linux), Direct3D 12 (Windows, ver `project.godot`) y Compatibility. No usa extensiones ni texturas especiales.
 - **Estado de la verificación:** probado solo en Linux (AMD RX 7600, Vulkan, Forward+). **[PENDIENTE]** probarlo en Windows y en la PC más modesta (iGPU) antes de cerrar #37.
 - **Costo:** el vertex snapping es una multiplicación de matriz, una división y un `floor` por vértice; con modelos de 300–1,200 triángulos es despreciable. El fragment shader (`lambert`, sin especular) es más barato que el material estándar. El costo real en una iGPU está en los píxeles (resolución, sombras, glow, luces), no en el shader.
 - **Cómo medirlo:** ejecutar `scenes/Test/psx_test.tscn` (F6) y anotar FPS y tiempo de frame (Debugger → Monitors) con y sin el shader en cada PC. Meta: 60 FPS (16.6 ms por frame).
 
-### 17.2 Optimización (modelos, enemigos y escena)
+### 17.9 Optimización (modelos, enemigos y escena)
 
 | Área | Regla |
 |---|---|
@@ -385,7 +436,7 @@ El ejemplo del documento original (46,540 pts) ya no aplica y se recalculará.
 | Resolución | Renderizar a 640×480 o 320×240 (#38): es la mayor ganancia en una iGPU, porque reduce el costo por píxel. |
 | Iluminación | Una luz direccional y pocas luces dinámicas. Sombras desactivadas o solo en la luz principal; sin SSAO, SSR ni SDFGI. Revisar el `glow` de `WorldEnvironment`. |
 | Enemigos | Tope de 30 simultáneos. Esqueleto con pocos huesos; animaciones simples; no instanciar ni liberar en cada frame. |
-| Pooling | Reutilizar objetos de efectos frecuentes (trazos de disparo, marcas de impacto) en vez de crearlos y liberarlos por golpe. **[PENDIENTE]** `DamageNumber` (número flotante del muñeco de pruebas) crea un `Label3D` por golpe: hoy es solo herramienta de depuración; decidir si pasa al juego final (y con pooling) o se quita. |
+| Pooling | Reutilizar objetos de efectos frecuentes (trazos de disparo, marcas de impacto, números de daño) en vez de crearlos y liberarlos por golpe (ver §17.5). Ya hay pooling de trazadores, impactos y `DamageNumber`; los enemigos se agregan con #58. **[PENDIENTE]** decidir si `DamageNumber` (hoy solo en el muñeco de pruebas) pasa al juego final o se quita. |
 | Física e IA | Colisiones con formas simples (cápsula, caja); evitar `ConcavePolygonShape3D` salvo la arena estática. Recalcular rutas del NavMesh con intervalo, no cada frame. |
 | Escena | Props repetidos con `MultiMeshInstance3D`; `VisibleOnScreenNotifier`/visibility range para lo lejano; la arena es pequeña, así que el occlusion culling solo si hace falta. |
 | Proceso | Medir antes de optimizar (Profiler y Monitors). Probar en la PC más modesta antes de mergear cualquier cambio visual pesado. |
@@ -405,5 +456,6 @@ El ejemplo del documento original (46,540 pts) ya no aplica y se recalculará.
 9. Arena, boceto y storyboard.
 10. Menús (pausa, opciones, pantalla de escape).
 11. Confirmar licencias marcadas como "Verificar".
-12. `DamageNumber`: decidir si el número flotante de daño pasa al juego final (con pooling) o queda solo como depuración del muñeco.
-13. Verificar el shader PSX en Windows y en la PC con iGPU (§17.1).
+12. Rendimiento (§17): tabla de capas de colisión, intervalo y desfase del recálculo de IA, FPS por defecto.
+13. `DamageNumber`: decidir si el número flotante de daño pasa al juego final (ya tiene pooling) o queda solo como depuración del muñeco.
+14. Verificar el shader PSX en Windows y en la PC con iGPU (§17.8).

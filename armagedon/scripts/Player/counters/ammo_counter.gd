@@ -18,11 +18,14 @@ func _process(_delta: float) -> void:
 	if weapon == null:
 		return
 	if not weapon.uses_magazine():
-		_label.text = "Arma: %s (melee)" % weapon.data.display_name
+		var melee_text: String = "Arma: %s (melee)" % weapon.data.display_name
+		if _label.text != melee_text:
+			_label.text = melee_text
 		return
 	var text: String = (
 		"%s: %d / %d" % [weapon.data.display_name, weapon.get_ammo(), weapon.data.magazine_size]
 	)
 	if weapon.is_reloading():
 		text += "  (recargando %.1f s)" % weapon.get_reload_seconds_left()
-	_label.text = text
+	if _label.text != text:
+		_label.text = text

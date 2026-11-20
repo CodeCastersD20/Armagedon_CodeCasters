@@ -9,6 +9,9 @@ var _player: Player
 
 func _ready() -> void:
 	_player = get_tree().get_first_node_in_group("player") as Player
+	if _player == null:
+		push_error("DashCounter: no hay jugador en la escena")
+		return
 	_player.stamina_changed.connect(_on_stamina_changed)
 	_on_stamina_changed(_player.get_charges(), _player.stats.stamina)
 
@@ -20,4 +23,5 @@ func _on_stamina_changed(current: float, maximum: float) -> void:
 			(floorf(current) + 1.0 - current) * _player.stats.dash_recharge_seconds
 		)
 		text += "  (%.1f s)" % seconds_left
-	_label.text = text
+	if _label.text != text:
+		_label.text = text

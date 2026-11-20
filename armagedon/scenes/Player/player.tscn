@@ -3,11 +3,20 @@
 [ext_resource type="Script" uid="uid://bkpranon87p1x" path="res://scripts/Player/player.gd" id="1_1kbk7"]
 [ext_resource type="Resource" uid="uid://b52lr3pe5h3mm" path="res://data/player_stats.tres" id="2_gqjuk"]
 [ext_resource type="Script" uid="uid://cgwbqawqxlxe2" path="res://scripts/WeaponBob/weapon_bob.gd" id="3_bob"]
-[ext_resource type="Resource" path="res://data/weapon_bob_stats.tres" id="4_bobstats"]
+[ext_resource type="Resource" uid="uid://y16jw3k8jghg" path="res://data/weapon_bob_stats.tres" id="4_bobstats"]
+[ext_resource type="Script" uid="uid://b4nj6qifhgs43" path="res://scripts/Weapons/weapon/shield.gd" id="5_shield"]
 [ext_resource type="Script" uid="uid://cujw4666a0c1f" path="res://scripts/Weapons/weapon_manager.gd" id="5_uiqp4"]
-[ext_resource type="Script" path="res://scripts/Weapons/shield.gd" id="5_shield"]
 [ext_resource type="Resource" uid="uid://bgk1r21ac0jqu" path="res://data/weapons/pistol.tres" id="6_pistol"]
 [ext_resource type="Resource" uid="uid://7txwl60gdnn2" path="res://data/weapons/sword.tres" id="7_sword"]
+[ext_resource type="PackedScene" uid="uid://vp2e0hlsnvco" path="res://assets/models/weapons/psx_weapons/Shield.glb" id="9_wwtew"]
+[ext_resource type="Script" uid="uid://boukgp7kdgww8" path="res://scripts/Player/head_cam.gd" id="20_headcam"]
+[ext_resource type="AnimationLibrary" path="res://assets/animations/universal/head_ninja_jump.res" id="21_ninja"]
+[ext_resource type="AnimationLibrary" path="res://assets/animations/universal/head_basic_jump.res" id="22_basic"]
+[ext_resource type="AnimationLibrary" path="res://assets/animations/universal/head_move.res" id="23_move"]
+[ext_resource type="AnimationLibrary" path="res://assets/animations/universal/shield_hand.res" id="24_shieldhand"]
+[ext_resource type="Script" uid="uid://cj3txvpmxs7du" path="res://scripts/Debug/debug_view.gd" id="25_debugview"]
+[ext_resource type="Script" uid="uid://lctoyojfq02j" path="res://scripts/Player/viewmodel_hands.gd" id="26_vmhands"]
+[ext_resource type="AnimationLibrary" path="res://assets/animations/universal/viewmodel_hands.res" id="27_vmlib"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
@@ -40,5 +49,40 @@ script = ExtResource("5_uiqp4")
 fire_data = ExtResource("6_pistol")
 melee_data = ExtResource("7_sword")
 
-[node name="Shield" type="Node3D" parent="Head/Camera3D"]
+[node name="Shield" type="Node3D" parent="Head/Camera3D" unique_id=1989403883]
 script = ExtResource("5_shield")
+rest_position = Vector3(-0.81, -1.06, -1.03)
+block_position = Vector3(-0.2, -0.55, -0.9)
+
+[node name="Shield2" parent="Head/Camera3D/Shield" unique_id=936461788 instance=ExtResource("9_wwtew")]
+transform = Transform3D(-3.4969112e-08, 0, 0.8, 0, 0.8, 0, -0.8, 0, -3.4969112e-08, 0, -0.5, 0)
+
+[node name="ShieldPose" type="Node3D" parent="Head/Camera3D/Shield" unique_id=408486640]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Head/Camera3D/Shield" unique_id=18916307]
+libraries/ = ExtResource("24_shieldhand")
+
+[node name="HeadCam" type="Node3D" parent="." unique_id=1876502325 node_paths=PackedStringArray("camera")]
+script = ExtResource("20_headcam")
+camera = NodePath("../Head/Camera3D")
+
+[node name="HeadPose" type="Node3D" parent="HeadCam" unique_id=7009670]
+transform = Transform3D(0.99788916, 0.01377248, -0.06346234, 0.025899634, 0.81176066, 0.5834157, 0.05955131, -0.58382785, 0.8096905, 0.037393562, -0.07420707, -0.01914233)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="HeadCam" unique_id=52976219]
+libraries/basic = ExtResource("22_basic")
+libraries/move = ExtResource("23_move")
+libraries/ninja = ExtResource("21_ninja")
+
+[node name="DebugView" type="Node3D" parent="." unique_id=598295452]
+script = ExtResource("25_debugview")
+
+[node name="ViewmodelHands" type="Node3D" parent="." unique_id=1253820794]
+script = ExtResource("26_vmhands")
+
+[node name="RightHand" type="Node3D" parent="ViewmodelHands" unique_id=1878971230]
+
+[node name="LeftHand" type="Node3D" parent="ViewmodelHands" unique_id=6261795]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="ViewmodelHands" unique_id=105391067]
+libraries/ = ExtResource("27_vmlib")

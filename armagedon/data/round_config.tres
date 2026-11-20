@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="RoundConfig" format=3 uid="uid://sch4sq7pudxq"]
+
+[ext_resource type="Script" uid="uid://daul4q61gtdjy" path="res://scripts/Rounds/round_config.gd" id="1_o85ih"]
+
+[resource]
+script = ExtResource("1_o85ih")
+metadata/_custom_type_script = "uid://daul4q61gtdjy"

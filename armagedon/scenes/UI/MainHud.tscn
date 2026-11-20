@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://bp1kekekmcmac" path="res://scenes/UI/HealthCounter.tscn" id="1_nanbm"]
 [ext_resource type="PackedScene" uid="uid://b3njp8d6dh7fp" path="res://scenes/UI/DashCounter.tscn" id="2_d0hpa"]
 [ext_resource type="PackedScene" uid="uid://bv0ek3fvwd5ca" path="res://scenes/UI/AmmoCounter.tscn" id="3_ru36m"]
+[ext_resource type="PackedScene" uid="uid://cycl2my3yyk1v" path="res://scenes/UI/RoundCounter.tscn" id="4_d0hpa"]
 
 [node name="MainHud" type="Node2D" unique_id=77760244]
 
@@ -27,6 +28,13 @@ metadata/_edit_use_anchors_ = true
 offset_top = 28.0
 offset_bottom = 73.0
 
+[node name="RoundCounter" parent="CanvasLayer" unique_id=1782842749 instance=ExtResource("4_d0hpa")]
+
+[node name="Round" parent="CanvasLayer/RoundCounter" index="0" unique_id=400544608]
+offset_top = 63.0
+offset_bottom = 108.0
+
 [editable path="CanvasLayer/AmmoCounter"]
 [editable path="CanvasLayer/DashCounter"]
 [editable path="CanvasLayer/VidaCounter"]
+[editable path="CanvasLayer/RoundCounter"]

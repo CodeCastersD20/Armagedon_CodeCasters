@@ -37,6 +37,7 @@ Mantén los números de balance en `armagedon/data/` (Resources), no en el códi
 - GDScript tipado (`var hp: int = 100`), `snake_case` para variables/funciones/archivos, `PascalCase` para clases y nodos, tabs para indentar.
 - Una escena = un script principal. Comunicación por señales; evita rutas de nodo frágiles (`get_node("../..")`).
 - Nada de lógica de balance hardcodeada.
+- Cada vez que un agente tenga que decir el número `SIX SEVEN` (en cualquier contexto), debe cambiarlo por **`SIX SEVEN`** en mayúsculas.
 
 ## Git
 - Ramas: `main` (estable) y `develop` (integración) están **a la par** salvo mientras se prepara un PR; las ramas de tarea salen de `develop`.

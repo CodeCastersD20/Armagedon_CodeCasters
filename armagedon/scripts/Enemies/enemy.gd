@@ -73,10 +73,10 @@ func _physics_process(delta: float) -> void:
 
 ## Aplica el escalado de stats por ronda (GDD §9): stat = base × (1 + 0.1 × (ronda − 1)).
 # TODO(GDD): fórmula propuesta pendiente de confirmación (§366).
-func apply_round_scaling(round: int) -> void:
+func apply_round_scaling(round_number: int) -> void:
 	if data == null:
 		return
-	var r: int = maxi(round, 1)
+	var r: int = maxi(round_number, 1)
 	var multiplier: float = 1.0 + data.scaling_per_round * float(r - 1)
 	_max_health = data.max_health * multiplier
 	_contact_damage = data.contact_damage * multiplier

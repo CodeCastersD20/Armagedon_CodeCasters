@@ -5,6 +5,9 @@ extends Label3D
 const COLOR_NORMAL := Color.WHITE
 const COLOR_CRITICAL := Color(1.0, 0.1, 0.1)
 
+## Números libres para reutilizar: evita crear y liberar un nodo por golpe.
+static var _pool: Array[DamageNumber] = []
+
 @export var rise_height: float = 1.0
 @export var lifetime: float = 1.2
 
@@ -13,14 +16,50 @@ const COLOR_CRITICAL := Color(1.0, 0.1, 0.1)
 static func spawn(
 	tree: SceneTree, world_pos: Vector3, amount: float, is_critical: bool = false
 ) -> void:
-	var number := DamageNumber.new()
-	number.top_level = true
+	var number: DamageNumber = _take_from_pool()
+	if number == null:
+		number = DamageNumber.new()
+		number.top_level = true
 	number.text = str(roundi(amount))
 	number.modulate = COLOR_CRITICAL if is_critical else COLOR_NORMAL
+	number.outline_modulate = Color.BLACK
 	number.pixel_size = 0.012 if is_critical else 0.009
-	tree.current_scene.add_child(number)
+	if number.get_parent() == null:
+		tree.current_scene.add_child(number)
+	number.visible = true
 	number.global_position = world_pos
 	number._animate()
+
+
+## Dibuja una vez los dígitos 0-9 (invisibles) para generar los glifos de la fuente al cargar,
+## no en el primer golpe.
+static func prewarm(tree: SceneTree) -> void:
+	var camera: Camera3D = tree.root.get_viewport().get_camera_3d()
+	if tree.current_scene == null or camera == null:
+		return
+	var number: DamageNumber = _take_from_pool()
+	if number == null:
+		number = DamageNumber.new()
+		number.top_level = true
+		tree.current_scene.add_child(number)
+	number.text = "0123456789"
+	number.modulate.a = 0.0
+	number.outline_modulate.a = 0.0
+	number.visible = true
+	number.global_position = camera.global_position - camera.global_basis.z * 1.0
+	await tree.process_frame
+	await tree.process_frame
+	if is_instance_valid(number):
+		number._release()
+
+
+static func _take_from_pool() -> DamageNumber:
+	while not _pool.is_empty():
+		var number: DamageNumber = _pool.pop_back()
+		# Si cambió la escena, los números del pool pueden estar liberados.
+		if is_instance_valid(number) and number.is_inside_tree():
+			return number
+	return null
 
 
 func _init() -> void:
@@ -42,4 +81,9 @@ func _animate() -> void:
 	)
 	tween.tween_property(self, "modulate:a", 0.0, lifetime * 0.5).set_delay(lifetime * 0.5)
 	tween.tween_property(self, "outline_modulate:a", 0.0, lifetime * 0.5).set_delay(lifetime * 0.5)
-	tween.chain().tween_callback(queue_free)
+	tween.chain().tween_callback(_release)
+
+
+func _release() -> void:
+	visible = false
+	_pool.append(self)

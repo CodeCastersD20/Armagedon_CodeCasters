@@ -5,6 +5,8 @@ extends CharacterBody3D
 signal died(enemy: Node)
 signal health_changed(current: float, maximum: float)
 
+const MIN_SPAWN_SEPARATION: float = 0.85
+
 @export var data: EnemyData
 ## Ronda usada para el escalado inicial de stats (GDD §9).
 @export var start_round: int = 1
@@ -24,6 +26,7 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 func _ready() -> void:
 	add_to_group("enemies")
 	PsxStyle.apply(self)
+	_resolve_spawn_overlap.call_deferred()
 	if data == null:
 		push_error("Enemy sin EnemyData: %s" % name)
 		set_physics_process(false)
@@ -155,3 +158,43 @@ func _die() -> void:
 	collision_layer = 0
 	collision_mask = 0
 	queue_free()
+
+
+## Evita que dos enemigos queden superpuestos al spawnear en la misma coordenada
+## (lo que provoca impulsos bruscos en move_and_slide).
+func _resolve_spawn_overlap() -> void:
+	var min_sq: float = MIN_SPAWN_SEPARATION * MIN_SPAWN_SEPARATION
+	var others: Array[Node] = get_tree().get_nodes_in_group("enemies")
+	var has_overlap: bool = false
+	for other in others:
+		if other == self or not (other is Node3D):
+			continue
+		var diff: Vector3 = global_position - (other as Node3D).global_position
+		diff.y = 0.0
+		if diff.length_squared() < min_sq:
+			has_overlap = true
+			break
+	if not has_overlap:
+		return
+	var step: float = MIN_SPAWN_SEPARATION + 0.15
+	for ring in range(1, 6):
+		var radius: float = step * float(ring)
+		for slot in range(8):
+			var angle: float = TAU * float(slot) / 8.0
+			var candidate: Vector3 = (
+				global_position + Vector3(cos(angle) * radius, 0.0, sin(angle) * radius)
+			)
+			if _is_spot_clear(candidate, others, min_sq):
+				global_position = candidate
+				return
+
+
+func _is_spot_clear(pos: Vector3, others: Array[Node], min_sq: float) -> bool:
+	for other in others:
+		if other == self or not (other is Node3D):
+			continue
+		var diff: Vector3 = pos - (other as Node3D).global_position
+		diff.y = 0.0
+		if diff.length_squared() < min_sq:
+			return false
+	return true

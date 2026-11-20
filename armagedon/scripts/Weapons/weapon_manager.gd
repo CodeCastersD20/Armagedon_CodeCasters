@@ -24,6 +24,7 @@ func _ready() -> void:
 	_melee = _spawn(melee_data)
 	var first: Weapon = _melee if start_with_melee else _fire
 	_equip(first if first != null else (_fire if _melee == null else _melee))
+	_prewarm_inactive.call_deferred()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -63,6 +64,9 @@ func switch_weapon() -> void:
 
 ## Reemplaza el arma del mismo tipo (tienda en el descanso).
 func replace_weapon(data: WeaponData) -> void:
+	if data == null:
+		push_error("replace_weapon recibió WeaponData nulo")
+		return
 	var is_fire: bool = data.kind == WeaponData.Kind.FIRE
 	var old: Weapon = _fire if is_fire else _melee
 	var new_weapon: Weapon = _spawn(data)
@@ -82,10 +86,15 @@ func replace_weapon(data: WeaponData) -> void:
 func _spawn(data: WeaponData) -> Weapon:
 	if data == null:
 		return null
-	var weapon: Weapon
+	var weapon: Weapon = null
 	if data.weapon_scene != null:
-		weapon = data.weapon_scene.instantiate() as Weapon
-	else:
+		var instance: Node = data.weapon_scene.instantiate()
+		weapon = instance as Weapon
+		if weapon == null:
+			# La raíz de la escena no es un Weapon: se descarta y se usa el arma base.
+			push_error("weapon_scene de %s no hereda de Weapon" % data.display_name)
+			instance.free()
+	if weapon == null:
 		weapon = Weapon.new()
 	weapon.data = data
 	weapon.name = data.display_name if data.display_name != "" else "Weapon"
@@ -107,6 +116,24 @@ func _equip(weapon: Weapon) -> void:
 	_set_active(_current, true)
 	weapon_changed.emit(_current)
 	ammo_changed.emit(_current.get_ammo(), _current.data.magazine_size)
+
+
+## Al iniciar muestra el arma guardada y dibuja cada efecto (trazador, impacto, estela, números)
+## unos fotogramas, para que sus mallas, materiales y fuentes se compilen ahora y no en el primer
+## uso en pleno combate.
+func _prewarm_inactive() -> void:
+	DamageNumber.prewarm(get_tree())
+	for weapon: Weapon in [_fire, _melee]:
+		if weapon != null:
+			weapon.prewarm()
+	var other: Weapon = _melee if _current == _fire else _fire
+	if other == null or other == _current:
+		return
+	other.visible = true
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if is_instance_valid(other) and other != _current:
+		other.visible = false
 
 
 func _set_active(weapon: Weapon, active: bool) -> void:

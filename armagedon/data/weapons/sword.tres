@@ -3,16 +3,13 @@
 [ext_resource type="PackedScene" uid="uid://xm0y4sjs75kk" path="res://scenes/Weapons/sword.tscn" id="1_scene"]
 [ext_resource type="Script" uid="uid://g3xkb2ao6fsg" path="res://scripts/Weapons/weapon_data.gd" id="1_wdata"]
 
-[sub_resource type="BoxMesh" id="BoxMesh_sword"]
-size = Vector3(0.05, 0.8, 0.05)
-
 [resource]
 script = ExtResource("1_wdata")
 display_name = "Sword"
 kind = 1
-damage = 35.0
+damage = 25.0
 attack_interval = 1.2
 max_range = 2.5
 hit_delay_seconds = 0.1
 weapon_scene = ExtResource("1_scene")
-mesh = SubResource("BoxMesh_sword")
+use_pack_animation = true

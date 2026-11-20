@@ -17,7 +17,11 @@ extends Resource
 
 ## Tiempo mínimo entre golpes por contacto (segundos).
 # TODO(GDD): intervalo de daño por contacto no definido.
-@export var contact_cooldown: float = 1.0
+@export var contact_cooldown: float = 1.2
+
+## Tiempo desde que inicia el ataque hasta que conecta el golpe (segundos).
+# TODO(GDD): tiempo de preparación del ataque no definido.
+@export var contact_windup: float = 0.8
 
 ## Distancia máxima (metros) a la que aplica daño por contacto.
 # TODO(GDD): alcance de contacto no definido.

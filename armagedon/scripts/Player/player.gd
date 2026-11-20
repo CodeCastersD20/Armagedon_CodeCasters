@@ -33,6 +33,7 @@ var _spawn_transform: Transform3D
 var _is_blocking: bool = false
 var _air_jumps_left: int = 0
 var _god_mode: bool = false
+var _invuln_timer: float = 0.0
 var _weapon_manager: WeaponManager
 
 @onready var _head: Node3D = $Head
@@ -70,6 +71,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_invuln_timer = maxf(_invuln_timer - delta, 0.0)
 	_recharge_dash(delta)
 	_regen_health(delta)
 	_respawn_if_fallen()
@@ -196,7 +198,7 @@ func get_regen_seconds_left() -> float:
 ## Aplica daño (ya con el multiplicador). Al llegar a 0 emite player_escaped una sola vez.
 ## Acepta damage_source_position opcional para comprobar si el escudo lo bloquea de frente.
 func take_damage(amount: float, damage_source_position: Vector3 = Vector3.INF) -> void:
-	if _escaped or _god_mode or amount <= 0.0:
+	if _escaped or _god_mode or _invuln_timer > 0.0 or amount <= 0.0:
 		return
 
 	# Si se está cubriendo con el escudo y el ataque viene de frente, bloquea el 100%
@@ -216,6 +218,7 @@ func take_damage(amount: float, damage_source_position: Vector3 = Vector3.INF) -
 			return
 
 	_health = maxf(_health - amount * damage_taken_multiplier, 0.0)
+	_invuln_timer = maxf(stats.invulnerability_seconds, 0.0)
 	_time_since_damage = 0.0
 	_regen_timer = 0.0
 	health_changed.emit(_health, stats.max_health)

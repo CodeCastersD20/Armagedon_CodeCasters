@@ -45,6 +45,9 @@ enum JumpStyle { NINJA, BASIC }
 @export var regen_delay_seconds: float = 5.0
 @export var regen_interval_seconds: float = 1.2
 @export var regen_amount: float = 1.0
+## Segundos de invulnerabilidad tras recibir daño (i-frames).
+# TODO(GDD): frames de invulnerabilidad no definidos en el GDD; valor provisional.
+@export var invulnerability_seconds: float = 0.6
 
 # Si el jugador cae por debajo de esta altura, vuelve al punto de inicio.
 # TODO(GDD): el GDD no define la caída al vacío; valor provisional.

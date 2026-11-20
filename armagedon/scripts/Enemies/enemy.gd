@@ -16,6 +16,8 @@ var _max_health: float = 0.0
 var _move_speed: float = 0.0
 var _contact_damage: float = 0.0
 var _contact_timer: float = 0.0
+var _is_attacking: bool = false
+var _attack_windup_timer: float = 0.0
 var _player: Node3D
 var _dead: bool = false
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -66,8 +68,10 @@ func _physics_process(delta: float) -> void:
 			_look_toward_direction(move_dir)
 		elif distance > 0.001:
 			_look_toward_direction(to_player)
-		_try_contact_damage(distance)
+		_try_contact_damage(delta, distance)
 	else:
+		_is_attacking = false
+		_attack_windup_timer = 0.0
 		velocity.x = move_toward(velocity.x, 0.0, _move_speed)
 		velocity.z = move_toward(velocity.z, 0.0, _move_speed)
 
@@ -129,14 +133,27 @@ func _get_navigation_direction(to_player: Vector3, distance: float) -> Vector3:
 	return to_next.normalized()
 
 
-func _try_contact_damage(distance: float) -> void:
-	if _player == null or _contact_timer > 0.0 or data == null:
+func _try_contact_damage(delta: float, distance: float) -> void:
+	if _player == null or data == null:
+		_is_attacking = false
 		return
-	if distance > data.contact_range:
+	if _is_attacking:
+		_attack_windup_timer -= delta
+		if _attack_windup_timer > 0.0:
+			return
+		_is_attacking = false
+		_contact_timer = maxf(data.contact_cooldown, 0.0)
+		if distance <= data.contact_range and _player.has_method("take_damage"):
+			_player.call("take_damage", _contact_damage, global_position)
 		return
-	if _player.has_method("take_damage"):
+	if _contact_timer > 0.0 or distance > data.contact_range:
+		return
+	if data.contact_windup > 0.0:
+		_is_attacking = true
+		_attack_windup_timer = data.contact_windup
+	elif _player.has_method("take_damage"):
 		_player.call("take_damage", _contact_damage, global_position)
-		_contact_timer = data.contact_cooldown
+		_contact_timer = maxf(data.contact_cooldown, 0.0)
 
 
 func _look_toward_direction(direction: Vector3) -> void:

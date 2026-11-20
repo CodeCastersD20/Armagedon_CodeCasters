@@ -3,20 +3,28 @@
 [ext_resource type="PackedScene" uid="uid://c7gojarrgqvgl" path="res://scenes/Player/player.tscn" id="1_6rd1t"]
 [ext_resource type="PackedScene" path="res://scenes/Dummy/TrainingDummy.tscn" id="2_dummy"]
 [ext_resource type="Shader" uid="uid://8cvg1se3q1g0" path="res://assets/shaders/psx.gdshader" id="3_psx"]
-[ext_resource type="PackedScene" path="res://scenes/Enemies/Squeletor.tscn" id="4_squeletor"]
+[ext_resource type="PackedScene" uid="uid://dx6klwqxgn31o" path="res://scenes/Enemies/Squeletor.tscn" id="4_squeletor"]
 [ext_resource type="Script" uid="uid://cb3pc31lp0qjk" path="res://scripts/World/random_walls.gd" id="5_walls"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_6rd1t"]
-sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
-ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_lsecn"]
+sky_top_color = Color(0.078431375, 0.011764706, 0.011764706, 1)
+sky_horizon_color = Color(0.34901962, 0.03137255, 0.03137255, 1)
+ground_horizon_color = Color(0.34901962, 0.03137255, 0.03137255, 1)
 
 [sub_resource type="Sky" id="Sky_1bnsl"]
-sky_material = SubResource("ProceduralSkyMaterial_6rd1t")
+sky_material = SubResource("ProceduralSkyMaterial_lsecn")
 
 [sub_resource type="Environment" id="Environment_mbmvx"]
 background_mode = 2
 sky = SubResource("Sky_1bnsl")
 glow_enabled = true
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.4509804, 0.039215688, 0.039215688, 1)
+fog_density = 1.0
+fog_sky_affect = 0.85
+fog_depth_begin = 8.0
+fog_depth_end = 35.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_wall"]
 render_priority = 0

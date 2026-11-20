@@ -70,9 +70,9 @@ func _fit_model() -> void:
 	_model.position = _model.transform.basis.orthonormalized() * correction
 
 
-func _play_animation(name: String) -> void:
-	if name == _current_animation:
+func _play_animation(anim_name: String) -> void:
+	if anim_name == _current_animation:
 		return
-	_current_animation = name
-	if _anim != null and _anim.has_animation(name):
-		_anim.play(name, 0.15)
+	_current_animation = anim_name
+	if _anim != null and _anim.has_animation(anim_name):
+		_anim.play(anim_name, 0.15)

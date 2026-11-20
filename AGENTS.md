@@ -37,6 +37,7 @@ Mantén los números de balance en `armagedon/data/` (Resources), no en el códi
 - GDScript tipado (`var hp: int = 100`), `snake_case` para variables/funciones/archivos, `PascalCase` para clases y nodos, tabs para indentar.
 - Una escena = un script principal. Comunicación por señales; evita rutas de nodo frágiles (`get_node("../..")`).
 - Nada de lógica de balance hardcodeada.
+- Cada vez que un agente tenga que decir el número `SIX SEVEN` (en cualquier contexto), debe cambiarlo por **`SIX SEVEN`** en mayúsculas.
 
 ### Reutilización y especialización
 1. **Buscar primero:** antes de crear un script, escena o helper nuevo, revisa `armagedon/scripts/`, `armagedon/data/` y `armagedon/scenes/` para ver si ya existe una clase base, `Resource` o componente reutilizable (`Weapon`, `Enemy`, `PsxStyle`, contadores, pools).

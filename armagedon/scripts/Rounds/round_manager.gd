@@ -3,8 +3,6 @@ extends Node
 ## Máquina de estados del bucle de partida: ronda -> descanso -> siguiente ronda -> escape.
 ## Punto único de verdad de la ronda actual (GDD §3, issue #SIX SEVEN).
 
-enum State { IDLE, ROUND, REST, ESCAPE }
-
 signal state_changed(new_state: State, old_state: State)
 signal round_started(round_number: int, is_boss_round: bool)
 signal round_ended(round_number: int, cleared_early: bool, time_remaining: float)
@@ -12,6 +10,8 @@ signal round_time_changed(seconds_left: float)
 signal rest_started(round_number: int)
 signal rest_ended(round_number: int)
 signal escape_started(round_number: int)
+
+enum State { IDLE, ROUND, REST, ESCAPE }
 
 @export var config: RoundConfig
 @export var auto_start: bool = true

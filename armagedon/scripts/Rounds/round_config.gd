@@ -1,7 +1,7 @@
 class_name RoundConfig
 extends Resource
-	## Configuración de tiempos e hitos de rondas (GDD §3, §9).
-	
+## Configuración de tiempos e hitos de rondas (GDD §3, §9).
+
 @export var round_duration: float = 210.0
 @export var rest_duration: float = 40.0
 @export var boss_round_interval: int = 10

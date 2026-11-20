@@ -44,9 +44,6 @@ func _update_text() -> void:
 	var total: int = maxi(ceili(_round_manager.get_round_time_left()), 0)
 	var mins: int = total / 60
 	var secs: int = total % 60
-	_label.text = "Ronda: %d | %s | %02d:%02d" % [
-		_round_manager.get_current_round(),
-		_round_manager.get_state_name(),
-		mins,
-		secs,
-	]
+	var round_num: int = _round_manager.get_current_round()
+	var state_name: String = _round_manager.get_state_name()
+	_label.text = "Ronda: %d | %s | %02d:%02d" % [round_num, state_name, mins, secs]

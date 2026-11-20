@@ -1,8 +1,7 @@
 [gd_scene format=3 uid="uid://buvs5u0iyvm5e"]
 
-[ext_resource type="PackedScene" uid="uid://14jf53rbrdcu" path="res://assets/models/enemies/skeleton/skeleton.fbx" id="1_pyp68"]
+[ext_resource type="PackedScene" path="res://assets/models/enemies/skeleton/skeleton_ual2.glb" id="1_pyp68"]
 [ext_resource type="Script" uid="uid://xyjbloy5ceyo" path="res://scenes/Test/psx_test.gd" id="2_test"]
-[ext_resource type="Script" uid="uid://cit4j0j7aw178" path="res://scenes/Test/cube.gd" id="3_fwf3k"]
 [ext_resource type="PackedScene" path="res://scenes/PostProcess/PsxPostProcess.tscn" id="9_post"]
 
 [node name="PsxTest" type="Node3D" unique_id=907549858]
@@ -12,11 +11,6 @@ script = ExtResource("2_test")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.031079173, 3.3055098)
 
 [node name="skeleton" parent="." unique_id=29364692 instance=ExtResource("1_pyp68")]
-
-[node name="Cube" parent="skeleton" index="0" unique_id=101655146]
-script = ExtResource("3_fwf3k")
-
-[editable path="skeleton"]
 
 [node name="PsxPostProcess" parent="." instance=ExtResource("9_post")]
 

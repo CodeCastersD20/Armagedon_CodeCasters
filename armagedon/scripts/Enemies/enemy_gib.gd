@@ -198,9 +198,8 @@ func _process(delta: float) -> void:
 		var progress: float = clampf(_age / SPHERE_DURATION, 0.0, 1.0)
 		if progress < 0.65:
 			var expand_t: float = progress / 0.65
-			_sphere.scale = Vector3.ONE * lerpf(
-				0.35, 1.85, 1.0 - (1.0 - expand_t) * (1.0 - expand_t)
-			)
+			var ease_t: float = 1.0 - (1.0 - expand_t) * (1.0 - expand_t)
+			_sphere.scale = Vector3.ONE * lerpf(0.35, 1.85, ease_t)
 		else:
 			var shrink_t: float = (progress - 0.65) / 0.35
 			_sphere.scale = Vector3.ONE * lerpf(1.85, 0.0, shrink_t)

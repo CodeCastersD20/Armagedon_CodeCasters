@@ -155,12 +155,8 @@ func _die() -> void:
 	died.emit(self)
 	# TODO(GDD): drops/reposición los gestiona el sistema de oleadas/spawner.
 	if data != null and data.death_gib_count > 0:
-		var burst_origin: Vector3 = (
-			global_position + Vector3.UP * (data.damage_number_height * 0.5)
-		)
-		EnemyGib.spawn_burst(
-			get_tree(), burst_origin, data.death_gib_count, data.death_gib_colors
-		)
+		var burst_origin: Vector3 = global_position + Vector3.UP * (data.damage_number_height * 0.5)
+		EnemyGib.spawn_burst(get_tree(), burst_origin, data.death_gib_count, data.death_gib_colors)
 	visible = false
 	set_physics_process(false)
 	collision_layer = 0

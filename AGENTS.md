@@ -86,7 +86,9 @@ Godot **4.7**. El CI está en `.github/workflows/godot-ci.yml`.
 ## Rendimiento: reglas desde el inicio
 Se optimiza desde el principio, no al final (detalle y motivos en `docs/GDD.md` §17). Revisa esta lista en cada PR que toque código:
 - **Nada de `new()` por disparo/golpe/frame** de `Mesh`, `Material`, `Shape` o `PhysicsQueryParameters`. Crea el recurso una vez (`static var` o miembro) y reutilízalo; cambia solo lo que varía (`from`/`to`, `radius`).
-- **Pooling** para lo que nace y muere seguido (enemigos, trazadores, impactos, números de daño). Reutiliza, no `instantiate()` + `queue_free()`.
+- **Pooling y `MultiMeshInstance3D`** para lo que nace y muere seguido o se repite en masa (enemigos, trazadores, impactos, números de daño, piezas óseas `BonePiece`). Reutiliza o agrupa en 1 draw call, no `instantiate()` + `queue_free()` por efecto.
+- **Simulación centralizada (`EnemyManager`):** los enemigos se registran en `EnemyManager` para correr en un único `_physics_process` y `_process` centralizado, resolver `_player` y cámara una sola vez por frame, escalonar física lejana (> 16 m) y limitar los recálculos de ruta por frame.
+- **LOD y culling de animación por distancia** en enemigos con esqueleto (`AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL` + `advance()` escalonado según distancia y omitido detrás de la cámara en `SkeletonEnemy`) para no recalcular *skinning* en CPU a 60 Hz para enemigos lejanos o fuera de vista.
 - **`preload`** para escenas y recursos frecuentes; `load()` solo en carga o depuración. Nunca `load()` dentro de un ataque o un spawn.
 - **Nada de `get_first_node_in_group()`, `find_child(ren)()` ni `get_node()` en `_process`/`_physics_process` ni por ataque**: se resuelve una vez (`@onready`, señal o caché con `is_instance_valid`).
 - **Actualiza por señales, no por frame**: HUD y contadores se refrescan al cambiar el dato; si hay que sondear, solo reasigna `text` cuando cambió.

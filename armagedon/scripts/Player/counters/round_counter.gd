@@ -42,7 +42,7 @@ func _update_text() -> void:
 	if _round_manager == null:
 		return
 	var total: int = maxi(ceili(_round_manager.get_round_time_left()), 0)
-	var mins: int = total / 60
+	var mins: int = floori(float(total) / 60.0)
 	var secs: int = total % 60
 	var round_num: int = _round_manager.get_current_round()
 	var state_name: String = _round_manager.get_state_name()

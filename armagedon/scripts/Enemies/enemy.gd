@@ -10,6 +10,8 @@ const MIN_SPAWN_SEPARATION: float = 0.85
 @export var data: EnemyData
 ## Ronda usada para el escalado inicial de stats (GDD §9).
 @export var start_round: int = 1
+@export var use_psx_style: bool = true
+@export var attack_stop_distance: float = 0.0
 
 var _health: float = 0.0
 var _max_health: float = 0.0
@@ -25,7 +27,8 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 func _ready() -> void:
 	add_to_group("enemies")
-	PsxStyle.apply(self)
+	if use_psx_style:
+		PsxStyle.apply(self)
 	_resolve_spawn_overlap.call_deferred()
 	if data == null:
 		push_error("Enemy sin EnemyData: %s" % name)
@@ -59,13 +62,19 @@ func _physics_process(delta: float) -> void:
 		var to_player: Vector3 = _player.global_position - global_position
 		to_player.y = 0.0
 		var distance: float = to_player.length()
-		var move_dir: Vector3 = _get_navigation_direction(to_player, distance)
-		velocity.x = move_dir.x * _move_speed
-		velocity.z = move_dir.z * _move_speed
-		if move_dir.length_squared() > 0.0001:
-			_look_toward_direction(move_dir)
-		elif distance > 0.001:
-			_look_toward_direction(to_player)
+		if attack_stop_distance > 0.0 and distance <= attack_stop_distance:
+			velocity.x = 0.0
+			velocity.z = 0.0
+			if distance > 0.001:
+				_look_toward_direction(to_player)
+		else:
+			var move_dir: Vector3 = _get_navigation_direction(to_player, distance)
+			velocity.x = move_dir.x * _move_speed
+			velocity.z = move_dir.z * _move_speed
+			if move_dir.length_squared() > 0.0001:
+				_look_toward_direction(move_dir)
+			elif distance > 0.001:
+				_look_toward_direction(to_player)
 		_try_contact_damage(distance)
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, _move_speed)
@@ -129,10 +138,16 @@ func _get_navigation_direction(to_player: Vector3, distance: float) -> Vector3:
 	return to_next.normalized()
 
 
+func _can_apply_contact_damage() -> bool:
+	return true
+
+
 func _try_contact_damage(distance: float) -> void:
 	if _player == null or _contact_timer > 0.0 or data == null:
 		return
 	if distance > data.contact_range:
+		return
+	if not _can_apply_contact_damage():
 		return
 	if _player.has_method("take_damage"):
 		_player.call("take_damage", _contact_damage, global_position)

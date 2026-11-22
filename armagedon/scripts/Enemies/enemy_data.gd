@@ -23,6 +23,10 @@ extends Resource
 # TODO(GDD): alcance de contacto no definido.
 @export var contact_range: float = 1.5
 
+## Segundos desde el inicio del ataque hasta que el golpe conecta (0 = inmediato).
+# TODO(GDD): momento de impacto por enemigo no definido.
+@export var contact_hit_delay_seconds: float = 0.0
+
 ## Incremento de stats por ronda (GDD §9: propuesta 0.1 → +10% por ronda).
 # TODO(GDD): fórmula propuesta pendiente de confirmación (§366).
 @export var scaling_per_round: float = 0.1

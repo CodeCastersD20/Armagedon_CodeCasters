@@ -5,6 +5,7 @@
 [ext_resource type="Shader" uid="uid://8cvg1se3q1g0" path="res://assets/shaders/psx.gdshader" id="3_psx"]
 [ext_resource type="PackedScene" path="res://scenes/Enemies/Squeletor.tscn" id="4_squeletor"]
 [ext_resource type="Script" uid="uid://cb3pc31lp0qjk" path="res://scripts/World/random_walls.gd" id="5_walls"]
+[ext_resource type="PackedScene" path="res://scenes/Enemies/Demonio.tscn" id="6_demonio"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_6rd1t"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -81,7 +82,7 @@ material = SubResource("ShaderMaterial_wall")
 
 [node name="Muros" type="Node3D" parent="." unique_id=297399709]
 script = ExtResource("5_walls")
-protected_nodes = Array[NodePath]([NodePath("../Player"), NodePath("../TrainingDummy"), NodePath("../Squeletor")])
+protected_nodes = Array[NodePath]([NodePath("../Player"), NodePath("../TrainingDummy"), NodePath("../Squeletor"), NodePath("../Demonio")])
 
 [node name="Muro" type="CSGBox3D" parent="Muros" unique_id=112390329]
 transform = Transform3D(0.9238795, 0, -0.38268343, 0, 1, 0, 0.38268343, 0, 0.9238795, -12.4, 2.5, -9.8)
@@ -146,3 +147,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -3)
 
 [node name="Squeletor" parent="." unique_id=1904340952 instance=ExtResource("4_squeletor")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -6)
+
+[node name="Demonio" parent="." instance=ExtResource("6_demonio")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -4)

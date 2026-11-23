@@ -2,9 +2,8 @@
 
 [ext_resource type="PackedScene" uid="uid://c7gojarrgqvgl" path="res://scenes/Player/player.tscn" id="1_6rd1t"]
 [ext_resource type="PackedScene" path="res://scenes/Dummy/TrainingDummy.tscn" id="2_dummy"]
-[ext_resource type="Shader" uid="uid://8cvg1se3q1g0" path="res://assets/shaders/psx.gdshader" id="3_psx"]
+[ext_resource type="PackedScene" uid="uid://0yqvgwuhcafw" path="res://scenes/World/coliseo.tscn" id="4_kurpr"]
 [ext_resource type="PackedScene" uid="uid://dx6klwqxgn31o" path="res://scenes/Enemies/Squeletor.tscn" id="4_squeletor"]
-[ext_resource type="Script" uid="uid://cb3pc31lp0qjk" path="res://scripts/World/random_walls.gd" id="5_walls"]
 [ext_resource type="PackedScene" path="res://scenes/Enemies/Demonio.tscn" id="6_demonio"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_lsecn"]
@@ -27,18 +26,6 @@ fog_sky_affect = 0.85
 fog_depth_begin = 8.0
 fog_depth_end = 35.0
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_wall"]
-render_priority = 0
-shader = ExtResource("3_psx")
-shader_parameter/albedo_color = Color(0.6, 0.55, 0.5, 1)
-shader_parameter/snap_resolution = 160.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_floor"]
-render_priority = 0
-shader = ExtResource("3_psx")
-shader_parameter/albedo_color = Color(0.42, 0.4, 0.38, 1)
-shader_parameter/snap_resolution = 160.0
-
 [sub_resource type="NavigationMesh" id="NavigationMesh_floor"]
 vertices = PackedVector3Array(-20, 0, -20, 20, 0, -20, 20, 0, 20, -20, 0, 20)
 polygons = [PackedInt32Array(0, 1, 2), PackedInt32Array(0, 2, 3)]
@@ -56,105 +43,18 @@ transform = Transform3D(0.899554, -0.432538, 0.06093937, -0.31086242, -0.5359126
 light_energy = 0.9
 
 [node name="Player" parent="." unique_id=1210332556 instance=ExtResource("1_6rd1t")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0056672096, 0.009530306, 0.007673621)
-
-[node name="Paredes" type="Node3D" parent="." unique_id=848401380]
-
-[node name="paredD" type="CSGBox3D" parent="Paredes" unique_id=910465878]
-transform = Transform3D(-4.3711392e-08, 0, 1.0000001, 0, 1, 0, -1.0000001, 0, -4.3711392e-08, 20, 2.5, 0)
-use_collision = true
-collision_layer = 2
-size = Vector3(40, 5, 0)
-material = SubResource("ShaderMaterial_wall")
-
-[node name="paredD2" type="CSGBox3D" parent="Paredes" unique_id=1198095461]
-transform = Transform3D(1.0000001, 0, 0, 0, 1, 0, 0, 0, 1.0000001, 0, 2.5, -20)
-use_collision = true
-collision_layer = 2
-size = Vector3(40, 5, 0)
-material = SubResource("ShaderMaterial_wall")
-
-[node name="paredD3" type="CSGBox3D" parent="Paredes" unique_id=217040859]
-transform = Transform3D(-4.37114e-08, 0, 1.0000002, 0, 1, 0, -1.0000002, 0, -4.37114e-08, -20, 2.5, 0)
-use_collision = true
-collision_layer = 2
-size = Vector3(40, 5, 0)
-material = SubResource("ShaderMaterial_wall")
-
-[node name="paredD4" type="CSGBox3D" parent="Paredes" unique_id=1944263146]
-transform = Transform3D(1.0000005, 0, 0, 0, 1, 0, 0, 0, 1.0000005, 0, 2.5, 20)
-use_collision = true
-collision_layer = 2
-size = Vector3(40, 5, 0)
-material = SubResource("ShaderMaterial_wall")
-
-[node name="Muros" type="Node3D" parent="." unique_id=297399709]
-script = ExtResource("5_walls")
-protected_nodes = Array[NodePath]([NodePath("../Player"), NodePath("../TrainingDummy"), NodePath("../Squeletor"), NodePath("../Demonio")])
-
-[node name="Muro" type="CSGBox3D" parent="Muros" unique_id=112390329]
-transform = Transform3D(0.9238795, 0, -0.38268343, 0, 1, 0, 0.38268343, 0, 0.9238795, -12.4, 2.5, -9.8)
-use_collision = true
-collision_layer = 2
-size = Vector3(1.5, 5, 1.5)
-material = SubResource("ShaderMaterial_wall")
-
-[node name="Muro2" type="CSGBox3D" parent="Muros" unique_id=1142705214]
-transform = Transform3D(0.70710677, 0, 0.70710677, 0, 1, 0, -0.70710677, 0, 0.70710677, 13.1, 2.5, -5.4)
-use_collision = true
-collision_layer = 2
-size = Vector3(1.5, 5, 1.5)
-material = SubResource("ShaderMaterial_wall")
-
-[node name="Muro3" type="CSGBox3D" parent="Muros" unique_id=687363247]
-transform = Transform3D(0.8660254, 0, -0.5, 0, 1, 0, 0.5, 0, 0.8660254, 9.2, 2.5, 12.6)
-use_collision = true
-collision_layer = 2
-size = Vector3(3.2, 5, 1.2)
-material = SubResource("ShaderMaterial_wall")
-
-[node name="Muro4" type="CSGBox3D" parent="Muros" unique_id=1134719857]
-transform = Transform3D(0.9659258, 0, 0.25881904, 0, 1, 0, -0.25881904, 0, 0.9659258, -3.4, 2.5, -14.2)
-use_collision = true
-collision_layer = 2
-size = Vector3(2.8, 5, 1.2)
-material = SubResource("ShaderMaterial_wall")
-
-[node name="Muro5" type="CSGBox3D" parent="Muros" unique_id=1882732666]
-transform = Transform3D(0.5, 0, 0.8660254, 0, 1, 0, -0.8660254, 0, 0.5, -4.6, 2.5, -3.2)
-use_collision = true
-collision_layer = 2
-size = Vector3(2.2, 5, 1.2)
-material = SubResource("ShaderMaterial_wall")
-
-[node name="Muro6" type="CSGBox3D" parent="Muros" unique_id=209323415]
-transform = Transform3D(0.809017, 0, -0.58778524, 0, 1, 0, 0.58778524, 0, 0.809017, -6.9, 2.5, 11.4)
-use_collision = true
-collision_layer = 2
-size = Vector3(3, 5, 1.2)
-material = SubResource("ShaderMaterial_wall")
-
-[node name="Muro7" type="CSGBox3D" parent="Muros" unique_id=1539139209]
-transform = Transform3D(0.9396926, 0, 0.34202015, 0, 1, 0, -0.34202015, 0, 0.9396926, 4.4, 0.9851074, 3.6)
-use_collision = true
-collision_layer = 2
-size = Vector3(1.5, 8.029785, 1.5)
-material = SubResource("ShaderMaterial_wall")
-
-[node name="Suelo" type="CSGBox3D" parent="." unique_id=671298003]
-use_collision = true
-collision_layer = 2
-size = Vector3(40, 0, 40)
-material = SubResource("ShaderMaterial_floor")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 15)
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=416018032]
 navigation_mesh = SubResource("NavigationMesh_floor")
+
+[node name="Coliseo" parent="NavigationRegion3D" unique_id=678328141 instance=ExtResource("4_kurpr")]
 
 [node name="TrainingDummy" parent="." unique_id=1883699490 instance=ExtResource("2_dummy")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -3)
 
 [node name="Squeletor" parent="." unique_id=1904340952 instance=ExtResource("4_squeletor")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 5.7286406, -6)
 
-[node name="Demonio" parent="." instance=ExtResource("6_demonio")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -4)
+[node name="Demonio" parent="." unique_id=720841796 instance=ExtResource("6_demonio")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 5.566267, -4)

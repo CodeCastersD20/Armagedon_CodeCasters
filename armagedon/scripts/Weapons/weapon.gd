@@ -11,21 +11,25 @@ signal reload_finished
 
 const RECOIL_Z: float = 0.06
 const RECOIL_RECOVERY_SPEED: float = 14.0
-const TRACER_DURATION: float = 0.08
+const MUZZLE_FLASH_DURATION: float = 0.055
+const MUZZLE_FLASH_SHADER: Shader = preload("res://assets/shaders/muzzle_flash.gdshader")
 const IMPACT_DURATION: float = 1.5
 
 ## Recursos compartidos por todos los disparos/impactos: se crean una vez, no por disparo.
-static var _tracer_material: StandardMaterial3D
+static var _muzzle_mesh: QuadMesh
+static var _muzzle_material: ShaderMaterial
 static var _impact_mesh: SphereMesh
-## Nodos de trazador/impacto libres para reutilizar (no se crean ni liberan por disparo).
-static var _tracer_pool: Array[MeshInstance3D] = []
+## Nodos de impacto libres para reutilizar (no se crean ni liberan por disparo).
 static var _impact_pool: Array[MeshInstance3D] = []
 
 @export var data: WeaponData
+@export var muzzle_offset: Vector3 = Vector3(0.15, -0.02, -0.38)
 
 var _ammo: int = 0
 var _cooldown: float = 0.0
 var _reload_left: float = 0.0
+var _muzzle_left: float = 0.0
+var _muzzle_flash: MeshInstance3D
 var _mesh_instance: MeshInstance3D
 var _player_body: CollisionObject3D
 
@@ -43,11 +47,17 @@ func _ready() -> void:
 		add_child(_mesh_instance)
 	# Estilo PSX (Nearest y vertex snapping) en todas las mallas del arma; los materiales se cachean.
 	PsxStyle.apply(self)
+	if not is_melee():
+		_setup_muzzle_flash()
 
 
 func _process(delta: float) -> void:
 	_cooldown = maxf(_cooldown - delta, 0.0)
 	position.z = move_toward(position.z, 0.0, RECOIL_RECOVERY_SPEED * delta)
+	if _muzzle_left > 0.0:
+		_muzzle_left -= delta
+		if _muzzle_left <= 0.0 and _muzzle_flash != null:
+			_muzzle_flash.visible = false
 	if _reload_left > 0.0:
 		_reload_left -= delta
 		if _reload_left <= 0.0:
@@ -110,6 +120,9 @@ func try_reload() -> bool:
 ## Al guardar el arma se cancela la recarga.
 func cancel_reload() -> void:
 	_reload_left = 0.0
+	_muzzle_left = 0.0
+	if _muzzle_flash != null:
+		_muzzle_flash.visible = false
 	position.z = 0.0
 
 
@@ -131,13 +144,11 @@ func _perform_attack() -> void:
 	var to: Vector3 = from - camera.global_basis.z * data.max_range
 	var query := PhysicsRayQueryParameters3D.create(from, to, 0xFFFFFFFF, _player_exclude())
 	var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
-	var muzzle: Vector3 = global_position - global_basis.z * 0.25
+	_show_muzzle_flash()
 	if hit.is_empty():
-		_spawn_tracer(muzzle, to)
 		return
 	var hit_pos: Vector3 = hit["position"]
 	var hit_norm: Vector3 = hit["normal"]
-	_spawn_tracer(muzzle, hit_pos)
 	_spawn_impact(hit_pos, hit_norm)
 	var collider: Object = hit["collider"]
 	if collider.has_method("take_damage"):
@@ -161,10 +172,12 @@ func _player_exclude() -> Array[RID]:
 static func _pool_take(pool: Array[MeshInstance3D], scene: Node) -> MeshInstance3D:
 	var node: MeshInstance3D = null
 	while not pool.is_empty() and node == null:
-		var candidate: MeshInstance3D = pool.pop_back()
-		# Si cambió la escena, los nodos del pool pueden estar liberados.
-		if is_instance_valid(candidate) and candidate.is_inside_tree():
-			node = candidate
+		var raw: Variant = pool.pop_back()
+		# Si cambió la escena, los nodos del pool pueden estar liberados; validar antes de tipar.
+		if is_instance_valid(raw):
+			var candidate := raw as MeshInstance3D
+			if candidate != null and candidate.is_inside_tree():
+				node = candidate
 	if node == null:
 		node = MeshInstance3D.new()
 		node.top_level = true
@@ -179,26 +192,29 @@ static func _pool_release(node: MeshInstance3D, pool: Array[MeshInstance3D]) -> 
 		pool.append(node)
 
 
-## Coloca un trazador (nodo del pool, sin temporizador de retorno).
-func _acquire_tracer(from: Vector3, to: Vector3) -> MeshInstance3D:
-	var scene := get_tree().current_scene
-	if scene == null:
-		return null
-	if _tracer_material == null:
-		_tracer_material = StandardMaterial3D.new()
-		_tracer_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		_tracer_material.albedo_color = Color(1.0, 0.85, 0.2)
-	var node := _pool_take(_tracer_pool, scene)
-	var im := node.mesh as ImmediateMesh
-	if im == null:
-		im = ImmediateMesh.new()
-		node.mesh = im
-	im.clear_surfaces()
-	im.surface_begin(Mesh.PRIMITIVE_LINES, _tracer_material)
-	im.surface_add_vertex(from)
-	im.surface_add_vertex(to)
-	im.surface_end()
-	return node
+func _setup_muzzle_flash() -> void:
+	if _muzzle_mesh == null:
+		_muzzle_mesh = QuadMesh.new()
+		_muzzle_mesh.size = Vector2(0.24, 0.24)
+	if _muzzle_material == null:
+		_muzzle_material = ShaderMaterial.new()
+		_muzzle_material.shader = MUZZLE_FLASH_SHADER
+	_muzzle_flash = MeshInstance3D.new()
+	_muzzle_flash.mesh = _muzzle_mesh
+	_muzzle_flash.material_override = _muzzle_material
+	var muzzle_node := get_node_or_null("Muzzle") as Node3D
+	_muzzle_flash.position = muzzle_node.position if muzzle_node != null else muzzle_offset
+	_muzzle_flash.visible = false
+	add_child(_muzzle_flash)
+
+
+func _show_muzzle_flash() -> void:
+	if _muzzle_flash == null:
+		return
+	_muzzle_flash.visible = true
+	_muzzle_flash.rotation.z = randf() * TAU
+	_muzzle_flash.scale = Vector3.ONE * randf_range(0.85, 1.2)
+	_muzzle_left = MUZZLE_FLASH_DURATION
 
 
 func _acquire_impact(pos: Vector3, normal: Vector3) -> MeshInstance3D:
@@ -221,14 +237,6 @@ func _acquire_impact(pos: Vector3, normal: Vector3) -> MeshInstance3D:
 	return node
 
 
-func _spawn_tracer(from: Vector3, to: Vector3) -> void:
-	var node := _acquire_tracer(from, to)
-	if node != null:
-		get_tree().create_timer(TRACER_DURATION).timeout.connect(
-			Weapon._pool_release.bind(node, _tracer_pool)
-		)
-
-
 func _spawn_impact(pos: Vector3, normal: Vector3) -> void:
 	var node := _acquire_impact(pos, normal)
 	if node != null:
@@ -244,9 +252,11 @@ func prewarm() -> void:
 	if camera == null:
 		return
 	var pos: Vector3 = camera.global_position - camera.global_basis.z * 0.5
-	var tracer := _acquire_tracer(pos, pos + Vector3(0.0, 0.001, 0.0))
 	var impact := _acquire_impact(pos, Vector3.ZERO)
+	if _muzzle_flash != null:
+		_muzzle_flash.visible = true
 	await get_tree().process_frame
 	await get_tree().process_frame
-	_pool_release(tracer, _tracer_pool)
 	_pool_release(impact, _impact_pool)
+	if is_instance_valid(_muzzle_flash):
+		_muzzle_flash.visible = false

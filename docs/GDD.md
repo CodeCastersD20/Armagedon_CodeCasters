@@ -140,6 +140,7 @@ Munición **infinita**: el número de munición es el tamaño del cargador antes
 **Escudo**
 - **Clic derecho:** cubre todo el daño que viene de frente.
 - **Pasivo:** mientras se lleve **equipada** la combinación espada + escudo, el daño recibido se reduce un **30%** de forma permanente (no hace falta cubrirse). Cubrirse con clic derecho sigue bloqueando todo el daño frontal. Otras espadas futuras (p. ej. espada larga) no llevarán escudo y no tendrán este pasivo. El 30% es provisional y se ajusta en QA.
+- **[FUTURO] Parry de proyectiles:** algunos proyectiles de enemigos podrán ser desviados únicamente haciendo *parry* con el escudo. **[PENDIENTE]** ventana de *parry* y proyectiles reflejables.
 
 **Habilidad única de la espada:** *Tajo a distancia* — ataque a distancia hacia adelante. Cada arma tendrá una habilidad única; por ahora solo está pensada la de la espada.
 
@@ -184,6 +185,21 @@ Los stats de la tabla son los de la ronda 1 y escalan con la ronda (§9).
 - **Jefe de beta:** un enemigo más grande, con más vida y más daño. Lucifer, igual.
 - **Drops:** esferas azules (Fe), esferas rojas (vida) y Esquirlas de Alma (moneda). **[PENDIENTE]** cantidad y probabilidad por tipo.
 - **[FUTURO]** Comportamientos distintos por enemigo, jefes secretos (Malenia, animatrónicos) y eventos especiales. **Por ahora no hay eventos especiales.**
+
+### 7.1 Variantes de enemigos con habilidades [FUTURO]
+
+Para evitar que las armas automáticas vuelvan demasiado fácil el daño solo por contacto, estas variantes se implementarán en una base/rama separada **sin mezclar su lógica con los enemigos actuales de la beta**:
+
+1. **Francotirador de rayo rojo:** se queda quieto, fija al jugador con un rayo rojo y, tras **2 s** de línea de visión continua, mantiene la posición y dispara un rayo de daño. Si un muro interrumpe la vista, el contador se reinicia a `0` hasta volver a verlo. **[PENDIENTE]** daño y cadencia.
+2. **Tirador de proyectiles (estilo Doom):** dispara proyectiles con velocidad y daño propios; su visual es un sprite/PNG *billboard* que cambia según la dirección desde la que lo ve el jugador. **[PENDIENTE]** velocidad, daño y cadencia.
+3. **Tirador de cono / aro de proyectiles:** variante del anterior que lanza un aro de proyectiles en un **cono bastante abierto**, apuntando hacia arriba o hacia abajo según la altura del jugador. **[PENDIENTE]** cantidad de proyectiles, ángulo del cono y daño.
+4. **Lanzallamas (daño en el tiempo):** ataca con una llamarada de corto/medio alcance que aplica efecto de quemadura durante **1.5 s** haciendo daño continuo. **[PENDIENTE]** alcance y daño por tick.
+5. **Invocador de mini esqueletos:** genera de **2 a 4 mini esqueletos** con menos vida y menos daño, pero que atacan más rápido. **[PENDIENTE]** cooldown de invocación y stats exactos.
+6. **Embestida / Cargador:** al detectar al jugador, hace una animación o sonido de carga claro durante **1 s** y sale disparado en línea recta a gran velocidad hasta chocar con el jugador o una pared. **[PENDIENTE]** velocidad y daño de impacto.
+7. **Artillero parabólico:** lanza proyectiles en arco afectados por gravedad. **[PENDIENTE]** cadencia, gravedad del proyectil y daño/área.
+8. **Lanzador de *creep*:** dispara un proyectil lento de corta distancia que deja una zona dañina/*creep* en el suelo al caer. **[PENDIENTE]** duración y daño del *creep*.
+9. **Kamikaze:** corre rápido hacia el jugador y explota al llegar, muriendo en el proceso. Se puede matar antes para hacerlo explotar lejos; su explosión también daña a enemigos cercanos con daño reducido (aprox. **50 %** del daño al jugador, ej. `10` al jugador / `5` a enemigos). **[PENDIENTE]** radio y daño definitivo.
+10. **Blindado frontal:** enemigo al que **solo se le puede hacer daño por la espalda**. **[PENDIENTE]** ángulo trasero vulnerable y feedback al golpear de frente.
 
 ---
 
@@ -353,7 +369,7 @@ Propuesta de multiplicador: `×(1 + 0.1 · bajas del combo)`, tope **×5**. **[P
 | Demonio | 120 | × multiplicador de combo |
 | The Wrapped | 350 | × multiplicador de combo |
 | Jefe | **[PEND.]** | × multiplicador de combo |
-| Ronda superada | **[PEND.]** | + bono por tiempo restante (de los 3:30) |
+| Ronda superada | **[PEND.]** | + bono de puntos y **Esquirlas de Alma extra** por tiempo restante (de los 3:30) |
 | Poder de Fe/divino recuperado | **[PEND.]** | |
 | Golpe recibido | **[A CONFIRMAR]** | Antes −50; ¿sigue? ¿reinicia el combo? |
 

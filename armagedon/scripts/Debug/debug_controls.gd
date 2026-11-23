@@ -17,6 +17,8 @@ var _status_label: Label
 var _god_toggle: CheckButton
 var _next_round_btn: Button
 var _add_shards_btn: Button
+var _replay_entry_btn: Button
+var _replay_escape_btn: Button
 var _time_buttons: Dictionary = {}
 
 var _is_open: bool = false
@@ -59,7 +61,11 @@ func _toggle_menu() -> void:
 		_refresh_ui()
 	else:
 		get_tree().paused = _previous_paused
-		Input.mouse_mode = _previous_mouse_mode
+		_resolve_player()
+		if _player != null and _player.is_physics_processing():
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		else:
+			Input.mouse_mode = _previous_mouse_mode
 	_panel.visible = _is_open
 	_update_badge()
 
@@ -82,21 +88,25 @@ func _build_ui() -> void:
 	_badge.visible = false
 	_layer.add_child(_badge)
 
+	var compact_theme := Theme.new()
+	compact_theme.default_font_size = 11
+
 	_panel = PanelContainer.new()
-	_panel.position = Vector2(16.0, 16.0)
-	_panel.custom_minimum_size = Vector2(280.0, 0.0)
+	_panel.position = Vector2(8.0, 8.0)
+	_panel.custom_minimum_size = Vector2(250.0, 0.0)
+	_panel.theme = compact_theme
 	_panel.visible = false
 	_layer.add_child(_panel)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 12)
-	margin.add_theme_constant_override("margin_right", 12)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_bottom", 10)
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_bottom", 6)
 	_panel.add_child(margin)
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 6)
+	vbox.add_theme_constant_override("separation", 3)
 	margin.add_child(vbox)
 
 	var title := Label.new()
@@ -106,12 +116,8 @@ func _build_ui() -> void:
 	_status_label = Label.new()
 	vbox.add_child(_status_label)
 
-	var time_label := Label.new()
-	time_label.text = "Velocidad del tiempo:"
-	vbox.add_child(time_label)
-
 	var time_row := HBoxContainer.new()
-	time_row.add_theme_constant_override("separation", 4)
+	time_row.add_theme_constant_override("separation", 3)
 	vbox.add_child(time_row)
 	for scale_val in TIME_SCALES:
 		var btn := Button.new()
@@ -126,25 +132,40 @@ func _build_ui() -> void:
 	_god_toggle.toggled.connect(_on_god_mode_toggled)
 	vbox.add_child(_god_toggle)
 
-	_add_action_button(vbox, "Recibir daño (-20 HP)", _on_damage_pressed)
-	_add_action_button(vbox, "Curar 100%", _on_heal_pressed)
+	var hp_row := HBoxContainer.new()
+	hp_row.add_theme_constant_override("separation", 3)
+	vbox.add_child(hp_row)
+	var dmg_btn := _add_action_button(hp_row, "-20 HP", _on_damage_pressed)
+	dmg_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var heal_btn := _add_action_button(hp_row, "Curar 100%", _on_heal_pressed)
+	heal_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	var spawn_row := HBoxContainer.new()
-	spawn_row.add_theme_constant_override("separation", 4)
+	spawn_row.add_theme_constant_override("separation", 3)
 	vbox.add_child(spawn_row)
-	var spawn_one := _add_action_button(
-		spawn_row, "Spawn Squeletor (+1)", _on_spawn_enemies_pressed.bind(1)
-	)
+	var spawn_one := _add_action_button(spawn_row, "Spawn +1", _on_spawn_enemies_pressed.bind(1))
 	spawn_one.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var spawn_five := _add_action_button(spawn_row, "x5", _on_spawn_enemies_pressed.bind(5))
-	spawn_five.custom_minimum_size = Vector2(48.0, 0.0)
+	spawn_five.custom_minimum_size = Vector2(36.0, 0.0)
+	var kill_btn := _add_action_button(spawn_row, "Matar todos", _on_kill_all_pressed)
+	kill_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-	_add_action_button(vbox, "Matar todos los enemigos", _on_kill_all_pressed)
+	var flow_row := HBoxContainer.new()
+	flow_row.add_theme_constant_override("separation", 3)
+	vbox.add_child(flow_row)
+	_replay_entry_btn = _add_action_button(flow_row, "Anim. Entrada", _on_replay_entry_pressed)
+	_replay_entry_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_replay_escape_btn = _add_action_button(flow_row, "Anim. Escape", _on_replay_escape_pressed)
+	_replay_escape_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-	_next_round_btn = _add_action_button(vbox, "Pasar de ronda (pendiente)", _on_next_round_pressed)
-	_add_shards_btn = _add_action_button(
-		vbox, "+1000 Esquirlas (pendiente)", _on_add_shards_pressed
-	)
+	var game_row := HBoxContainer.new()
+	game_row.add_theme_constant_override("separation", 3)
+	vbox.add_child(game_row)
+	_next_round_btn = _add_action_button(game_row, "Ronda +1", _on_next_round_pressed)
+	_next_round_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_add_shards_btn = _add_action_button(game_row, "+1000 Esq.", _on_add_shards_pressed)
+	_add_shards_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
 	_add_action_button(vbox, "Cerrar (F1)", _toggle_menu)
 
 
@@ -175,7 +196,11 @@ func _refresh_ui() -> void:
 	var economy: Node = get_tree().get_first_node_in_group("economy")
 	_add_shards_btn.disabled = economy == null
 	if economy != null:
-		_add_shards_btn.text = "+%d Esquirlas" % DEBUG_SHARDS
+		_add_shards_btn.text = "+%d Esq." % DEBUG_SHARDS
+
+	var game_flow: Node = get_tree().get_first_node_in_group("game_flow")
+	_replay_entry_btn.disabled = game_flow == null
+	_replay_escape_btn.disabled = game_flow == null
 
 	var enemy_count: int = get_tree().get_nodes_in_group("enemies").size()
 	_status_label.text = (
@@ -227,6 +252,24 @@ func _on_heal_pressed() -> void:
 	_resolve_player()
 	if _player != null:
 		_player.heal(FULL_HEAL)
+
+
+func _on_replay_entry_pressed() -> void:
+	var game_flow := get_tree().get_first_node_in_group("game_flow") as GameFlow
+	if game_flow == null:
+		return
+	if _is_open:
+		_toggle_menu()
+	game_flow.debug_replay_entry()
+
+
+func _on_replay_escape_pressed() -> void:
+	var game_flow := get_tree().get_first_node_in_group("game_flow") as GameFlow
+	if game_flow == null:
+		return
+	if _is_open:
+		_toggle_menu()
+	game_flow.debug_replay_escape()
 
 
 func _on_spawn_enemies_pressed(count: int) -> void:

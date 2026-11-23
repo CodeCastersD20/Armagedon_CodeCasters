@@ -140,9 +140,11 @@ static func _ensure_shared_resources() -> void:
 
 static func _take_or_create(tree: SceneTree) -> EnemyGib:
 	while not _pool.is_empty():
-		var burst: EnemyGib = _pool.pop_back()
-		if is_instance_valid(burst) and burst.is_inside_tree():
-			return burst
+		var raw: Variant = _pool.pop_back()
+		if is_instance_valid(raw):
+			var burst := raw as EnemyGib
+			if burst != null and burst.is_inside_tree():
+				return burst
 	var created := EnemyGib.new()
 	created.top_level = true
 	tree.current_scene.add_child(created)

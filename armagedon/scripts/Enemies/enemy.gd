@@ -7,9 +7,15 @@ signal health_changed(current: float, maximum: float)
 
 const MIN_SPAWN_SEPARATION: float = 0.85
 const NAV_UPDATE_INTERVAL: float = 0.15
+const HIT_STOP_SCALE: float = 0.0
+const HIT_STOP_CRIT_SECONDS: float = 0.045
+const HIT_STOP_CRIT_KILL_SECONDS: float = 0.11
+const HIT_STOP_LAST_KILL_SECONDS: float = 0.14
 const _ENEMY_MANAGER = preload("res://scripts/Enemies/enemy_manager.gd")
 const _BONE_PIECE := preload("res://scripts/Enemies/bone_piece.gd")
 const _ENEMY_GIB := preload("res://scripts/Enemies/enemy_gib.gd")
+
+static var _hit_stop_id: int = 0
 
 @export var data: EnemyData
 ## Ronda usada para el escalado inicial de stats (GDD §9).
@@ -59,7 +65,7 @@ func _exit_tree() -> void:
 
 
 func step_physics(delta: float, player_node: Node3D, allow_nav: bool = true) -> void:
-	if _dead or data == null:
+	if _dead or data == null or not is_inside_tree() or not can_process():
 		return
 	_player = player_node
 	if not is_on_floor():
@@ -126,8 +132,46 @@ func take_damage(amount: float, is_critical: bool = false) -> void:
 		get_tree(), global_position + Vector3.UP * data.damage_number_height, amount, is_critical
 	)
 	health_changed.emit(_health, _max_health)
-	if _health <= 0.0:
+	var is_kill: bool = _health <= 0.0
+	if is_kill:
+		var is_last: bool = _is_last_living_enemy()
+		if is_last:
+			_trigger_hit_stop(get_tree(), HIT_STOP_LAST_KILL_SECONDS, 1.6, true)
+		elif is_critical:
+			_trigger_hit_stop(get_tree(), HIT_STOP_CRIT_KILL_SECONDS, 1.4, true)
 		_die()
+	elif is_critical:
+		_trigger_hit_stop(get_tree(), HIT_STOP_CRIT_SECONDS, 0.75, false)
+
+
+func _is_last_living_enemy() -> bool:
+	for other: Node in get_tree().get_nodes_in_group("enemies"):
+		if other == self or not is_instance_valid(other):
+			continue
+		if other.has_method("is_dead") and not other.call("is_dead"):
+			return false
+	return true
+
+
+static func _trigger_hit_stop(
+	tree: SceneTree, duration: float, punch: float = 1.0, force_override: bool = false
+) -> void:
+	if tree == null:
+		return
+	var in_normal_time: bool = is_equal_approx(Engine.time_scale, 1.0)
+	var in_hit_stop: bool = _hit_stop_id > 0 and is_equal_approx(Engine.time_scale, HIT_STOP_SCALE)
+	if not in_normal_time and not (force_override and in_hit_stop):
+		return
+	var player_node := tree.get_first_node_in_group("player")
+	if player_node != null and player_node.has_method("add_camera_punch"):
+		player_node.call("add_camera_punch", punch)
+	_hit_stop_id += 1
+	var my_id: int = _hit_stop_id
+	Engine.time_scale = HIT_STOP_SCALE
+	await tree.create_timer(duration, true, false, true).timeout
+	if my_id == _hit_stop_id and is_equal_approx(Engine.time_scale, HIT_STOP_SCALE):
+		Engine.time_scale = 1.0
+		_hit_stop_id = 0
 
 
 func get_health() -> float:
@@ -203,12 +247,26 @@ func _die() -> void:
 		var burst_origin: Vector3 = global_position + Vector3.UP * (data.damage_number_height * 0.5)
 		if data.death_explosion_type == EnemyData.DeathExplosionType.BONES:
 			_BONE_PIECE.spawn_burst(
-				get_tree(), burst_origin, data.bone_piece_count, data.bone_floor_lifetime
+				get_tree(), burst_origin, data.bone_piece_count + 6, data.bone_floor_lifetime
 			)
-			_ENEMY_GIB.spawn_burst(get_tree(), burst_origin, 10, [Color(0.86, 0.82, 0.70)])
+			(
+				_ENEMY_GIB
+				. spawn_burst(
+					get_tree(),
+					burst_origin,
+					18,
+					[Color(0.86, 0.82, 0.70), Color(0.85, 0.06, 0.06)],
+				)
+			)
 		elif data.death_gib_count > 0:
-			_ENEMY_GIB.spawn_burst(
-				get_tree(), burst_origin, data.death_gib_count, data.death_gib_colors
+			(
+				_ENEMY_GIB
+				. spawn_burst(
+					get_tree(),
+					burst_origin,
+					maxi(data.death_gib_count * 2, 36),
+					data.death_gib_colors,
+				)
 			)
 	visible = false
 	_ENEMY_MANAGER.unregister(self)

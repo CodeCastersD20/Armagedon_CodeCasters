@@ -35,17 +35,10 @@ const COLOR: Color = Color(0.45, 0.27, 0.12)
 ## Centro del modelo Shield.glb (dónde queda el asa).
 @export var model_grip_center: Vector3 = Vector3(-0.031, 0.378, 0.0)
 
-var _hands: ViewmodelHands
-var _model_scale: Vector3 = Vector3.ONE
 var _player: Player
 var _bob_time: float = 0.0
-var _weapon: Weapon
-var _slash_alternate: bool = true
-var _pose_weight: float = 0.0
-var _model_base: Transform3D
+var _impact_recoil: float = 0.0
 
-@onready var _pose: Node3D = get_node_or_null("ShieldPose")
-@onready var _attack_anim: AnimationPlayer = get_node_or_null("AnimationPlayer")
 @onready var _model: Node3D = get_node_or_null("Shield2")
 
 
@@ -53,8 +46,6 @@ func _ready() -> void:
 	position = rest_position
 	rotation_degrees = rest_rotation_degrees
 	if _model != null:
-		_model_base = _model.transform
-		_model_scale = Vector3.ONE * model_scale
 		PsxStyle.apply(_model)
 	else:
 		_build_mesh()
@@ -76,6 +67,10 @@ func _process(delta: float) -> void:
 		_player = get_tree().get_first_node_in_group("player") as Player
 		if _player == null:
 			return
+		if not _player.attack_blocked.is_connected(_on_attack_blocked):
+			_player.attack_blocked.connect(_on_attack_blocked)
+
+	_impact_recoil = move_toward(_impact_recoil, 0.0, delta * 9.0)
 
 	var is_blocking: bool = _player.is_blocking()
 	var target_pos: Vector3 = block_position if is_blocking else rest_position
@@ -92,74 +87,6 @@ func _process(delta: float) -> void:
 	rotation.x = lerp_angle(rotation.x, deg_to_rad(target_rot.x), transition_speed * delta)
 	rotation.y = lerp_angle(rotation.y, deg_to_rad(target_rot.y), transition_speed * delta)
 	rotation.z = lerp_angle(rotation.z, deg_to_rad(target_rot.z), transition_speed * delta)
-	if _apply_hand_pose():
-		return
-	_apply_attack_pose(delta, is_blocking)
-
-
-## Modo "mano real": el escudo va donde está la mano izquierda de la animación. Devuelve true si
-## lo aplicó; si no hay ViewmodelHands activo, sigue la animación anterior.
-func _apply_hand_pose() -> bool:
-	if _model == null:
-		return false
-	if _hands == null:
-		_hands = get_tree().get_first_node_in_group("viewmodel_hands") as ViewmodelHands
-	if _hands == null or not _hands.is_active():
-		return false
-	var camera: Camera3D = _hands.first_person_camera()
-	_model.global_transform = camera.global_transform * _hands.left_in_camera() * _grip_transform()
-	return true
-
-
-## Escudo dentro de la mano izquierda: su cara plana mira hacia afuera por el dorso de la mano.
-## Ejes de la mano izquierda: +Y dedos, +Z pulgar, +X palma. Se gira 180° en Y como la animación.
-func _grip_transform() -> Transform3D:
-	var scale_vec := Vector3(model_scale, model_scale, model_scale)
-	var model_to_hand := Basis(
-		Vector3(-1.0, 0.0, 0.0), Vector3(0.0, 0.0, 1.0), Vector3(0.0, 1.0, 0.0)
-	)
-	if grip_flip_front:
-		model_to_hand = model_to_hand * Basis(Vector3.UP, PI)
-	var roll := Basis(Vector3(0.0, 0.0, 1.0), deg_to_rad(grip_roll_degrees))
-	var camera_flip := Basis(
-		Vector3(-1.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0), Vector3(0.0, 0.0, -1.0)
-	)
-	var grip_basis: Basis = camera_flip * (roll * model_to_hand)
-	var origin: Vector3 = camera_flip * grip_offset - grip_basis * (model_grip_center * scale_vec)
-	return Transform3D(grip_basis * Basis.from_scale(scale_vec), origin)
-
-
-## true si las animaciones del pack están activas en PlayerStats.
-func _pack_animation_on() -> bool:
-	var player := _player
-	if player == null:
-		player = get_tree().get_first_node_in_group("player") as Player
-	return player != null and player.stats != null and player.stats.pack_animations_enabled
-
-
-## Mueve el modelo como la mano izquierda de la animación de ataque y lo devuelve a su sitio.
-func _apply_attack_pose(delta: float, is_blocking: bool) -> void:
-	if _pose == null or _attack_anim == null or _model == null:
-		return
-	if not _pack_animation_on():
-		_model.transform = _model_base
-		return
-	var playing: bool = attack_anim_enabled and _attack_anim.is_playing() and not is_blocking
-	_pose_weight = move_toward(
-		_pose_weight, 1.0 if playing else 0.0, delta * attack_anim_fade_speed
-	)
-	if _pose_weight <= 0.0 and not playing:
-		_model.transform = _model_base
-		return
-	# La animación está en ejes de cámara; el escudo está girado, se pasa a sus ejes locales.
-	var offset: Vector3 = basis.inverse() * (_pose.position * attack_anim_position_scale)
-	var turn: Quaternion = Quaternion.IDENTITY.slerp(
-		_pose.quaternion, clampf(attack_anim_rotation_scale, 0.0, 1.0)
-	)
-	var animated := Transform3D(
-		basis.inverse() * Basis(turn) * basis * _model_base.basis, _model_base.origin + offset
-	)
-	_model.transform = _model_base.interpolate_with(animated, _pose_weight)
 
 
 func _build_mesh() -> void:
@@ -175,18 +102,10 @@ func _build_mesh() -> void:
 
 func _on_weapon_changed(weapon: Weapon) -> void:
 	visible = weapon != null and weapon.is_melee()
-	if _weapon != null and _weapon.attacked.is_connected(_on_weapon_attacked):
-		_weapon.attacked.disconnect(_on_weapon_attacked)
-	_weapon = weapon
-	if _weapon != null and _weapon.is_melee():
-		_weapon.attacked.connect(_on_weapon_attacked)
 
 
-## Reproduce el mismo tajo (A/B alternados) que la espada, con la mano izquierda.
-func _on_weapon_attacked() -> void:
-	if not attack_anim_enabled or _attack_anim == null or not _pack_animation_on():
-		return
-	_slash_alternate = not _slash_alternate
-	var clip: String = "slash_b" if _slash_alternate else "slash_a"
-	_attack_anim.play(clip)
-	_attack_anim.queue(clip + "_rec")
+## Retroceso visual rápido del escudo al absorber un golpe frontal.
+func _on_attack_blocked(_damage_blocked: float) -> void:
+	_impact_recoil = 1.0
+	position = block_position + Vector3(0.03, -0.02, 0.10)
+	rotation_degrees = block_rotation_degrees + Vector3(-12.0, 8.0, 14.0)

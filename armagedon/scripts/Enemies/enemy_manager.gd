@@ -50,6 +50,9 @@ static func _get_or_create(tree: SceneTree) -> EnemyManager:
 
 
 func _exit_tree() -> void:
+	_enemies.clear()
+	_player = null
+	_camera = null
 	if _instance == self:
 		_instance = null
 
@@ -71,7 +74,12 @@ func _physics_process(delta: float) -> void:
 	var i: int = count - 1
 	while i >= 0:
 		var enemy: Node = _enemies[i]
-		if enemy == null or not is_instance_valid(enemy) or enemy.call("is_dead"):
+		if (
+			enemy == null
+			or not is_instance_valid(enemy)
+			or not enemy.is_inside_tree()
+			or enemy.call("is_dead")
+		):
 			unregister(enemy)
 			i -= 1
 			continue

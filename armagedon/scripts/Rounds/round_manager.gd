@@ -14,7 +14,7 @@ signal escape_started(round_number: int)
 enum State { IDLE, ROUND, REST, ESCAPE }
 
 @export var config: RoundConfig
-@export var auto_start: bool = true
+@export var auto_start: bool = false
 
 var current_state: State = State.IDLE
 var current_round: int = 0
@@ -128,3 +128,11 @@ func _set_state(new_state: State) -> void:
 	var old_state: State = current_state
 	current_state = new_state
 	state_changed.emit(new_state, old_state)
+
+
+## Vuelve el RoundManager a IDLE al regresar al menú Play.
+func reset_to_idle() -> void:
+	current_round = 0
+	_round_time_left = 0.0
+	_set_state(State.IDLE)
+	round_time_changed.emit(0.0)

@@ -24,7 +24,7 @@ const ESCAPE_FLOAT_SECONDS: float = 2.60
 const ESCAPE_TURN_SECONDS: float = 0.60
 const ESCAPE_LAUNCH_SECONDS: float = 1.05
 const CIRCLE_FOG_COLORS: Array[Color] = [
-	Color(0.45, 0.04, 0.04, 1.0),  # 1-10: Limbo
+	Color(0.28, 0.28, 0.30, 1.0),  # 1-10: Limbo (gris ceniza)
 	Color(0.45, 0.05, 0.25, 1.0),  # 11-20: Lujuria
 	Color(0.16, 0.34, 0.08, 1.0),  # 21-30: Gula
 	Color(0.48, 0.28, 0.04, 1.0),  # 31-40: Avaricia y Prodigalidad
@@ -35,6 +35,19 @@ const CIRCLE_FOG_COLORS: Array[Color] = [
 	Color(0.08, 0.22, 0.42, 1.0),  # 81-90: Traición
 	Color(0.22, 0.01, 0.05, 1.0),  # 91-100: Castillo de Lucifer / Lucifer
 	Color(0.05, 0.02, 0.10, 1.0),  # 101+: El Vacío
+]
+const CIRCLE_NAMES: Array[String] = [
+	"1. LIMBO",
+	"2. LUJURIA",
+	"3. GULA",
+	"4. AVARICIA Y PRODIGALIDAD",
+	"5. IRA Y PEREZA",
+	"6. HEREJÍA",
+	"7. VIOLENCIA",
+	"8. FRAUDE",
+	"9. TRAICIÓN",
+	"CASTILLO DE LUCIFER",
+	"EL VACÍO",
 ]
 const LOW_HP_THRESHOLD: float = 0.35
 
@@ -62,6 +75,9 @@ var _crater: MeshInstance3D
 var _rocks: Array[MeshInstance3D] = []
 var _fade_layer: CanvasLayer
 var _fade_rect: ColorRect
+var _circle_label: Label
+var _circle_tween: Tween
+var _current_circle_idx: int = -1
 var _damage_rect: ColorRect
 var _damage_mat: ShaderMaterial
 var _tween: Tween
@@ -596,6 +612,19 @@ func _build_fx_once() -> void:
 	_fade_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_fade_layer.add_child(_fade_rect)
 
+	_circle_label = Label.new()
+	_circle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_circle_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	_circle_label.offset_top = 18.0
+	_circle_label.offset_bottom = 48.0
+	_circle_label.add_theme_font_size_override("font_size", 18)
+	_circle_label.add_theme_color_override("font_color", Color(0.95, 0.92, 0.84, 1.0))
+	_circle_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
+	_circle_label.add_theme_constant_override("outline_size", 4)
+	_circle_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_circle_label.visible = false
+	damage_layer.add_child(_circle_label)
+
 
 func _prewarm_fx() -> void:
 	_light_halo.visible = true
@@ -671,9 +700,30 @@ func _apply_circle_fog(round_number: int, instant: bool) -> void:
 	var env: Environment = _world_env.environment
 	if instant:
 		env.fog_light_color = target_color
+		_current_circle_idx = -1
+		if _circle_label != null:
+			_circle_label.visible = false
 	else:
 		var fog_tw: Tween = create_tween()
 		fog_tw.tween_property(env, "fog_light_color", target_color, 1.5)
+		if idx != _current_circle_idx:
+			_current_circle_idx = idx
+			_show_circle_banner(CIRCLE_NAMES[idx])
+
+
+func _show_circle_banner(circle_name: String) -> void:
+	if _circle_label == null:
+		return
+	if _circle_tween != null and _circle_tween.is_running():
+		_circle_tween.kill()
+	_circle_label.text = circle_name
+	_circle_label.modulate.a = 0.0
+	_circle_label.visible = true
+	_circle_tween = create_tween()
+	_circle_tween.tween_property(_circle_label, "modulate:a", 1.0, 0.4)
+	_circle_tween.tween_interval(2.2)
+	_circle_tween.tween_property(_circle_label, "modulate:a", 0.0, 0.8)
+	_circle_tween.tween_callback(func() -> void: _circle_label.visible = false)
 
 
 func _on_player_slam_landed(impact_pos: Vector3) -> void:

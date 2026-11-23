@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://cycl2my3yyk1v"]
+
+[ext_resource type="Script" path="res://scripts/Player/counters/round_counter.gd" id="1_fsj3e"]
+
+[node name="RoundCounter" type="Node" unique_id=1260784920]
+script = ExtResource("1_fsj3e")
+
+[node name="Round" type="Label" parent="." unique_id=400544608]
+offset_left = 16.0
+offset_top = 20.0
+offset_right = 239.0
+offset_bottom = 65.0
+theme_override_font_sizes/font_size = 16
+text = "Ronda: 1"

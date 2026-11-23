@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_settings")
-internal_resolution = Vector2i(640, 480)
+internal_resolution = Vector2i(640, 360)
 dither_enabled = true
 dither_strength = 0.6
 color_levels = 32.0

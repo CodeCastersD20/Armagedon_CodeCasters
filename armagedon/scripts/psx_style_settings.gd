@@ -3,8 +3,8 @@ extends Resource
 ## Ajustes del estilo PSX (resolución interna y dithering). Instancia en data/psx_style.tres.
 
 ## Resolución interna a la que se renderiza el juego antes de escalar a la ventana.
-# TODO(GDD): 640x480 o 320x240 sin decidir (GDD §13).
-@export var internal_resolution: Vector2i = Vector2i(640, 480)
+# TODO(GDD): resolución interna 16:9 (640x360) pendiente de reflejar en GDD §13.
+@export var internal_resolution: Vector2i = Vector2i(640, 360)
 ## Activa o desactiva el dithering (ordenado, matriz Bayer 4x4).
 @export var dither_enabled: bool = true
 ## Intensidad del patrón de dithering (0 = sin patrón, 1 = máximo).

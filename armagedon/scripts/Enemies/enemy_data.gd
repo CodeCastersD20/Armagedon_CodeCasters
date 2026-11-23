@@ -3,6 +3,8 @@ extends Resource
 ## Stats base de un enemigo (ronda 1). Se editan en data/enemies/.
 ## El escalado por ronda se aplica en runtime desde Enemy (GDD §9).
 
+enum DeathExplosionType { BLOOD, BONES }
+
 @export var display_name: String = ""
 
 ## Vida base en la ronda 1 (GDD §7).
@@ -29,6 +31,22 @@ extends Resource
 
 ## Altura sobre el origen donde aparece el número de daño.
 @export var damage_number_height: float = 1.8
+
+@export_group("Death Explosion")
+## Tipo de explosión al morir (sangre para demonios, piezas óseas para esqueletos).
+@export var death_explosion_type: DeathExplosionType = DeathExplosionType.BLOOD
+## Cantidad de líneas rojas que salen del círculo al morir.
+@export var death_gib_count: int = 20
+## Paleta de colores de la explosión de sangre.
+@export var death_gib_colors: Array[Color] = [
+	Color(0.92, 0.05, 0.05),
+	Color(0.68, 0.02, 0.02),
+	Color(0.45, 0.01, 0.01),
+]
+## Cantidad de piezas que quedan en el suelo (modo BONES).
+@export var bone_piece_count: int = 12
+## Segundos que permanecen las piezas en el suelo antes de desaparecer (modo BONES).
+@export var bone_floor_lifetime: float = 2.5
 
 # TODO(GDD): drops (esferas de Fe/vida y Esquirlas de Alma), cantidades y
 # probabilidades no definidos (§7, §369).

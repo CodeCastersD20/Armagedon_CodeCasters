@@ -35,7 +35,8 @@ func _ready() -> void:
 	add_to_group("enemies")
 	set_physics_process(false)
 	set_process(false)
-	PsxStyle.apply(self)
+	if use_psx_style:
+		PsxStyle.apply(self)
 	_resolve_spawn_overlap.call_deferred()
 	_nav_timer = randf_range(0.0, NAV_UPDATE_INTERVAL)
 	if data == null:
@@ -73,13 +74,19 @@ func step_physics(delta: float, player_node: Node3D, allow_nav: bool = true) -> 
 		var to_player: Vector3 = _player.global_position - global_position
 		to_player.y = 0.0
 		var distance: float = to_player.length()
-		var move_dir: Vector3 = _get_navigation_direction(to_player, distance, allow_nav)
-		velocity.x = move_dir.x * _move_speed
-		velocity.z = move_dir.z * _move_speed
-		if move_dir.length_squared() > 0.0001:
-			_look_toward_direction(move_dir)
-		elif distance > 0.001:
-			_look_toward_direction(to_player)
+		if attack_stop_distance > 0.0 and distance <= attack_stop_distance:
+			velocity.x = 0.0
+			velocity.z = 0.0
+			if distance > 0.001:
+				_look_toward_direction(to_player)
+		else:
+			var move_dir: Vector3 = _get_navigation_direction(to_player, distance, allow_nav)
+			velocity.x = move_dir.x * _move_speed
+			velocity.z = move_dir.z * _move_speed
+			if move_dir.length_squared() > 0.0001:
+				_look_toward_direction(move_dir)
+			elif distance > 0.001:
+				_look_toward_direction(to_player)
 		_try_contact_damage(distance)
 	else:
 		velocity.x = move_toward(velocity.x, 0.0, _move_speed)

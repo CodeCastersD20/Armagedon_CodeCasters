@@ -33,8 +33,8 @@ func _ready() -> void:
 	_play_animation(idle_animation)
 
 
-func _physics_process(delta: float) -> void:
-	super._physics_process(delta)
+func step_physics(delta: float, player_node: Node3D, allow_nav: bool = true) -> void:
+	super.step_physics(delta, player_node, allow_nav)
 	if _dead or data == null or _model == null:
 		return
 	var distance: float = INF

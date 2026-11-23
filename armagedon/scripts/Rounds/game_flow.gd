@@ -23,6 +23,19 @@ const ESCAPE_HALO_APPEAR_SECONDS: float = 1.00
 const ESCAPE_FLOAT_SECONDS: float = 2.60
 const ESCAPE_TURN_SECONDS: float = 0.60
 const ESCAPE_LAUNCH_SECONDS: float = 1.05
+const CIRCLE_FOG_COLORS: Array[Color] = [
+	Color(0.45, 0.04, 0.04, 1.0),  # 1-10: Limbo
+	Color(0.45, 0.05, 0.25, 1.0),  # 11-20: Lujuria
+	Color(0.16, 0.34, 0.08, 1.0),  # 21-30: Gula
+	Color(0.48, 0.28, 0.04, 1.0),  # 31-40: Avaricia y Prodigalidad
+	Color(0.55, 0.02, 0.02, 1.0),  # 41-50: Ira y Pereza
+	Color(0.55, 0.16, 0.02, 1.0),  # 51-60: Herejía
+	Color(0.38, 0.01, 0.03, 1.0),  # 61-70: Violencia
+	Color(0.26, 0.06, 0.38, 1.0),  # 71-80: Fraude
+	Color(0.08, 0.22, 0.42, 1.0),  # 81-90: Traición
+	Color(0.22, 0.01, 0.05, 1.0),  # 91-100: Castillo de Lucifer / Lucifer
+	Color(0.05, 0.02, 0.10, 1.0),  # 101+: El Vacío
+]
 const LOW_HP_THRESHOLD: float = 0.35
 
 @export_enum("Tinte Rojo", "Manchas de Sangre", "Ambos") var damage_fx_mode: int = 0
@@ -31,6 +44,7 @@ const LOW_HP_THRESHOLD: float = 0.35
 @export var round_manager_path: NodePath = NodePath("../RoundManager")
 
 var _world: Node3D
+var _world_env: WorldEnvironment
 var _hud: Node
 var _round_manager: RoundManager
 var _player: Player
@@ -63,6 +77,8 @@ var _in_transition: bool = false
 func _ready() -> void:
 	add_to_group("game_flow")
 	_world = get_node_or_null(world_path) as Node3D
+	if _world != null:
+		_world_env = _world.get_node_or_null("WorldEnvironment") as WorldEnvironment
 	_hud = get_node_or_null(hud_path)
 	_round_manager = get_node_or_null(round_manager_path) as RoundManager
 	if _world == null:
@@ -107,6 +123,8 @@ func _resolve_world_refs() -> void:
 		_player.health_changed.connect(_on_player_health_changed)
 	if not _player.slam_landed.is_connected(_on_player_slam_landed):
 		_player.slam_landed.connect(_on_player_slam_landed)
+	if _round_manager != null and not _round_manager.round_started.is_connected(_on_round_started):
+		_round_manager.round_started.connect(_on_round_started)
 
 	await _prewarm_fx()
 	_run_entry_cinematic()
@@ -130,6 +148,7 @@ func _run_entry_cinematic() -> void:
 	_hp_ratio = 1.0
 	_heartbeat_timer = 0.0
 	_update_damage_shader(0.0, 0.0)
+	_apply_circle_fog(1, true)
 
 	# Posición inicial en el cielo sobre el punto de spawn del jugador en la escena.
 	_player.global_position = Vector3(
@@ -632,6 +651,29 @@ func _process(delta: float) -> void:
 		_update_damage_shader(_damage_intensity_from_hp(), pulse_val * severity)
 	elif _player != null:
 		_player.set_heartbeat_fov_offset(0.0)
+
+
+func _on_round_started(round_number: int, _is_boss: bool) -> void:
+	_apply_circle_fog(round_number, false)
+
+
+func _apply_circle_fog(round_number: int, instant: bool) -> void:
+	if _world_env == null or _world_env.environment == null:
+		return
+	var idx: int = 0
+	if round_number >= 101:
+		idx = 10
+	elif round_number >= 91:
+		idx = 9
+	else:
+		idx = clampi((maxi(round_number, 1) - 1) / 10, 0, 8)
+	var target_color: Color = CIRCLE_FOG_COLORS[idx]
+	var env: Environment = _world_env.environment
+	if instant:
+		env.fog_light_color = target_color
+	else:
+		var fog_tw: Tween = create_tween()
+		fog_tw.tween_property(env, "fog_light_color", target_color, 1.5)
 
 
 func _on_player_slam_landed(impact_pos: Vector3) -> void:

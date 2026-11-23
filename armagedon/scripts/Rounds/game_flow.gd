@@ -56,6 +56,7 @@ var _shield_base_y: float = -0.26
 var _base_fov: float = 90.0
 var _hp_ratio: float = 1.0
 var _heartbeat_timer: float = 0.0
+var _entry_land_pos: Vector3 = Vector3.ZERO
 var _in_transition: bool = false
 
 
@@ -98,6 +99,8 @@ func _resolve_world_refs() -> void:
 	if _shield != null:
 		_shield_base_y = _shield.rest_position.y
 
+	_entry_land_pos = _find_entry_landing_pos(_player.global_position)
+
 	if not _player.player_escaped.is_connected(_on_player_escaped):
 		_player.player_escaped.connect(_on_player_escaped)
 	if not _player.health_changed.is_connected(_on_player_health_changed):
@@ -128,8 +131,10 @@ func _run_entry_cinematic() -> void:
 	_heartbeat_timer = 0.0
 	_update_damage_shader(0.0, 0.0)
 
-	# Posición inicial en el cielo mirando hacia abajo (el suelo de la arena).
-	_player.global_position = Vector3(0.0, SKY_START_Y, 0.0)
+	# Posición inicial en el cielo sobre el punto de spawn del jugador en la escena.
+	_player.global_position = Vector3(
+		_entry_land_pos.x, _entry_land_pos.y + SKY_START_Y, _entry_land_pos.z
+	)
 	_player.rotation.y = 0.0
 	if _player_head != null:
 		_player_head.rotation.x = deg_to_rad(-65.0)
@@ -153,18 +158,17 @@ func _run_entry_cinematic() -> void:
 	_fade_rect.color = Color(1.0, 0.96, 0.85, 0.55)
 
 	# 1. Descenso lento místico: un poder divino te baja poco a poco mientras miras la arena.
+	var release_y: float = _entry_land_pos.y + DIVINE_RELEASE_Y
 	_tween = create_tween().set_parallel(true)
 	(
 		_tween
-		. tween_property(_player, "global_position:y", DIVINE_RELEASE_Y, ENTRY_DESCENT_SECONDS)
+		. tween_property(_player, "global_position:y", release_y, ENTRY_DESCENT_SECONDS)
 		. set_trans(Tween.TRANS_SINE)
 		. set_ease(Tween.EASE_IN_OUT)
 	)
 	(
 		_tween
-		. tween_property(
-			_light_halo, "global_position:y", DIVINE_RELEASE_Y + 0.9, ENTRY_DESCENT_SECONDS
-		)
+		. tween_property(_light_halo, "global_position:y", release_y + 0.9, ENTRY_DESCENT_SECONDS)
 		. set_trans(Tween.TRANS_SINE)
 		. set_ease(Tween.EASE_IN_OUT)
 	)
@@ -182,18 +186,18 @@ func _run_entry_cinematic() -> void:
 	_tween.tween_property(_light_halo, "scale", Vector3.ONE * 0.1, 0.22)
 	(
 		_tween
-		. tween_property(_player, "global_position:y", 0.0, ENTRY_DROP_SECONDS)
+		. tween_property(_player, "global_position:y", _entry_land_pos.y, ENTRY_DROP_SECONDS)
 		. set_trans(Tween.TRANS_QUAD)
 		. set_ease(Tween.EASE_IN)
 	)
 	await _tween.finished
 	_light_halo.visible = false
 	_streak_ring.visible = false
-	set_process(false)
+	_update_process_state()
 
 	# 3. Impacto al suelo: cráter + piedras volando alrededor + golpe de cámara en 1ra persona.
-	_spawn_crater(Vector3.ZERO)
-	_spawn_rocks(Vector3.ZERO)
+	_spawn_crater(_entry_land_pos)
+	_spawn_rocks(_entry_land_pos)
 	_player.set_head_height(0.48)
 	await _shake_first_person_cam(0.24, 0.16)
 
@@ -687,6 +691,18 @@ func get_damage_fx_mode_name() -> String:
 func _hide_rocks() -> void:
 	for rock: MeshInstance3D in _rocks:
 		rock.visible = false
+
+
+func _find_entry_landing_pos(spawn_pos: Vector3) -> Vector3:
+	var world_3d: World3D = _world.get_world_3d()
+	if world_3d != null:
+		var from := Vector3(spawn_pos.x, maxf(spawn_pos.y + 5.0, 20.0), spawn_pos.z)
+		var to := Vector3(spawn_pos.x, -30.0, spawn_pos.z)
+		var query := PhysicsRayQueryParameters3D.create(from, to, 2)
+		var hit: Dictionary = world_3d.direct_space_state.intersect_ray(query)
+		if not hit.is_empty():
+			return hit["position"] as Vector3
+	return Vector3(spawn_pos.x, 0.0, spawn_pos.z)
 
 
 func _kill_tween() -> void:

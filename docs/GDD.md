@@ -298,7 +298,7 @@ No hay cajas de munición porque la munición es infinita.
 | Brazos y armas de fuego | Kuptchi — PSX-Weapons Assets | Libre sin atribución |
 | Esqueleto | Puck — PSX Low Poly Skeleton | CC0 |
 | Rifle FX-05 | Puck — PSX Rifle Free | Verificar |
-| Demonios | Elbolilloduro — Characters PSX | Verificar |
+| Demonio del Averno | Max Damage — Zombie low-poly | Requiere atribución |
 | The Wrapped | Codyanka — THE WRAPPED | Verificar |
 
 ---

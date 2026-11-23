@@ -5,6 +5,7 @@
 [ext_resource type="Shader" uid="uid://8cvg1se3q1g0" path="res://assets/shaders/psx.gdshader" id="3_psx"]
 [ext_resource type="PackedScene" uid="uid://dx6klwqxgn31o" path="res://scenes/Enemies/Squeletor.tscn" id="4_squeletor"]
 [ext_resource type="Script" uid="uid://cb3pc31lp0qjk" path="res://scripts/World/random_walls.gd" id="5_walls"]
+[ext_resource type="PackedScene" path="res://scenes/Enemies/Demonio.tscn" id="6_demonio"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_lsecn"]
 sky_top_color = Color(0.078431375, 0.011764706, 0.011764706, 1)
@@ -89,7 +90,7 @@ material = SubResource("ShaderMaterial_wall")
 
 [node name="Muros" type="Node3D" parent="." unique_id=297399709]
 script = ExtResource("5_walls")
-protected_nodes = Array[NodePath]([NodePath("../Player"), NodePath("../TrainingDummy"), NodePath("../Squeletor")])
+protected_nodes = Array[NodePath]([NodePath("../Player"), NodePath("../TrainingDummy"), NodePath("../Squeletor"), NodePath("../Demonio")])
 
 [node name="Muro" type="CSGBox3D" parent="Muros" unique_id=112390329]
 transform = Transform3D(0.9238795, 0, -0.38268343, 0, 1, 0, 0.38268343, 0, 0.9238795, -12.4, 2.5, -9.8)
@@ -134,10 +135,10 @@ size = Vector3(3, 5, 1.2)
 material = SubResource("ShaderMaterial_wall")
 
 [node name="Muro7" type="CSGBox3D" parent="Muros" unique_id=1539139209]
-transform = Transform3D(0.9396926, 0, 0.34202015, 0, 1, 0, -0.34202015, 0, 0.9396926, 4.4, 2.5, 3.6)
+transform = Transform3D(0.9396926, 0, 0.34202015, 0, 1, 0, -0.34202015, 0, 0.9396926, 4.4, 0.9851074, 3.6)
 use_collision = true
 collision_layer = 2
-size = Vector3(1.5, 5, 1.5)
+size = Vector3(1.5, 8.029785, 1.5)
 material = SubResource("ShaderMaterial_wall")
 
 [node name="Suelo" type="CSGBox3D" parent="." unique_id=671298003]
@@ -154,3 +155,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -3)
 
 [node name="Squeletor" parent="." unique_id=1904340952 instance=ExtResource("4_squeletor")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -6)
+
+[node name="Demonio" parent="." instance=ExtResource("6_demonio")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -4)

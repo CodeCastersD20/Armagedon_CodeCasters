@@ -5,3 +5,4 @@
 [resource]
 script = ExtResource("1_edata")
 display_name = "Esqueleto Condenado"
+death_explosion_type = 1

@@ -7,6 +7,8 @@ signal health_changed(current: float, maximum: float)
 
 const MIN_SPAWN_SEPARATION: float = 0.85
 const NAV_UPDATE_INTERVAL: float = 0.15
+const FALL_LIMIT_Y: float = -20.0
+const CENTER_HOLE_RADIUS: float = 5.4
 const HIT_STOP_SCALE: float = 0.0
 const HIT_STOP_CRIT_SECONDS: float = 0.045
 const HIT_STOP_CRIT_KILL_SECONDS: float = 0.11
@@ -32,6 +34,8 @@ var _nav_timer: float = 0.0
 var _cached_nav_dir: Vector3 = Vector3.ZERO
 var _player: Node3D
 var _dead: bool = false
+var _spawn_position: Vector3 = Vector3.ZERO
+var _avoid_center_hole: bool = false
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var _nav_agent: NavigationAgent3D = get_node_or_null("NavigationAgent3D")
@@ -41,6 +45,9 @@ func _ready() -> void:
 	add_to_group("enemies")
 	set_physics_process(false)
 	set_process(false)
+	_spawn_position = global_position
+	var scene := get_tree().current_scene
+	_avoid_center_hole = scene != null and scene.find_child("HuecoCentral", true, false) != null
 	if use_psx_style:
 		PsxStyle.apply(self)
 	_resolve_spawn_overlap.call_deferred()
@@ -67,6 +74,10 @@ func _exit_tree() -> void:
 func step_physics(delta: float, player_node: Node3D, allow_nav: bool = true) -> void:
 	if _dead or data == null or not is_inside_tree() or not can_process():
 		return
+	if global_position.y < FALL_LIMIT_Y:
+		global_position = _spawn_position
+		velocity = Vector3.ZERO
+		return
 	_player = player_node
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
@@ -87,6 +98,8 @@ func step_physics(delta: float, player_node: Node3D, allow_nav: bool = true) -> 
 				_look_toward_direction(to_player)
 		else:
 			var move_dir: Vector3 = _get_navigation_direction(to_player, distance, allow_nav)
+			if _avoid_center_hole:
+				move_dir = _steer_around_center_hole(move_dir)
 			velocity.x = move_dir.x * _move_speed
 			velocity.z = move_dir.z * _move_speed
 			if move_dir.length_squared() > 0.0001:
@@ -210,6 +223,28 @@ func _get_navigation_direction(
 	if _cached_nav_dir.length_squared() >= 0.0001:
 		return _cached_nav_dir
 	return fallback_dir
+
+
+func _steer_around_center_hole(move_dir: Vector3) -> Vector3:
+	if move_dir.length_squared() < 0.0001:
+		return move_dir
+	var flat_pos := Vector2(global_position.x, global_position.z)
+	var dist_center: float = flat_pos.length()
+	var radial_out := flat_pos.normalized() if dist_center > 0.001 else Vector2.RIGHT
+	if dist_center < CENTER_HOLE_RADIUS - 0.15:
+		return Vector3(radial_out.x, 0.0, radial_out.y)
+	var flat_dir := Vector2(move_dir.x, move_dir.z).normalized()
+	var next_pos: Vector2 = flat_pos + flat_dir * 1.4
+	if dist_center > CENTER_HOLE_RADIUS + 1.5 and next_pos.length() >= CENTER_HOLE_RADIUS:
+		return move_dir
+	if flat_dir.dot(radial_out) >= 0.0 and dist_center >= CENTER_HOLE_RADIUS:
+		return move_dir
+	var tangent_a := Vector2(-radial_out.y, radial_out.x)
+	var tangent_b := -tangent_a
+	var chosen: Vector2 = (
+		tangent_a if tangent_a.dot(flat_dir) >= tangent_b.dot(flat_dir) else tangent_b
+	)
+	return Vector3(chosen.x, 0.0, chosen.y)
 
 
 func _can_apply_contact_damage() -> bool:

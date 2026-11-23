@@ -294,12 +294,16 @@ func _apply_horizontal_movement(delta: float, direction: Vector3, on_floor: bool
 	if on_floor:
 		var friction: float = stats.ground_friction
 		if wish_dir == Vector2.ZERO:
-			horiz = horiz.move_toward(Vector2.ZERO, maxf(horiz.length(), target_speed) * friction * delta)
+			horiz = horiz.move_toward(
+				Vector2.ZERO, maxf(horiz.length(), target_speed) * friction * delta
+			)
 		else:
 			if horiz.length() > target_speed:
 				horiz = horiz.move_toward(wish_dir * target_speed, friction * target_speed * delta)
 			else:
-				horiz = horiz.move_toward(wish_dir * target_speed, stats.ground_acceleration * delta)
+				horiz = horiz.move_toward(
+					wish_dir * target_speed, stats.ground_acceleration * delta
+				)
 	else:
 		if wish_dir == Vector2.ZERO:
 			horiz = horiz.move_toward(Vector2.ZERO, horiz.length() * stats.air_friction * delta)
@@ -316,9 +320,7 @@ func _apply_horizontal_movement(delta: float, direction: Vector3, on_floor: bool
 
 func _update_camera_feel(delta: float, input_dir: Vector2) -> void:
 	var target_tilt: float = (
-		-input_dir.x * deg_to_rad(stats.camera_tilt_degrees)
-		if stats.camera_tilt_enabled
-		else 0.0
+		-input_dir.x * deg_to_rad(stats.camera_tilt_degrees) if stats.camera_tilt_enabled else 0.0
 	)
 	_head.rotation.z = lerpf(_head.rotation.z, target_tilt, 10.0 * delta)
 	if _camera == null:
@@ -477,7 +479,8 @@ func _respawn_if_fallen() -> void:
 	_dash_time_left = 0.0
 	_head.rotation.x = 0.0
 
- ## Activa o desactiva el control del jugador durante menús y cinemáticas.
+
+## Activa o desactiva el control del jugador durante menús y cinemáticas.
 func set_cinematic_mode(enabled: bool) -> void:
 	set_physics_process(not enabled)
 	set_process_unhandled_input(not enabled)

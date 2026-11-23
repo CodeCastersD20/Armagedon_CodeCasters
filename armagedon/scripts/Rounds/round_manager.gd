@@ -129,6 +129,7 @@ func _set_state(new_state: State) -> void:
 	current_state = new_state
 	state_changed.emit(new_state, old_state)
 
+
 ## Vuelve el RoundManager a IDLE al regresar al menú Play.
 func reset_to_idle() -> void:
 	current_round = 0

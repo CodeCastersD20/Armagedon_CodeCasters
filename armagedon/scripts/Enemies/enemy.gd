@@ -249,18 +249,24 @@ func _die() -> void:
 			_BONE_PIECE.spawn_burst(
 				get_tree(), burst_origin, data.bone_piece_count + 6, data.bone_floor_lifetime
 			)
-			_ENEMY_GIB.spawn_burst(
-				get_tree(),
-				burst_origin,
-				18,
-				[Color(0.86, 0.82, 0.70), Color(0.85, 0.06, 0.06)],
+			(
+				_ENEMY_GIB
+				. spawn_burst(
+					get_tree(),
+					burst_origin,
+					18,
+					[Color(0.86, 0.82, 0.70), Color(0.85, 0.06, 0.06)],
+				)
 			)
 		elif data.death_gib_count > 0:
-			_ENEMY_GIB.spawn_burst(
-				get_tree(),
-				burst_origin,
-				maxi(data.death_gib_count * 2, 36),
-				data.death_gib_colors,
+			(
+				_ENEMY_GIB
+				. spawn_burst(
+					get_tree(),
+					burst_origin,
+					maxi(data.death_gib_count * 2, 36),
+					data.death_gib_colors,
+				)
 			)
 	visible = false
 	_ENEMY_MANAGER.unregister(self)

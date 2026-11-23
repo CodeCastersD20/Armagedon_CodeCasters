@@ -143,9 +143,7 @@ func _build_ui() -> void:
 	var spawn_row := HBoxContainer.new()
 	spawn_row.add_theme_constant_override("separation", 3)
 	vbox.add_child(spawn_row)
-	var spawn_one := _add_action_button(
-		spawn_row, "Spawn +1", _on_spawn_enemies_pressed.bind(1)
-	)
+	var spawn_one := _add_action_button(spawn_row, "Spawn +1", _on_spawn_enemies_pressed.bind(1))
 	spawn_one.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var spawn_five := _add_action_button(spawn_row, "x5", _on_spawn_enemies_pressed.bind(5))
 	spawn_five.custom_minimum_size = Vector2(36.0, 0.0)

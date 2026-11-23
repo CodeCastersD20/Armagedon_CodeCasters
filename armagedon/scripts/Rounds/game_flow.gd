@@ -154,25 +154,38 @@ func _run_entry_cinematic() -> void:
 
 	# 1. Descenso lento místico: un poder divino te baja poco a poco mientras miras la arena.
 	_tween = create_tween().set_parallel(true)
-	_tween.tween_property(
-		_player, "global_position:y", DIVINE_RELEASE_Y, ENTRY_DESCENT_SECONDS
-	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_tween.tween_property(
-		_light_halo, "global_position:y", DIVINE_RELEASE_Y + 0.9, ENTRY_DESCENT_SECONDS
-	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	(
+		_tween
+		. tween_property(_player, "global_position:y", DIVINE_RELEASE_Y, ENTRY_DESCENT_SECONDS)
+		. set_trans(Tween.TRANS_SINE)
+		. set_ease(Tween.EASE_IN_OUT)
+	)
+	(
+		_tween
+		. tween_property(
+			_light_halo, "global_position:y", DIVINE_RELEASE_Y + 0.9, ENTRY_DESCENT_SECONDS
+		)
+		. set_trans(Tween.TRANS_SINE)
+		. set_ease(Tween.EASE_IN_OUT)
+	)
 	if _player_head != null:
-		_tween.tween_property(
-			_player_head, "rotation:x", deg_to_rad(-78.0), ENTRY_DESCENT_SECONDS
-		).set_trans(Tween.TRANS_SINE)
+		(
+			_tween
+			. tween_property(_player_head, "rotation:x", deg_to_rad(-78.0), ENTRY_DESCENT_SECONDS)
+			. set_trans(Tween.TRANS_SINE)
+		)
 	_tween.tween_property(_fade_rect, "color:a", 0.0, 1.1)
 	await _tween.finished
 
 	# 2. El poder divino te suelta y caes rápido con tu propio poder.
 	_tween = create_tween().set_parallel(true)
 	_tween.tween_property(_light_halo, "scale", Vector3.ONE * 0.1, 0.22)
-	_tween.tween_property(_player, "global_position:y", 0.0, ENTRY_DROP_SECONDS).set_trans(
-		Tween.TRANS_QUAD
-	).set_ease(Tween.EASE_IN)
+	(
+		_tween
+		. tween_property(_player, "global_position:y", 0.0, ENTRY_DROP_SECONDS)
+		. set_trans(Tween.TRANS_QUAD)
+		. set_ease(Tween.EASE_IN)
+	)
 	await _tween.finished
 	_light_halo.visible = false
 	_streak_ring.visible = false
@@ -191,21 +204,35 @@ func _run_entry_cinematic() -> void:
 		_shield.visible = true
 	var stand_y: float = _player.get_head_stand_y()
 	_tween = create_tween().set_parallel(true)
-	_tween.tween_method(_player.set_head_height, 0.48, stand_y, ENTRY_STAND_SECONDS).set_trans(
-		Tween.TRANS_CUBIC
-	).set_ease(Tween.EASE_OUT)
+	(
+		_tween
+		. tween_method(_player.set_head_height, 0.48, stand_y, ENTRY_STAND_SECONDS)
+		. set_trans(Tween.TRANS_CUBIC)
+		. set_ease(Tween.EASE_OUT)
+	)
 	if _player_head != null:
-		_tween.tween_property(_player_head, "rotation:x", 0.0, ENTRY_STAND_SECONDS).set_trans(
-			Tween.TRANS_CUBIC
-		).set_ease(Tween.EASE_OUT)
+		(
+			_tween
+			. tween_property(_player_head, "rotation:x", 0.0, ENTRY_STAND_SECONDS)
+			. set_trans(Tween.TRANS_CUBIC)
+			. set_ease(Tween.EASE_OUT)
+		)
 	if _weapon_holder != null:
-		_tween.tween_property(
-			_weapon_holder, "position:y", _weapon_holder_base_y, ENTRY_STAND_SECONDS
-		).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		(
+			_tween
+			. tween_property(
+				_weapon_holder, "position:y", _weapon_holder_base_y, ENTRY_STAND_SECONDS
+			)
+			. set_trans(Tween.TRANS_BACK)
+			. set_ease(Tween.EASE_OUT)
+		)
 	if _shield != null:
-		_tween.tween_property(
-			_shield, "position:y", _shield_base_y, ENTRY_STAND_SECONDS
-		).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		(
+			_tween
+			. tween_property(_shield, "position:y", _shield_base_y, ENTRY_STAND_SECONDS)
+			. set_trans(Tween.TRANS_BACK)
+			. set_ease(Tween.EASE_OUT)
+		)
 	await _tween.finished
 
 	# 5. Inicia partida normal.
@@ -255,23 +282,39 @@ func _run_escape_cinematic() -> void:
 	var fall_pos: Vector3 = origin + side_dir * 0.9
 
 	var fall_tw: Tween = create_tween().set_ignore_time_scale(true).set_parallel(true)
-	fall_tw.tween_property(_player, "global_position:x", fall_pos.x, ESCAPE_FALL_SECONDS).set_trans(
-		Tween.TRANS_QUAD
-	).set_ease(Tween.EASE_OUT)
-	fall_tw.tween_property(_player, "global_position:z", fall_pos.z, ESCAPE_FALL_SECONDS).set_trans(
-		Tween.TRANS_QUAD
-	).set_ease(Tween.EASE_OUT)
-	fall_tw.tween_method(
-		_player.set_head_height, _player.get_head_stand_y(), 0.28, ESCAPE_FALL_SECONDS
-	).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+	(
+		fall_tw
+		. tween_property(_player, "global_position:x", fall_pos.x, ESCAPE_FALL_SECONDS)
+		. set_trans(Tween.TRANS_QUAD)
+		. set_ease(Tween.EASE_OUT)
+	)
+	(
+		fall_tw
+		. tween_property(_player, "global_position:z", fall_pos.z, ESCAPE_FALL_SECONDS)
+		. set_trans(Tween.TRANS_QUAD)
+		. set_ease(Tween.EASE_OUT)
+	)
+	(
+		fall_tw
+		. tween_method(
+			_player.set_head_height, _player.get_head_stand_y(), 0.28, ESCAPE_FALL_SECONDS
+		)
+		. set_trans(Tween.TRANS_BOUNCE)
+		. set_ease(Tween.EASE_OUT)
+	)
 	if _player_camera != null:
-		fall_tw.tween_property(
-			_player_camera, "rotation:z", deg_to_rad(-58.0), ESCAPE_FALL_SECONDS
-		).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		(
+			fall_tw
+			. tween_property(_player_camera, "rotation:z", deg_to_rad(-58.0), ESCAPE_FALL_SECONDS)
+			. set_trans(Tween.TRANS_QUAD)
+			. set_ease(Tween.EASE_OUT)
+		)
 	if _player_head != null:
-		fall_tw.tween_property(
-			_player_head, "rotation:x", deg_to_rad(14.0), ESCAPE_FALL_SECONDS
-		).set_trans(Tween.TRANS_QUAD)
+		(
+			fall_tw
+			. tween_property(_player_head, "rotation:x", deg_to_rad(14.0), ESCAPE_FALL_SECONDS)
+			. set_trans(Tween.TRANS_QUAD)
+		)
 	_tween = fall_tw
 	await _tween.finished
 
@@ -284,9 +327,12 @@ func _run_escape_cinematic() -> void:
 	set_process(true)
 
 	_tween = create_tween().set_ignore_time_scale(true)
-	_tween.tween_property(
-		_light_halo, "scale", Vector3.ONE * 1.15, ESCAPE_HALO_APPEAR_SECONDS
-	).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	(
+		_tween
+		. tween_property(_light_halo, "scale", Vector3.ONE * 1.15, ESCAPE_HALO_APPEAR_SECONDS)
+		. set_trans(Tween.TRANS_BACK)
+		. set_ease(Tween.EASE_OUT)
+	)
 	await _tween.finished
 
 	# 3. Apenas aquí se detiene el combate y el aro de luz empieza a elevar al personaje.
@@ -304,38 +350,57 @@ func _run_escape_cinematic() -> void:
 	if _player_camera != null:
 		_tween.tween_property(_player_camera, "rotation:z", 0.0, 0.65).set_trans(Tween.TRANS_CUBIC)
 	if _player_head != null:
-		_tween.tween_property(
-			_player_head, "rotation:x", deg_to_rad(-28.0), 0.75
-		).set_trans(Tween.TRANS_SINE)
+		_tween.tween_property(_player_head, "rotation:x", deg_to_rad(-28.0), 0.75).set_trans(
+			Tween.TRANS_SINE
+		)
 
 	# Mirar a ambos lados viendo la arena mientras se eleva.
 	var look_tw: Tween = create_tween().set_ignore_time_scale(true)
-	look_tw.tween_property(
-		_player, "rotation:y", start_yaw - deg_to_rad(38.0), ESCAPE_FLOAT_SECONDS * 0.45
-	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	look_tw.tween_property(
-		_player, "rotation:y", start_yaw + deg_to_rad(42.0), ESCAPE_FLOAT_SECONDS * 0.55
-	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	(
+		look_tw
+		. tween_property(
+			_player, "rotation:y", start_yaw - deg_to_rad(38.0), ESCAPE_FLOAT_SECONDS * 0.45
+		)
+		. set_trans(Tween.TRANS_SINE)
+		. set_ease(Tween.EASE_IN_OUT)
+	)
+	(
+		look_tw
+		. tween_property(
+			_player, "rotation:y", start_yaw + deg_to_rad(42.0), ESCAPE_FLOAT_SECONDS * 0.55
+		)
+		. set_trans(Tween.TRANS_SINE)
+		. set_ease(Tween.EASE_IN_OUT)
+	)
 	await _tween.finished
 
 	# 2. Voltear en primera persona hacia arriba mirando directo al portal blanco en el cielo.
 	Engine.time_scale = 1.0
 	if _player_head != null:
 		_tween = create_tween().set_ignore_time_scale(true)
-		_tween.tween_property(
-			_player_head, "rotation:x", deg_to_rad(86.0), ESCAPE_TURN_SECONDS
-		).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+		(
+			_tween
+			. tween_property(_player_head, "rotation:x", deg_to_rad(86.0), ESCAPE_TURN_SECONDS)
+			. set_trans(Tween.TRANS_CUBIC)
+			. set_ease(Tween.EASE_IN_OUT)
+		)
 		await _tween.finished
 
 	# 3. Salir disparado hacia el portal blanco + flash blanco al entrar.
 	_fade_rect.color = Color(1.0, 1.0, 1.0, 0.0)
 	_tween = create_tween().set_ignore_time_scale(true).set_parallel(true)
-	_tween.tween_property(_player, "global_position:y", PORTAL_Y, ESCAPE_LAUNCH_SECONDS).set_trans(
-		Tween.TRANS_EXPO
-	).set_ease(Tween.EASE_IN)
-	_tween.tween_property(
-		_light_halo, "global_position:y", PORTAL_Y + 0.8, ESCAPE_LAUNCH_SECONDS
-	).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+	(
+		_tween
+		. tween_property(_player, "global_position:y", PORTAL_Y, ESCAPE_LAUNCH_SECONDS)
+		. set_trans(Tween.TRANS_EXPO)
+		. set_ease(Tween.EASE_IN)
+	)
+	(
+		_tween
+		. tween_property(_light_halo, "global_position:y", PORTAL_Y + 0.8, ESCAPE_LAUNCH_SECONDS)
+		. set_trans(Tween.TRANS_EXPO)
+		. set_ease(Tween.EASE_IN)
+	)
 	_tween.tween_property(_fade_rect, "color:a", 1.0, 0.30).set_delay(ESCAPE_LAUNCH_SECONDS - 0.30)
 	await _tween.finished
 
@@ -352,9 +417,12 @@ func _spawn_crater(center: Vector3) -> void:
 	_crater.scale = Vector3(0.1, 1.0, 0.1)
 	_crater.visible = true
 	var crater_tw: Tween = create_tween()
-	crater_tw.tween_property(_crater, "scale", Vector3.ONE, 0.25).set_trans(
-		Tween.TRANS_CUBIC
-	).set_ease(Tween.EASE_OUT)
+	(
+		crater_tw
+		. tween_property(_crater, "scale", Vector3.ONE, 0.25)
+		. set_trans(Tween.TRANS_CUBIC)
+		. set_ease(Tween.EASE_OUT)
+	)
 
 
 func _spawn_rocks(center: Vector3) -> void:
@@ -385,17 +453,16 @@ func _shake_first_person_cam(duration: float, intensity: float) -> void:
 	var steps: int = 5
 	var step_time: float = duration / float(steps)
 	for i: int in steps:
-		_player_camera.position = base_pos + Vector3(
-			randf_range(-intensity, intensity), randf_range(-intensity, intensity), 0.0
+		_player_camera.position = (
+			base_pos
+			+ Vector3(randf_range(-intensity, intensity), randf_range(-intensity, intensity), 0.0)
 		)
 		await get_tree().create_timer(step_time).timeout
 	_player_camera.position = base_pos
 
 
 func _set_gameplay_active(active: bool) -> void:
-	var mode: Node.ProcessMode = (
-		Node.PROCESS_MODE_INHERIT if active else Node.PROCESS_MODE_DISABLED
-	)
+	var mode: Node.ProcessMode = Node.PROCESS_MODE_INHERIT if active else Node.PROCESS_MODE_DISABLED
 	_world.process_mode = mode
 	var em: Node = get_parent().get_node_or_null("EnemyManager")
 	if em != null:
@@ -427,9 +494,7 @@ func _build_fx_once() -> void:
 		streak.material_override = streak_mat
 		var angle: float = (TAU / float(STREAK_COUNT)) * float(i)
 		var radius: float = 1.45 + float(i % 3) * 0.35
-		streak.position = Vector3(
-			cos(angle) * radius, randf_range(-1.5, 2.2), sin(angle) * radius
-		)
+		streak.position = Vector3(cos(angle) * radius, randf_range(-1.5, 2.2), sin(angle) * radius)
 		_streak_ring.add_child(streak)
 		_streak_speeds.append(randf_range(3.5, 6.5))
 

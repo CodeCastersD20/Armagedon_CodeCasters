@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://b2j5rlchv45ka"
+path="res://.godot/imported/Footstep Stairs 5.ogg-d0e83fc51a6b9ba3374d8d3f8c3f8ec1.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/audio/sfx/footsteps/Stairs/Footstep Stairs 5.ogg"
+dest_files=["res://.godot/imported/Footstep Stairs 5.ogg-d0e83fc51a6b9ba3374d8d3f8c3f8ec1.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

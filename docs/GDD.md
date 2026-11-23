@@ -384,10 +384,10 @@ Principio: medir antes de optimizar (Profiler y Monitors de Godot, siempre sobre
 
 ### 17.3 IA de enemigos
 
-- Los enemigos **no** calculan su ruta en cada frame. Recalculan el destino con un temporizador de **0.1 a 0.2 s**.
-- El recálculo va **escalonado**: cada enemigo tiene un desfase propio, de modo que no todos recalculan en el mismo frame.
+- Los enemigos **no** calculan su ruta en cada frame. Recalculan el destino con un temporizador de **0.1 a 0.2 s** (actualmente `NAV_UPDATE_INTERVAL = 0.15 s` en `Enemy`, guardando la última dirección en caché entre intervalos).
+- El recálculo va **escalonado**: cada enemigo arranca con un desfase aleatorio (`0` a `NAV_UPDATE_INTERVAL`), de modo que no todos recalculan en el mismo frame.
 - El tope de 30 enemigos simultáneos (§7) acota el costo total.
-- Intervalo y desfase son constantes configurables en `armagedon/data/`. **[PENDIENTE]** valor definitivo.
+- Intervalo configurable en `armagedon/data/`. **[PENDIENTE]** mover `NAV_UPDATE_INTERVAL` a `EnemyData` si hace falta ajustarlo por tipo de enemigo.
 
 ### 17.4 Ajustes de rendimiento (opciones del jugador)
 
@@ -435,10 +435,10 @@ Reglas que se aplican desde el inicio (la lista operativa vive en `AGENTS.md`, �
 | Materiales | Pocos y compartidos. `PsxStyle.apply()` cachea el `ShaderMaterial` por material original, textura y rejilla: 30 enemigos del mismo tipo comparten un solo material. |
 | Resolución | Renderizar a 640×480 o 320×240 (#38): es la mayor ganancia en una iGPU, porque reduce el costo por píxel. |
 | Iluminación | Una luz direccional y pocas luces dinámicas. Sombras desactivadas o solo en la luz principal; sin SSAO, SSR ni SDFGI. Revisar el `glow` de `WorldEnvironment`. |
-| Enemigos | Tope de 30 simultáneos. Esqueleto con pocos huesos; animaciones simples; no instanciar ni liberar en cada frame. |
+| Enemigos | Tope de 30 simultáneos. Simulación centralizada en `EnemyManager` (un único `_physics_process` y `_process`, física a mitad de tasa para lejanos > 16 m y presupuesto de 10 recálculos de ruta por frame); esqueleto con pocos huesos, **LOD de animación por distancia** (20 Hz media distancia, 8 Hz lejos) y **culling de animación detrás de cámara**; no instanciar ni liberar en cada frame. |
 | Pooling | Reutilizar objetos de efectos frecuentes (trazos de disparo, marcas de impacto, números de daño) en vez de crearlos y liberarlos por golpe (ver §17.5). Ya hay pooling de trazadores, impactos y `DamageNumber`; los enemigos se agregan con #58. **[PENDIENTE]** decidir si `DamageNumber` (hoy solo en el muñeco de pruebas) pasa al juego final o se quita. |
 | Física e IA | Colisiones con formas simples (cápsula, caja); evitar `ConcavePolygonShape3D` salvo la arena estática. Recalcular rutas del NavMesh con intervalo, no cada frame. |
-| Escena | Props repetidos con `MultiMeshInstance3D`; `VisibleOnScreenNotifier`/visibility range para lo lejano; la arena es pequeña, así que el occlusion culling solo si hace falta. |
+| Escena | Props y restos repetidos con `MultiMeshInstance3D` (ej. `BonePiece` dibuja hasta 120 piezas en 1 solo draw call); `VisibleOnScreenNotifier`/visibility range para lo lejano; la arena es pequeña, así que el occlusion culling solo si hace falta. |
 | Proceso | Medir antes de optimizar (Profiler y Monitors). Probar en la PC más modesta antes de mergear cualquier cambio visual pesado. |
 
 ---

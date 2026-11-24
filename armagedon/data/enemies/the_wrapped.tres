@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://5qpihrseu4h6"]
+
+[ext_resource type="Script" uid="uid://c1fgbw3jtekfy" path="res://scripts/Enemies/enemy_data.gd" id="1_edata"]
+
+[resource]
+script = ExtResource("1_edata")
+display_name = "The Wrapped"
+max_health = 325.0
+contact_damage = 30.0
+move_speed = 2.8
+contact_range = 2.0
+contact_hit_delay_seconds = 0.45
+damage_number_height = 2.4

@@ -17,6 +17,7 @@ extends Enemy
 @export var attack_animation: String = "Zombie_Scratch"
 
 var _current_animation: String = ""
+var _resolved_anims: Dictionary = {}
 
 @onready var _model: Node3D = get_node_or_null("Model")
 @onready var _anim: AnimationPlayer = get_node_or_null("AnimationPlayer")
@@ -58,7 +59,12 @@ func step_physics(delta: float, player_node: Node3D, allow_nav: bool = true) -> 
 func _can_apply_contact_damage() -> bool:
 	if _anim == null or data == null:
 		return false
-	if _anim.current_animation != attack_animation:
+	if _current_animation != attack_animation:
+		return false
+	var resolved_attack: String = _resolve_animation(attack_animation)
+	if resolved_attack == "":
+		return true
+	if _anim.current_animation != resolved_attack:
 		return false
 	var impact_time: float = maxf(data.contact_hit_delay_seconds, 0.0)
 	return absf(_anim.current_animation_position - impact_time) <= attack_hit_window
@@ -149,10 +155,42 @@ func _apply_fit(bounds: AABB) -> void:
 func _play_animation(name: String) -> void:
 	if _anim != null:
 		_anim.speed_scale = walk_animation_speed if name == walk_animation else 1.0
+	var resolved: String = _resolve_animation(name)
+	if resolved == "":
+		if name == _current_animation:
+			return
+		_current_animation = name
+		return
 	if name == _current_animation:
-		if _anim == null or _anim.is_playing():
+		if _anim != null and _anim.is_playing() and _anim.current_animation == resolved:
 			return
 		_current_animation = ""
 	_current_animation = name
-	if _anim != null and _anim.has_animation(name):
-		_anim.play(name, animation_crossfade)
+	if _anim != null:
+		_anim.play(resolved, animation_crossfade)
+
+
+func _resolve_animation(name: String) -> String:
+	if name == "" or _anim == null:
+		return ""
+	if _resolved_anims.has(name):
+		var cached: String = str(_resolved_anims[name])
+		if cached != "" and _anim.has_animation(cached):
+			return cached
+	if _anim.has_animation(name):
+		_resolved_anims[name] = name
+		return name
+	var wanted: String = name.to_lower()
+	for anim_name in _anim.get_animation_list():
+		var candidate: String = str(anim_name)
+		var lower: String = candidate.to_lower()
+		if lower == wanted or lower.ends_with("|" + wanted) or lower.ends_with("/" + wanted):
+			_resolved_anims[name] = candidate
+			return candidate
+	for anim_name in _anim.get_animation_list():
+		var candidate: String = str(anim_name)
+		if candidate.to_lower().contains(wanted):
+			_resolved_anims[name] = candidate
+			return candidate
+	_resolved_anims[name] = ""
+	return ""

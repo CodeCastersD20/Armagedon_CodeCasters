@@ -42,6 +42,10 @@ extends Resource
 @export var slam_speed: float = 32.0
 @export var slam_damage: float = 25.0
 @export var slam_radius: float = 4.0
+## TODO(GDD): intensidad, duración y rotación de la sacudida de cámara al impactar el slam.
+@export var slam_shake_strength: float = 1.0
+@export var slam_shake_duration: float = 0.22
+@export var slam_shake_rotation_degrees: float = 1.5
 
 # Dash: `stamina` es el máximo de cargas.
 # TODO(GDD): consumo y recarga son [PENDIENTE] (ver #27); valores provisionales.

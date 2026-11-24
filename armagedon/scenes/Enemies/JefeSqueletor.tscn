@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/Enemies/Squeletor.tscn" id="1_base"]
+[ext_resource type="Resource" path="res://data/enemies/jefe_squeletor.tres" id="2_data"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_boss"]
+radius = 0.6
+height = 2.7
+
+[node name="JefeSqueletor" instance=ExtResource("1_base")]
+data = ExtResource("2_data")
+model_height = 2.7
+
+[node name="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, 0)
+shape = SubResource("CapsuleShape3D_boss")
+
+[node name="NavigationAgent3D" parent="."]
+target_desired_distance = 0.75

@@ -34,11 +34,6 @@ var _slash_tween: Tween
 # Arranca en true: el primer ataque alterna a false y hace el tajo "\".
 var _slash_alternate: bool = true
 var _original_basis: Basis
-var _pose_weight: float = 0.0
-var _idle_model_transform: Transform3D
-var _hand_rest_quat: Quaternion = Quaternion.IDENTITY
-var _pivot_rest_origin: Vector3 = Vector3.ZERO
-var _hands: ViewmodelHands
 ## Estela de corte reutilizada en cada ataque (un solo nodo, malla y material).
 var _whoosh_node: MeshInstance3D
 var _whoosh_mesh: ImmediateMesh
@@ -50,10 +45,6 @@ var _attack_id: int = 0
 var _hit_shape: SphereShape3D
 var _hit_query: PhysicsShapeQueryParameters3D
 
-@onready var _pivot: Node3D = get_node_or_null("GripPivot")
-@onready var _pack_anim: AnimationPlayer = get_node_or_null("AnimationPlayer")
-@onready var _model: Node3D = get_node_or_null("Espada PS1")
-
 
 func _ready() -> void:
 	super._ready()
@@ -62,91 +53,6 @@ func _ready() -> void:
 	_original_rotation = rotation
 	_original_position = position
 	_original_basis = basis
-	_setup_pack_pose()
-
-
-func _process(delta: float) -> void:
-	super._process(delta)
-	_apply_pack_pose(delta)
-
-
-## true si las animaciones del pack están activas: el interruptor de PlayerStats y el del arma.
-func _pack_animation_on() -> bool:
-	if data == null or not data.use_pack_animation:
-		return false
-	var player := _player_body as Player
-	if player == null:
-		_player_exclude()  # llena el caché de _player_body
-		player = _player_body as Player
-	return player != null and player.stats != null and player.stats.pack_animations_enabled
-
-
-## Mueve el modelo como si la mano de la animación del pack lo sostuviera: el puño es el pivote,
-## así la espada gira alrededor de la mano y no de su propio origen. Al terminar la animación
-## se desvanece hacia la pose de reposo del modelo.
-func _apply_pack_pose(delta: float) -> void:
-	if _model == null or data == null:
-		return
-	if not _pack_animation_on():
-		return
-	if _hands == null:
-		_hands = get_tree().get_first_node_in_group("viewmodel_hands") as ViewmodelHands
-	if _hands != null and _hands.is_active():
-		# Modo "mano real": el modelo va donde está la mano de la animación, medida desde la cabeza.
-		var camera: Camera3D = _hands.first_person_camera()
-		_model.global_transform = (
-			camera.global_transform * _hands.right_in_camera() * _grip_transform()
-		)
-		return
-	if _pivot == null or _pack_anim == null:
-		return
-	var target: float = 1.0 if _pack_anim.is_playing() else 0.0
-	_pose_weight = move_toward(_pose_weight, target, delta * PACK_FADE_SPEED)
-	if _pose_weight <= 0.0 and target == 0.0:
-		_model.transform = _idle_model_transform
-		return
-	var hand_basis: Basis = Basis(
-		_hand_rest_quat.slerp(
-			_pivot.quaternion, clampf(data.pack_animation_rotation_scale, 0.0, 1.0)
-		)
-	)
-	var hand_origin: Vector3 = (
-		_pivot_rest_origin + _pivot.position * data.pack_animation_position_scale
-	)
-	var animated: Transform3D = Transform3D(hand_basis, hand_origin) * _grip_transform()
-	_model.transform = _idle_model_transform.interpolate_with(animated, _pose_weight)
-
-
-## Transform de la espada dentro de la mano: la hoja sale por el lado del pulgar y el centro del
-## mango queda en el puño. Ejes de la mano del rig: +Y dedos, +Z pulgar, -X palma.
-func _grip_transform() -> Transform3D:
-	var normal: Vector3 = model_blade_dir.cross(model_wide_dir)
-	var model_frame := Basis(model_wide_dir, normal, model_blade_dir)
-	var hand_frame := Basis(Vector3(0.0, 1.0, 0.0), Vector3(-1.0, 0.0, 0.0), Vector3(0.0, 0.0, 1.0))
-	var roll := Basis(Vector3(0.0, 0.0, 1.0), deg_to_rad(data.pack_grip_roll_degrees))
-	# La animación está horneada en ejes de cámara (personaje girado 180° en Y): el agarre,
-	# medido en ejes de la mano del personaje, debe girarse igual.
-	var grip_basis: Basis = CAMERA_FLIP * (roll * hand_frame * model_frame.inverse())
-	var grip_offset: Vector3 = CAMERA_FLIP * data.pack_grip_offset
-	return Transform3D(grip_basis, grip_offset - grip_basis * model_grip_center)
-
-
-## Calcula dónde queda el puño en reposo: el mango del modelo en su pose de reposo.
-func _setup_pack_pose() -> void:
-	if _pivot == null or _pack_anim == null or _model == null or data == null:
-		return
-	_idle_model_transform = _model.transform
-	var clip: Animation = _pack_anim.get_animation("slash_a")
-	if clip == null:
-		return
-	var q_track: int = clip.find_track(NodePath("GripPivot:quaternion"), Animation.TYPE_VALUE)
-	if q_track < 0:
-		return
-	_hand_rest_quat = clip.track_get_key_value(q_track, 0) as Quaternion
-	var idle_grip_point: Vector3 = _idle_model_transform * model_grip_center
-	_pivot_rest_origin = (
-		idle_grip_point - Basis(_hand_rest_quat) * (CAMERA_FLIP * data.pack_grip_offset)
-	)
 
 
 ## Punto de entrada del ataque: dispara cada módulo por separado sin mezclarse.
@@ -265,8 +171,6 @@ func cancel_reload() -> void:
 		_whoosh_tween.kill()
 	if _whoosh_node != null and is_instance_valid(_whoosh_node):
 		_whoosh_node.visible = false
-	if _pack_anim != null:
-		_pack_anim.stop()
 	rotation = _original_rotation
 	position = _original_position
 
@@ -277,11 +181,6 @@ func cancel_reload() -> void:
 func _play_weapon_animation(alternate: bool) -> void:
 	if _slash_tween != null and _slash_tween.is_valid():
 		_slash_tween.kill()
-	if _pack_animation_on() and _pack_anim != null:
-		var clip: String = "slash_b" if alternate else "slash_a"
-		_pack_anim.play(clip, -1.0, data.pack_animation_speed)
-		_pack_anim.queue(clip + "_rec")
-		return
 
 	_slash_tween = create_tween()
 	# Tajo en diagonal frente a la cámara: "\" (arriba-izquierda a abajo-derecha) y

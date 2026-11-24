@@ -1,15 +1,24 @@
 class_name AnimatedEnemy
 extends Enemy
 
+const ANIM_LOD_NEAR_DIST_SQ: float = 100.0
+const ANIM_LOD_MID_DIST_SQ: float = 400.0
+const ANIM_LOD_MID_INTERVAL: float = 1.0 / 20.0
+const ANIM_LOD_FAR_INTERVAL: float = 1.0 / 8.0
+const CAM_CULL_DIST_SQ: float = 16.0
+const FRONT_HIT_MIN_DOT: float = 0.35
+
 @export var model_height: float = 1.8
 @export var fallback_texture: Texture2D
 @export var snap_resolution: float = 320.0
 @export var walk_enter_speed: float = 0.15
 @export var walk_exit_speed: float = 0.05
 @export var attack_hysteresis: float = 0.25
-@export var attack_hit_window: float = 0.08
+@export var attack_hit_window: float = 0.15
 @export var animation_crossfade: float = 0.15
 @export var walk_animation_speed: float = 1.0
+## FPS máximos de animación cerca del jugador (efecto PSX cuadrado pero legible).
+@export var animation_near_fps: float = 16.0
 @export var fit_to_visual_mesh: bool = false
 @export var ground_offset: float = 0.0
 @export var idle_animation: String = "Zombie_Idle"
@@ -17,6 +26,8 @@ extends Enemy
 @export var attack_animation: String = "Zombie_Scratch"
 
 var _current_animation: String = ""
+var _anim_accum: float = 0.0
+var _last_dist_sq: float = INF
 var _resolved_anims: Dictionary = {}
 
 @onready var _model: Node3D = get_node_or_null("Model")
@@ -31,16 +42,39 @@ func _ready() -> void:
 			PsxStyle.apply(_model, fallback_texture, snap_resolution)
 		_fit_model()
 	super._ready()
+	if _anim != null:
+		_anim.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
+		_anim_accum = randf_range(0.0, ANIM_LOD_FAR_INTERVAL)
 	_play_animation(idle_animation)
+	if _anim != null:
+		_anim.advance(0.0)
+
+
+func step_process(
+	delta: float,
+	cam_pos: Vector3 = Vector3.ZERO,
+	cam_forward: Vector3 = Vector3.FORWARD,
+	has_cam: bool = false,
+) -> void:
+	if _dead or _anim == null:
+		return
+	if has_cam:
+		var to_enemy: Vector3 = global_position - cam_pos
+		if to_enemy.length_squared() > CAM_CULL_DIST_SQ and to_enemy.dot(cam_forward) < 0.0:
+			_anim_accum = minf(_anim_accum + delta, 0.25)
+			return
+	_step_animation_lod(delta, _last_dist_sq)
 
 
 func step_physics(delta: float, player_node: Node3D, allow_nav: bool = true) -> void:
 	super.step_physics(delta, player_node, allow_nav)
 	if _dead or data == null or _model == null:
 		return
-	var distance: float = INF
+	var dist_sq: float = INF
 	if _player != null and is_instance_valid(_player):
-		distance = _player.global_position.distance_to(global_position)
+		dist_sq = _player.global_position.distance_squared_to(global_position)
+	_last_dist_sq = dist_sq
+	var distance: float = sqrt(dist_sq) if dist_sq < INF else INF
 	var speed: float = Vector2(velocity.x, velocity.z).length()
 	var next_animation: String = idle_animation
 	if _current_animation == attack_animation:
@@ -57,7 +91,7 @@ func step_physics(delta: float, player_node: Node3D, allow_nav: bool = true) -> 
 
 
 func _can_apply_contact_damage() -> bool:
-	if _anim == null or data == null:
+	if _anim == null or data == null or _player == null or not is_instance_valid(_player):
 		return false
 	if _current_animation != attack_animation:
 		return false
@@ -66,8 +100,34 @@ func _can_apply_contact_damage() -> bool:
 		return true
 	if _anim.current_animation != resolved_attack:
 		return false
-	var impact_time: float = maxf(data.contact_hit_delay_seconds, 0.0)
+	var to_player: Vector3 = _player.global_position - global_position
+	to_player.y = 0.0
+	if to_player.length_squared() > 0.0001:
+		var forward: Vector3 = -global_basis.z
+		forward.y = 0.0
+		if forward.length_squared() > 0.0001:
+			if forward.normalized().dot(to_player.normalized()) < FRONT_HIT_MIN_DOT:
+				return false
+	var impact_time: float = (
+		data.contact_hit_delay_seconds
+		if data.contact_hit_delay_seconds > 0.0
+		else _anim.current_animation_length * 0.40
+	)
 	return absf(_anim.current_animation_position - impact_time) <= attack_hit_window
+
+
+func _step_animation_lod(delta: float, dist_sq: float) -> void:
+	if _anim == null:
+		return
+	_anim_accum += delta
+	var interval: float = 1.0 / maxf(animation_near_fps, 1.0)
+	if dist_sq > ANIM_LOD_MID_DIST_SQ:
+		interval = ANIM_LOD_FAR_INTERVAL
+	elif dist_sq > ANIM_LOD_NEAR_DIST_SQ:
+		interval = maxf(interval, ANIM_LOD_MID_INTERVAL)
+	if _anim_accum >= interval:
+		_anim.advance(_anim_accum)
+		_anim_accum = 0.0
 
 
 func _fit_model() -> void:
@@ -152,45 +212,45 @@ func _apply_fit(bounds: AABB) -> void:
 	_model.position.y += ground_offset
 
 
-func _play_animation(name: String) -> void:
+func _play_animation(anim_name: String) -> void:
 	if _anim != null:
-		_anim.speed_scale = walk_animation_speed if name == walk_animation else 1.0
-	var resolved: String = _resolve_animation(name)
+		_anim.speed_scale = walk_animation_speed if anim_name == walk_animation else 1.0
+	var resolved: String = _resolve_animation(anim_name)
 	if resolved == "":
-		if name == _current_animation:
+		if anim_name == _current_animation:
 			return
-		_current_animation = name
+		_current_animation = anim_name
 		return
-	if name == _current_animation:
+	if anim_name == _current_animation:
 		if _anim != null and _anim.is_playing() and _anim.current_animation == resolved:
 			return
 		_current_animation = ""
-	_current_animation = name
+	_current_animation = anim_name
 	if _anim != null:
 		_anim.play(resolved, animation_crossfade)
 
 
-func _resolve_animation(name: String) -> String:
-	if name == "" or _anim == null:
+func _resolve_animation(target_name: String) -> String:
+	if target_name == "" or _anim == null:
 		return ""
-	if _resolved_anims.has(name):
-		var cached: String = str(_resolved_anims[name])
+	if _resolved_anims.has(target_name):
+		var cached: String = str(_resolved_anims[target_name])
 		if cached != "" and _anim.has_animation(cached):
 			return cached
-	if _anim.has_animation(name):
-		_resolved_anims[name] = name
-		return name
-	var wanted: String = name.to_lower()
-	for anim_name in _anim.get_animation_list():
-		var candidate: String = str(anim_name)
+	if _anim.has_animation(target_name):
+		_resolved_anims[target_name] = target_name
+		return target_name
+	var wanted: String = target_name.to_lower()
+	for anim_key in _anim.get_animation_list():
+		var candidate: String = str(anim_key)
 		var lower: String = candidate.to_lower()
 		if lower == wanted or lower.ends_with("|" + wanted) or lower.ends_with("/" + wanted):
-			_resolved_anims[name] = candidate
+			_resolved_anims[target_name] = candidate
 			return candidate
-	for anim_name in _anim.get_animation_list():
-		var candidate: String = str(anim_name)
+	for anim_key in _anim.get_animation_list():
+		var candidate: String = str(anim_key)
 		if candidate.to_lower().contains(wanted):
-			_resolved_anims[name] = candidate
+			_resolved_anims[target_name] = candidate
 			return candidate
-	_resolved_anims[name] = ""
+	_resolved_anims[target_name] = ""
 	return ""

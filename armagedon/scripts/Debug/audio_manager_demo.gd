@@ -69,7 +69,7 @@ func _duck() -> void:
 
 
 func _talk() -> void:
-	AudioManager.play_voice(_voice_stream, true)
+	AudioManager.play_voice(_voice_stream)
 
 
 func _sfx() -> void:

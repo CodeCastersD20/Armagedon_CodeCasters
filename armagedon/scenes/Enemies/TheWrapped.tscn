@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://dvuwiwrhq2sma"]
+
+[ext_resource type="Script" uid="uid://cbsm855h02e88" path="res://scripts/Enemies/animated_enemy.gd" id="1_enemy"]
+[ext_resource type="Resource" uid="uid://5qpihrseu4h6" path="res://data/enemies/the_wrapped.tres" id="2_data"]
+[ext_resource type="PackedScene" uid="uid://ds8it5ivm63te" path="res://assets/models/enemies/the wrapped/MonsterPSX.fbx" id="3_model"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.6
+height = 2.6
+
+[node name="TheWrapped" type="CharacterBody3D" unique_id=2132292770]
+collision_mask = 3
+script = ExtResource("1_enemy")
+model_height = 2.6
+fit_to_visual_mesh = true
+idle_animation = "Idle_Watchful"
+walk_animation = "Walk_Nervous"
+attack_animation = "Attack_Lunge"
+data = ExtResource("2_data")
+start_round = 4
+attack_stop_distance = 1.5
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1404659776]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+[node name="Model" parent="." unique_id=720856623 instance=ExtResource("3_model")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=831742757]
+path_desired_distance = 0.5

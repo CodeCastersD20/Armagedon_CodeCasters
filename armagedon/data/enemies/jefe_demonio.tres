@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" uid="uid://c1fgbw3jtekfy" path="res://scripts/Enemies/enemy_data.gd" id="1_edata"]
+
+[resource]
+script = ExtResource("1_edata")
+display_name = "Jefe Demonio"
+max_health = 3534.0
+contact_damage = 40.0
+move_speed = 3.15
+contact_range = 2.76
+contact_hit_delay_seconds = 0.4
+damage_number_height = 3.615

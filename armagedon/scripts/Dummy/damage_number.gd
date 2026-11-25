@@ -55,10 +55,12 @@ static func prewarm(tree: SceneTree) -> void:
 
 static func _take_from_pool() -> DamageNumber:
 	while not _pool.is_empty():
-		var number: DamageNumber = _pool.pop_back()
-		# Si cambió la escena, los números del pool pueden estar liberados.
-		if is_instance_valid(number) and number.is_inside_tree():
-			return number
+		var raw: Variant = _pool.pop_back()
+		# Si cambió la escena, los números del pool pueden estar liberados; validar antes de tipar.
+		if is_instance_valid(raw):
+			var number := raw as DamageNumber
+			if number != null and number.is_inside_tree():
+				return number
 	return null
 
 

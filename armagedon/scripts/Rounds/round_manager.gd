@@ -14,11 +14,12 @@ signal escape_started(round_number: int)
 enum State { IDLE, ROUND, REST, ESCAPE }
 
 @export var config: RoundConfig
-@export var auto_start: bool = true
+@export var auto_start: bool = false
 
 var current_state: State = State.IDLE
 var current_round: int = 0
 var _round_time_left: float = 0.0
+var _rest_time_left: float = 0.0
 var _player: Player
 
 
@@ -32,6 +33,11 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if current_state == State.REST:
+		_rest_time_left = maxf(_rest_time_left - delta, 0.0)
+		if _rest_time_left <= 0.0:
+			start_next_round()
+		return
 	if current_state != State.ROUND:
 		return
 	_round_time_left = maxf(_round_time_left - delta, 0.0)
@@ -49,6 +55,7 @@ func _connect_player_escaped() -> void:
 func start_game() -> void:
 	current_round = 1
 	_round_time_left = maxf(config.round_duration, 0.0)
+	_rest_time_left = 0.0
 	_set_state(State.ROUND)
 	round_started.emit(current_round, is_boss_round())
 	round_time_changed.emit(_round_time_left)
@@ -59,6 +66,7 @@ func end_round(cleared_early: bool = false, time_remaining: float = -1.0) -> voi
 		return
 	var bonus_time: float = _round_time_left if time_remaining < 0.0 else time_remaining
 	round_ended.emit(current_round, cleared_early, maxf(bonus_time, 0.0))
+	_rest_time_left = maxf(config.rest_duration, 0.0)
 	_set_state(State.REST)
 	rest_started.emit(current_round)
 
@@ -69,6 +77,7 @@ func start_next_round() -> void:
 	rest_ended.emit(current_round)
 	current_round += 1
 	_round_time_left = maxf(config.round_duration, 0.0)
+	_rest_time_left = 0.0
 	_set_state(State.ROUND)
 	round_started.emit(current_round, is_boss_round())
 	round_time_changed.emit(_round_time_left)
@@ -77,6 +86,7 @@ func start_next_round() -> void:
 func trigger_escape() -> void:
 	if current_state == State.ESCAPE or current_state == State.IDLE:
 		return
+	_rest_time_left = 0.0
 	_set_state(State.ESCAPE)
 	escape_started.emit(current_round)
 
@@ -128,3 +138,12 @@ func _set_state(new_state: State) -> void:
 	var old_state: State = current_state
 	current_state = new_state
 	state_changed.emit(new_state, old_state)
+
+
+## Vuelve el RoundManager a IDLE al regresar al menú Play.
+func reset_to_idle() -> void:
+	current_round = 0
+	_round_time_left = 0.0
+	_rest_time_left = 0.0
+	_set_state(State.IDLE)
+	round_time_changed.emit(0.0)

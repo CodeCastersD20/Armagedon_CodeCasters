@@ -24,5 +24,8 @@ visible = false
 root_node = NodePath("../Pistol_01")
 libraries/ = ExtResource("3_anims")
 
+[node name="Muzzle" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, -0.02, -0.38)
+
 [editable path="Pistol_01"]
 [editable path="Pistol_01/Pistol_01_Armature/Skeleton3D/Mags"]

@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://0yqvgwuhcafw" path="res://scenes/World/coliseo.tscn" id="4_kurpr"]
 [ext_resource type="PackedScene" uid="uid://dx6klwqxgn31o" path="res://scenes/Enemies/Squeletor.tscn" id="4_squeletor"]
 [ext_resource type="PackedScene" path="res://scenes/Enemies/Demonio.tscn" id="6_demonio"]
+[ext_resource type="PackedScene" path="res://scenes/Enemies/TheWrapped.tscn" id="7_wrapped"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_lsecn"]
 sky_top_color = Color(0.078431375, 0.011764706, 0.011764706, 1)
@@ -56,5 +57,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -3)
 [node name="Squeletor" parent="." unique_id=1904340952 instance=ExtResource("4_squeletor")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 5.7286406, -6)
 
-[node name="Demonio" parent="." unique_id=720841796 instance=ExtResource("6_demonio")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 5.566267, -4)
+[node name="Demonio" parent="." instance=ExtResource("6_demonio")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -4)
+
+[node name="TheWrapped" parent="." instance=ExtResource("7_wrapped")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 8)

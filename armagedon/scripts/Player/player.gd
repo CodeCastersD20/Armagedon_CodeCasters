@@ -48,6 +48,8 @@ var _base_fov: float = 90.0
 var _dynamic_fov_offset: float = 0.0
 var _heartbeat_fov_offset: float = 0.0
 var _hit_punch: float = 0.0
+var _slam_shake_strength: float = 0.0
+var _slam_shake_time_left: float = 0.0
 var _weapon_manager: WeaponManager
 
 @onready var _head: Node3D = $Head
@@ -248,6 +250,7 @@ func _start_ground_slam() -> void:
 
 func _apply_slam_impact() -> void:
 	slam_landed.emit(global_position)
+	_start_slam_camera_shake()
 	var radius_sq: float = stats.slam_radius * stats.slam_radius
 	for enemy: Node in get_tree().get_nodes_in_group("enemies"):
 		var enemy_3d := enemy as Node3D
@@ -338,19 +341,43 @@ func _update_camera_feel(delta: float, input_dir: Vector2) -> void:
 	_dynamic_fov_offset = lerpf(_dynamic_fov_offset, target_fov_boost, fov_rate * delta)
 	if _hit_punch > 0.001:
 		_hit_punch = move_toward(_hit_punch, 0.0, delta * 12.0)
+	var envelope: float = 0.0
+	if _slam_shake_time_left > 0.0:
+		envelope = clampf(_slam_shake_time_left / maxf(stats.slam_shake_duration, 0.01), 0.0, 1.0)
+		_slam_shake_time_left = maxf(_slam_shake_time_left - delta, 0.0)
+		if _slam_shake_time_left <= 0.0:
+			_slam_shake_strength = 0.0
+	var shake: float = _slam_shake_strength * envelope
+	var rotation_shake: float = deg_to_rad(stats.slam_shake_rotation_degrees) * envelope
+	var impact: float = _hit_punch + shake
+	if impact > 0.001:
 		_camera.position = Vector3(
-			randf_range(-0.06, 0.06) * _hit_punch,
-			randf_range(-0.06, 0.06) * _hit_punch,
-			0.045 * _hit_punch
+			randf_range(-0.06, 0.06) * impact,
+			randf_range(-0.06, 0.06) * impact - 0.04 * shake,
+			0.045 * impact
 		)
 	elif _camera.position != Vector3.ZERO:
 		_camera.position = Vector3.ZERO
+	if rotation_shake > 0.0001:
+		_camera.rotation = Vector3(
+			randf_range(-rotation_shake, rotation_shake),
+			randf_range(-rotation_shake, rotation_shake),
+			randf_range(-rotation_shake, rotation_shake) * 0.5
+		)
+	elif _camera.rotation != Vector3.ZERO:
+		_camera.rotation = Vector3.ZERO
 	_camera.fov = _base_fov + _dynamic_fov_offset + _heartbeat_fov_offset + (_hit_punch * 4.5)
 
 
 ## Golpe seco de cámara estilo ULTRAKILL al conectar un hit-stop.
 func add_camera_punch(strength: float = 1.0) -> void:
 	_hit_punch = clampf(maxf(_hit_punch, strength), 0.0, 1.5)
+
+
+## Sacudida breve con decaimiento lineal al impactar el ground slam.
+func _start_slam_camera_shake() -> void:
+	_slam_shake_strength = maxf(_slam_shake_strength, stats.slam_shake_strength)
+	_slam_shake_time_left = maxf(_slam_shake_time_left, stats.slam_shake_duration)
 
 
 ## Suma un desplazamiento temporal al FOV (p. ej. latido con poca vida en GameFlow).
@@ -495,6 +522,8 @@ func set_cinematic_mode(enabled: bool) -> void:
 		_crouch_release_required = false
 		_slamming = false
 		_slam_cooldown_left = 0.0
+		_slam_shake_strength = 0.0
+		_slam_shake_time_left = 0.0
 		_coyote_timer = 0.0
 		_is_blocking = false
 		_head.rotation.z = 0.0
@@ -502,6 +531,8 @@ func set_cinematic_mode(enabled: bool) -> void:
 		_heartbeat_fov_offset = 0.0
 		if _camera != null:
 			_camera.fov = _base_fov
+			_camera.position = Vector3.ZERO
+			_camera.rotation = Vector3.ZERO
 	else:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
@@ -519,6 +550,8 @@ func reset_for_new_run() -> void:
 	_crouch_release_required = false
 	_slamming = false
 	_slam_cooldown_left = 0.0
+	_slam_shake_strength = 0.0
+	_slam_shake_time_left = 0.0
 	_coyote_timer = 0.0
 	_is_blocking = false
 	_invuln_timer = 0.0
@@ -531,6 +564,8 @@ func reset_for_new_run() -> void:
 	_head.rotation = Vector3.ZERO
 	if _camera != null:
 		_camera.fov = _base_fov
+		_camera.position = Vector3.ZERO
+		_camera.rotation = Vector3.ZERO
 	health_changed.emit(_health, stats.max_health)
 	stamina_changed.emit(_charges, stats.stamina)
 

@@ -634,7 +634,6 @@ func _on_player_slam_landed(impact_pos: Vector3) -> void:
 	if _in_transition:
 		return
 	_spawn_rocks(impact_pos)
-	_shake_first_person_cam(0.20, 0.14)
 	await get_tree().create_timer(0.85).timeout
 	if not _in_transition:
 		_hide_rocks()

@@ -272,9 +272,33 @@ Sugerencia: llenar primero precio y valor por nivel de lo que ya está en la tie
 
 ## 10. Arena
 
-**[PENDIENTE]** Aún no se ha diseñado. Se definirá después de cerrar el núcleo de combate.
+### 10.1 Forma y medidas base
+- **Geometría:** Coliseo circular poligonal (24 lados, estética PSX) con suelo plano y muralla perimetral cerrada.
+- **Radio jugable (suelo):** `25.0 m` (diámetro total `50.0 m`, área ≈ `1,963 m²`).
+- **Muralla exterior:** Radio externo `27.0 m` (grosor `2.0 m`), altura `12.0 m`.
+- **Punto focal (Norte, `Z = -26 m`):** Aguja de roca elevada (`Height: 24.0 m`, `Radius: 5.0 m`) incrustada en el muro norte, donde se ubica el trono de Lucifer observando la arena.
+- **Implementación:** Blockout inicial con CSG (`#52`); versión final con `StaticBody3D` + formas simples (§17.2).
 
----
+### 10.2 Flujo y capacidad (tope de 30 enemigos)
+Diseñada para permitir *kiting* constante sin que el tope de 30 enemigos se trabe en el `NavigationRegion3D` (`#53`):
+- **Anillo interior libre:** Pasillo de `7.0 m` entre la zona del Mercante (`r = 5 m`) y el anillo de coberturas (`r = 12 m`).
+- **Anillo exterior libre:** Pasillo de `9.0 m` entre las coberturas (`r = 16 m`) y la muralla (`r = 25 m`).
+- **Separación mínima entre coberturas:** ≥ `6.0 m` entre cada obstáculo.
+
+### 10.3 Coberturas
+- **Cantidad:** `4` pilares / ruinas distribuidos simétricamente en el anillo intermedio (`r = 14.0 m`, ángulos `0°`, `90°`, `180°`, `270°`).
+- **Medidas por pilar:** Base de `2.5 m × 2.5 m`, altura de `3.5 m` (corta línea de visión sin tapar el trono de Lucifer).
+
+### 10.4 Puntos de aparición de enemigos (`#54`)
+- **Ubicación:** `4` portales/compuertas en la muralla perimetral (`r = 25.0 m`) en las diagonales: **NE (`45°`)**, **NO (`-45°`)**, **SE (`135°`)** y **SO (`-135°`)**.
+- **Ancho de salida:** `4.0 m` por portal con `Marker3D` dedicado para evitar atascos al salir en grupo.
+
+### 10.5 Zona del Mercante (`#55`)
+- **Ubicación:** Centro exacto de la arena `(0, 0, 0)`.
+- **Dimensiones:** Plataforma circular elevadora (`AnimatableBody3D`) de `5.0 m` de radio (`10.0 m` de diámetro).
+- **Comportamiento:**
+  - *Durante la ronda:* A ras del suelo (`y = 0`) dejando el centro transitable.
+  - *Durante el descanso (40 s):* Asciende `+0.5 m` revelando al Mercante Anónimo y su tienda.
 
 ## 11. Objetos
 

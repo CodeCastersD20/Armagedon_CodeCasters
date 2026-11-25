@@ -1,13 +1,13 @@
 [gd_scene format=3 uid="uid://c0paogke5vgd2"]
 
-[ext_resource type="Script" path="res://scripts/UI/play_menu.gd" id="1_playmenu"]
-[ext_resource type="Shader" path="res://assets/shaders/hell_fall_bg.gdshader" id="2_hellbg"]
+[ext_resource type="Script" uid="uid://bywgeob0sb4he" path="res://scripts/UI/play_menu.gd" id="1_playmenu"]
+[ext_resource type="Shader" uid="uid://cw053ike0lcbv" path="res://assets/shaders/hell_fall_bg.gdshader" id="2_hellbg"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_hellbg"]
 shader = ExtResource("2_hellbg")
 shader_parameter/scroll_time = 0.0
 
-[node name="PlayMenu" type="Control"]
+[node name="PlayMenu" type="Control" unique_id=166777351]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -16,7 +16,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_playmenu")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=1371100032]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -25,7 +25,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.05, 0.02, 0.02, 1)
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Center" type="CenterContainer" parent="." unique_id=317018176]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -33,22 +33,22 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBox" type="VBoxContainer" parent="Center"]
+[node name="VBox" type="VBoxContainer" parent="Center" unique_id=123078217]
 custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="Title" type="Label" parent="Center/VBox"]
+[node name="Title" type="Label" parent="Center/VBox" unique_id=912154126]
 layout_mode = 2
 text = "ARMAGEDDON"
 horizontal_alignment = 1
 
-[node name="PlayButton" type="Button" parent="Center/VBox"]
+[node name="PlayButton" type="Button" parent="Center/VBox" unique_id=511707964]
 custom_minimum_size = Vector2(220, 52)
 layout_mode = 2
 text = "PLAY"
 
-[node name="LoadingOverlay" type="Control" parent="."]
+[node name="LoadingOverlay" type="Control" parent="." unique_id=1795971986]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -58,7 +58,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="HellBackground" type="ColorRect" parent="LoadingOverlay"]
+[node name="HellBackground" type="ColorRect" parent="LoadingOverlay" unique_id=1821502934]
 material = SubResource("ShaderMaterial_hellbg")
 layout_mode = 1
 anchors_preset = 15
@@ -68,7 +68,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="StatusLabel" type="Label" parent="LoadingOverlay"]
+[node name="StatusLabel" type="Label" parent="LoadingOverlay" unique_id=955623166]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0

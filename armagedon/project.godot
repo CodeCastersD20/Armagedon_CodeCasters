@@ -21,6 +21,7 @@ AudioManager="*res://scripts/audio_manager.gd"
 DisplayConfig="*res://scripts/Settings/display_config.gd"
 DebugControls="*res://scripts/Debug/debug_controls.gd"
 CurrencyManager="*uid://c1s2yfq71ck87"
+ShopManager="*uid://dpr2adx8m4nn8"
 
 [display]
 

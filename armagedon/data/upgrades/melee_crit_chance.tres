@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3 uid="uid://cg57wagrtsv8j"]
+
+[ext_resource type="Script" uid="uid://cninmvowsojvt" path="res://scripts/shop/upgrade_data.gd" id="1_0ewon"]
+
+[resource]
+script = ExtResource("1_0ewon")
+id = &"melee_crit_chance"
+nombre = "Prob. de crítico (melee)"
+categoria = 1
+efecto = "Aumenta la probabilidad de crítico de la espada"
+valor_por_nivel = 0.05
+nivel_maximo = 5

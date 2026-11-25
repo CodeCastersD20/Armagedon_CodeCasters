@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="FaithPowerData" format=3 uid="uid://b0iv8au3eyxf3"]
+
+[ext_resource type="Script" uid="uid://dekyfpxac1bah" path="res://scripts/shop/faith_power_data.gd" id="1_m75se"]
+
+[resource]
+script = ExtResource("1_m75se")
+id = &"curacion_pasiva"
+nombre = "Curación pasiva"
+efecto = "Poder de Fe: aumenta la regeneración de vida"
+costo_fe = 20.0
+cooldown = 8.0
+valor_por_nivel = 2.0

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3 uid="uid://blomd6481bya7"]
+
+[ext_resource type="Script" uid="uid://cninmvowsojvt" path="res://scripts/shop/upgrade_data.gd" id="1_7mo30"]
+
+[resource]
+script = ExtResource("1_7mo30")
+id = &"personaje_doble_salto"
+nombre = "Doble salto (alas)"
+efecto = "Permite un segundo salto en el aire"
+precio = 250
+valor_por_nivel = 1.0

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3 uid="uid://bs4krmyty8de"]
+
+[ext_resource type="Script" uid="uid://cninmvowsojvt" path="res://scripts/shop/upgrade_data.gd" id="1_bdy3l"]
+
+[resource]
+script = ExtResource("1_bdy3l")
+id = &"fe_recarga"
+nombre = "Fe (recarga)"
+categoria = 0
+efecto = "Restaura una parte de la barra de Fe"
+precio = 50
+valor_por_nivel = 30.0
+nivel_maximo = 0

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="FaithPowerData" format=3 uid="uid://diiaac6f63t2i"]
+
+[ext_resource type="Script" uid="uid://dekyfpxac1bah" path="res://scripts/shop/faith_power_data.gd" id="1_r48x5"]
+
+[resource]
+script = ExtResource("1_r48x5")
+id = &"bola_de_fuego"
+nombre = "Bola de fuego"
+efecto = "Poder de Fe: lanza una bola de fuego que daña a los enemigos"
+cooldown = 4.0
+valor_por_nivel = 20.0

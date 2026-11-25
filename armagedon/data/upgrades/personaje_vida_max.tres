@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3 uid="uid://dy24up1c1rqm6"]
+
+[ext_resource type="Script" uid="uid://cninmvowsojvt" path="res://scripts/shop/upgrade_data.gd" id="1_iosas"]
+
+[resource]
+script = ExtResource("1_iosas")
+id = &"personaje_vida_max"
+nombre = "Vida máxima"
+efecto = "Aumenta los HP máximos"
+valor_por_nivel = 20.0
+nivel_maximo = 5

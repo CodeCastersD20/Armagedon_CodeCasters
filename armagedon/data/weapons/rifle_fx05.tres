@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ShopWeaponData" format=3 uid="uid://b7k0td2ki6rnc"]
+
+[ext_resource type="Script" uid="uid://c2rts67pangi" path="res://scripts/shop/shop_weapon_data.gd" id="1_5udat"]
+
+[resource]
+script = ExtResource("1_5udat")
+id = &"rifle_fx05"
+nombre = "Rifle FX-05"
+efecto = "Reemplaza el arma de fuego equipada por el rifle"
+precio_tienda = 350

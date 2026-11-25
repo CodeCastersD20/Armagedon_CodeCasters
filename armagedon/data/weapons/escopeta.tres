@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ShopWeaponData" format=3 uid="uid://ur6y2cmknuag"]
+
+[ext_resource type="Script" uid="uid://c2rts67pangi" path="res://scripts/shop/shop_weapon_data.gd" id="1_btmfw"]
+
+[resource]
+script = ExtResource("1_btmfw")
+id = &"escopeta"
+nombre = "Escopeta"
+efecto = "Reemplaza el arma de fuego equipada por la escopeta"
+precio_tienda = 250

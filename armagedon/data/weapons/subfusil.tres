@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ShopWeaponData" format=3 uid="uid://t8p03a7hv1i5"]
+
+[ext_resource type="Script" uid="uid://c2rts67pangi" path="res://scripts/shop/shop_weapon_data.gd" id="1_g8nub"]
+
+[resource]
+script = ExtResource("1_g8nub")
+id = &"subfusil"
+nombre = "Subfusil"
+efecto = "Reemplaza el arma de fuego equipada por el subfusil"
+precio_tienda = 250

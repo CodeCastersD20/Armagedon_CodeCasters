@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3 uid="uid://h5i2pssgpgig"]
+
+[ext_resource type="Script" uid="uid://cninmvowsojvt" path="res://scripts/shop/upgrade_data.gd" id="1_s6bwr"]
+
+[resource]
+script = ExtResource("1_s6bwr")
+id = &"fuego_crit_damage"
+nombre = "Daño crítico (fuego)"
+categoria = 2
+efecto = "Aumenta el multiplicador de los críticos del arma de fuego"
+valor_por_nivel = 0.25
+nivel_maximo = 5

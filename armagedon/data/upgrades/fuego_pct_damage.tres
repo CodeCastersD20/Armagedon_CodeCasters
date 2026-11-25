@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3 uid="uid://thhjmum71oel"]
+
+[ext_resource type="Script" uid="uid://cninmvowsojvt" path="res://scripts/shop/upgrade_data.gd" id="1_v5fk8"]
+
+[resource]
+script = ExtResource("1_v5fk8")
+id = &"fuego_pct_damage"
+nombre = "Daño % (fuego)"
+categoria = 2
+efecto = "Aumenta en porcentaje el daño del arma de fuego"
+precio = 120
+valor_por_nivel = 0.1
+nivel_maximo = 5

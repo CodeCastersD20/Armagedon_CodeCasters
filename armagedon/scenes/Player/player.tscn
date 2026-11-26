@@ -9,6 +9,7 @@
 [ext_resource type="Resource" uid="uid://bgk1r21ac0jqu" path="res://data/weapons/pistol.tres" id="6_pistol"]
 [ext_resource type="Resource" uid="uid://7txwl60gdnn2" path="res://data/weapons/sword.tres" id="7_sword"]
 [ext_resource type="PackedScene" uid="uid://vp2e0hlsnvco" path="res://assets/models/weapons/psx_weapons/Shield.glb" id="9_wwtew"]
+[ext_resource type="AudioStreamWAV" path="res://assets/audio/sfx/weapons/SFX_Shield_Block.wav" id="10_block"]
 [ext_resource type="Script" uid="uid://cj3txvpmxs7du" path="res://scripts/Debug/debug_view.gd" id="25_debugview"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
@@ -46,6 +47,7 @@ melee_data = ExtResource("7_sword")
 script = ExtResource("5_shield")
 rest_position = Vector3(-0.81, -1.06, -1.03)
 block_position = Vector3(-0.2, -0.55, -0.9)
+block_sfx = ExtResource("10_block")
 
 [node name="Shield2" parent="Head/Camera3D/Shield" unique_id=936461788 instance=ExtResource("9_wwtew")]
 transform = Transform3D(-3.4969112e-08, 0, 0.8, 0, 0.8, 0, -0.8, 0, -3.4969112e-08, 0, -0.5, 0)

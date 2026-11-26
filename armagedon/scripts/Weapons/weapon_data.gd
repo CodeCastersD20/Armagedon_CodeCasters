@@ -30,6 +30,12 @@ enum Kind { FIRE, MELEE }
 ## Modelo provisional mientras no haya escena propia.
 @export var mesh: Mesh
 
+@export_group("Audio")
+## SFX al atacar (disparo o tajo). Se reproduce con AudioManager.play_sfx (GDD §14).
+@export var sfx_attack: AudioStream
+## SFX al empezar la recarga del cargador (SFX_Mag_Reload).
+@export var sfx_reload: AudioStream
+
 @export_group("Animación procedural (armas de fuego)")
 ## Cuánto sube el cañón al disparar (grados). 0 = sin recoil.
 @export var recoil_kick_degrees: float = 0.0

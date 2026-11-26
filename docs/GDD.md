@@ -215,38 +215,40 @@ Moneda: Esquirlas de Alma. **[PENDIENTE]** confirmar.
 
 ### 8.1 Tabla de poderes y mejoras
 
-Los efectos ya están descritos; **precio, valor por nivel y nivel máximo se llenan poco a poco**.
+Valores base sincronizados con los recursos `.tres` de `armagedon/data/` (`upgrades/`, `faith_powers/` y `weapons/`), sujetos a ajuste en pruebas de QA. Todos los precios están expresados en **Esquirlas de Alma (Esq.)**.
 
 | Nombre | Categoría | Efecto | Precio | Valor por nivel | Nivel máx. |
 |---|---|---|---|---|---|
-| Vida (curación) | Siempre | Restaura una parte de la vida | | | — |
-| Fe (recarga) | Siempre | Restaura una parte de la barra de Fe | | | — |
-| Prob. de crítico (melee) | Melee | Aumenta la probabilidad de crítico de la espada | | |  |
-| Daño crítico (melee) | Melee | Aumenta el multiplicador de los críticos de la espada | | |  |
-| Daño plano (melee) | Melee | Suma daño fijo a cada golpe de la espada | | |  |
-| Daño % (melee) | Melee | Aumenta en porcentaje el daño de la espada | | |  |
-| Prob. de crítico (fuego) | Fuego | Aumenta la probabilidad de crítico del arma de fuego | | |  |
-| Daño crítico (fuego) | Fuego | Aumenta el multiplicador de los críticos del arma de fuego | | |  |
-| Daño plano (fuego) | Fuego | Suma daño fijo a cada disparo | | |  |
-| Daño % (fuego) | Fuego | Aumenta en porcentaje el daño del arma de fuego | | |  |
-| Cadencia | Fuego | Reduce el tiempo entre disparos | | |  |
-| Tamaño de cargador | Fuego | Aumenta las balas por cargador | | |  |
-| Vida máxima | Personaje | Aumenta los HP máximos | | |  |
-| Dash | Personaje | Mejora el dash (más distancia o más cargas de estamina) | | |  |
-| Velocidad | Personaje | Aumenta la velocidad de movimiento | | |  |
-| Doble salto (alas) | Personaje | Permite un segundo salto en el aire | | |  |
-| Dash en el aire | Personaje | Permite usar el dash mientras está en el aire | | |  |
-| Bola de fuego | Fe | Poder de Fe: lanza una bola de fuego que daña a los enemigos | | |  |
-| Curación pasiva | Fe | Poder de Fe: aumenta la regeneración de vida | | |  |
-| Daño extra al arma equipada | Fe | Poder de Fe: suma daño al arma que esté equipada | | |  |
-| Tajo a distancia | Habilidad de arma (espada) | Lanza un tajo hacia adelante que daña a distancia | | |  |
-| Pistola | Arma de fuego | Reemplaza el arma de fuego equipada por la pistola | | |  |
-| Escopeta | Arma de fuego | Reemplaza el arma de fuego equipada por la escopeta | | |  |
-| Subfusil | Arma de fuego | Reemplaza el arma de fuego equipada por el subfusil | | |  |
-| Rifle FX-05 | Arma de fuego | Reemplaza el arma de fuego equipada por el rifle | | |  |
-| Habilidades de otras armas | Habilidad de arma | Una habilidad única por arma (por pensar) | | |  |
+| Vida (curación) | Siempre | Restaura una parte de la vida | 50 Esq. | +30 HP por compra | Sin límite / Siempre disponible |
+| Fe (recarga) | Siempre | Restaura una parte de la barra de Fe | 50 Esq. | +30 Fe por compra | Sin límite / Siempre disponible |
+| Prob. de crítico (melee) | Melee | Aumenta la probabilidad de crítico de la espada | 100 Esq. | +5% | 5 |
+| Daño crítico (melee) | Melee | Aumenta el multiplicador de los críticos de la espada | 100 Esq. | +0.25× | 5 |
+| Daño plano (melee) | Melee | Suma daño fijo a cada golpe de la espada | 100 Esq. | +5 daño | 5 |
+| Daño % (melee) | Melee | Aumenta en porcentaje el daño de la espada | 120 Esq. | +10% | 5 |
+| Prob. de crítico (fuego) | Fuego | Aumenta la probabilidad de crítico del arma de fuego | 100 Esq. | +5% | 5 |
+| Daño crítico (fuego) | Fuego | Aumenta el multiplicador de los críticos del arma de fuego | 100 Esq. | +0.25× | 5 |
+| Daño plano (fuego) | Fuego | Suma daño fijo a cada disparo | 100 Esq. | +3 daño | 5 |
+| Daño % (fuego) | Fuego | Aumenta en porcentaje el daño del arma de fuego | 120 Esq. | +10% | 5 |
+| Cadencia | Fuego | Reduce el tiempo entre disparos | 120 Esq. | −10% intervalo entre disparos | 5 |
+| Tamaño de cargador | Fuego | Aumenta las balas por cargador | 100 Esq. | +4 balas | 5 |
+| Vida máxima | Personaje | Aumenta los HP máximos | 100 Esq. | +20 HP máx. | 5 |
+| Dash | Personaje | Mejora el dash (añade cargas adicionales de estamina) | 150 Esq. | +1 carga de estamina | 3 |
+| Velocidad | Personaje | Aumenta la velocidad de movimiento | 100 Esq. | +10% velocidad | 5 |
+| Doble salto (alas) | Personaje | Permite un segundo salto en el aire | 250 Esq. | +1 salto aéreo (desbloqueo) | 1 |
+| Dash en el aire | Personaje | Permite usar el dash mientras está en el aire | 250 Esq. | Habilita dash aéreo (desbloqueo) | 1 |
+| Bola de fuego | Poder de Fe | Poder de Fe: lanza una bola de fuego que daña a los enemigos | 150 Esq. | +20 daño (costo: 25 Fe · CD: 4 s) | 3 |
+| Curación pasiva | Poder de Fe | Poder de Fe: aumenta la regeneración de vida | 150 Esq. | +2 HP/s (costo: 20 Fe · CD: 8 s) | 3 |
+| Daño extra al arma equipada | Poder de Fe | Poder de Fe: suma daño al arma que esté equipada | 150 Esq. | +15 daño (costo: 30 Fe · CD: 10 s) | 3 |
+| Tajo a distancia | Armas y Habilidades | Habilidad de espada: lanza un tajo hacia adelante que daña a distancia | 200 Esq. | Desbloqueo de habilidad | 1 |
+| Pistola | Armas y Habilidades | Reemplaza el arma de fuego equipada por la pistola | 150 Esq. | Reemplazo de arma (ver §6.2) | Reemplazable (sin límite) |
+| Escopeta | Armas y Habilidades | Reemplaza el arma de fuego equipada por la escopeta | 250 Esq. | Reemplazo de arma (ver §6.2) | Reemplazable (sin límite) |
+| Subfusil | Armas y Habilidades | Reemplaza el arma de fuego equipada por el subfusil | 250 Esq. | Reemplazo de arma (ver §6.2) | Reemplazable (sin límite) |
+| Rifle FX-05 | Armas y Habilidades | Reemplaza el arma de fuego equipada por el rifle | 350 Esq. | Reemplazo de arma (ver §6.2) | Reemplazable (sin límite) |
+| Habilidades de otras armas | Armas y Habilidades | Una habilidad única por arma **[FUTURO]** | **[PENDIENTE]** | Desbloqueo de habilidad **[PENDIENTE]** | 1 **[PENDIENTE]** |
 
-Sugerencia: llenar primero precio y valor por nivel de lo que ya está en la tienda inicial, y dejar el resto para después.
+> **Notas de balance y economía:**
+> - **Coherencia con drops de Esquirlas de Alma (ref. `#25`):** la escala de precios se divide en niveles claros — consumibles siempre disponibles (`50 Esq.`), mejoras incrementales (`100–150 Esq.`), habilidades/movilidad avanzada (`200–250 Esq.`) y armas de tienda (`150–350 Esq.`) — calibrada para coordinar con la cantidad y probabilidad de drops de Esquirlas de Alma definidos en `#25`, de forma que el jugador pueda adquirir 1–2 mejoras o consumibles en descansos tempranos y ahorrar para armas o desbloqueos de mayor impacto.
+> - **Costo en Fe de los Poderes de Fe:** además de su precio de compra/mejora en tienda (`150 Esq.` por nivel, hasta nivel 3), cada activación en combate consume energía de la barra de Fe (recuperable mediante esferas azules de enemigos o la recarga de tienda de `+30 Fe` por `50 Esq.`): **Bola de fuego** (`25 Fe`, cooldown `4 s`), **Curación pasiva** (`20 Fe`, cooldown `8 s`) y **Daño extra al arma equipada** (`30 Fe`, cooldown `10 s`).
 
 ---
 
@@ -490,7 +492,7 @@ Reglas que se aplican desde el inicio (la lista operativa vive en `AGENTS.md`, �
 3. ~~Estamina, espera de regeneración~~ (resuelto, §5).
 4. ~~Cadencias de pistola, escopeta y subfusil~~ (resuelto, §6.2; valores provisionales).
 5. Stats de jefes y Lucifer.
-6. Tabla de mejoras (precios y valores) — §8.1.
+6. ~~Tabla de mejoras (precios y valores) — §8.1~~ (resuelto, §8.1; valores base sincronizados con `armagedon/data/`, sujetos a ajuste en QA).
 7. Multiplicador de combo, puntos de jefe/ronda/Fe, golpe recibido, rangos.
 8. Drops: cantidad y probabilidad.
 9. Arena, boceto y storyboard.

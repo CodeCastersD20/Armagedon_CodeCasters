@@ -2,6 +2,7 @@ extends Node
 
 signal offer_generated(always_items: Array[Resource], random_items: Array[Resource])
 signal item_purchased(item: Resource, new_level: int)
+signal shop_state_reset
 
 const UPGRADES_DIR := "res://data/upgrades/"
 const FAITH_POWERS_DIR := "res://data/faith_powers/"
@@ -128,3 +129,4 @@ func reset_shop_state() -> void:
 	purchased_levels.clear()
 	current_always_offers.clear()
 	current_random_offers.clear()
+	shop_state_reset.emit()

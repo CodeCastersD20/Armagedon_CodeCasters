@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/Rounds/boss_spawner.gd" id="7_bosspawner"]
 [ext_resource type="Resource" uid="uid://sch4sq7pudxq" path="res://data/round_config.tres" id="8_roundcfg"]
 [ext_resource type="PackedScene" path="res://scenes/UI/shop_ui.tscn" id="9_shopui"]
+[ext_resource type="Script" path="res://scripts/shop/upgrade_applier.gd" id="10_upgapplier"]
 
 [node name="Main" type="Node3D" unique_id=499188323]
 
@@ -16,6 +17,9 @@
 [node name="MainHud" parent="." unique_id=77760244 instance=ExtResource("2_0wfyh")]
 
 [node name="ShopUI" parent="." instance=ExtResource("9_shopui")]
+
+[node name="UpgradeApplier" type="Node" parent="."]
+script = ExtResource("10_upgapplier")
 
 [node name="PsxPostProcess" parent="." unique_id=1015801590 instance=ExtResource("3_post")]
 

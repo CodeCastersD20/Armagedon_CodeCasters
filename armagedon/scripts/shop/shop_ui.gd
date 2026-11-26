@@ -93,7 +93,7 @@ func _input(event: InputEvent) -> void:
 					open_shop(true)
 				get_viewport().set_input_as_handled()
 				return
-			if key_event.keycode == KEY_F8:
+			if key_event.keycode == KEY_F8 or key_event.keycode == KEY_G:
 				CurrencyManager.add(DEBUG_SHARDS_AMOUNT)
 				get_viewport().set_input_as_handled()
 				return
@@ -250,6 +250,18 @@ func _build_ui() -> void:
 	hint.add_theme_font_size_override("font_size", 9)
 	hint.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
 	footer.add_child(hint)
+
+	if debug_shortcuts_enabled and OS.is_debug_build():
+		var debug_shards_btn := Button.new()
+		debug_shards_btn.name = "DebugShardsButton"
+		debug_shards_btn.text = "+%d Esq. [G]" % DEBUG_SHARDS_AMOUNT
+		debug_shards_btn.focus_mode = Control.FOCUS_NONE
+		debug_shards_btn.custom_minimum_size = Vector2(96.0, 22.0)
+		debug_shards_btn.add_theme_font_size_override("font_size", 10)
+		debug_shards_btn.add_theme_color_override("font_color", COLOR_BALANCE)
+		_apply_button_styles(debug_shards_btn)
+		debug_shards_btn.pressed.connect(_on_debug_add_shards)
+		footer.add_child(debug_shards_btn)
 
 	_close_button = Button.new()
 	_close_button.name = "CloseButton"
@@ -455,6 +467,10 @@ func _on_balance_changed(_new_balance: int, _delta: int) -> void:
 	_update_balance_label()
 	if _is_open:
 		_refresh_all_cards()
+
+
+func _on_debug_add_shards() -> void:
+	CurrencyManager.add(DEBUG_SHARDS_AMOUNT)
 
 
 func _update_balance_label() -> void:

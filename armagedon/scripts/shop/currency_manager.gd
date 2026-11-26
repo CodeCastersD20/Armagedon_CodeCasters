@@ -10,6 +10,7 @@ var config: CurrencyData
 var balance: int = 0
 
 func _ready() -> void:
+	add_to_group("economy")
 	if ResourceLoader.exists(DEFAULT_CONFIG_PATH):
 		config = load(DEFAULT_CONFIG_PATH) as CurrencyData
 	else:
@@ -24,6 +25,9 @@ func add(amount: int) -> void:
 		return
 	balance += amount
 	balance_changed.emit(balance, amount)
+
+func add_shards(amount: int) -> void:
+	add(amount)
 
 func can_afford(cost: int) -> bool:
 	return cost >= 0 and balance >= cost

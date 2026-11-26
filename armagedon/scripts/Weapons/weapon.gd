@@ -14,6 +14,8 @@ const RECOIL_RECOVERY_SPEED: float = 14.0
 const MUZZLE_FLASH_DURATION: float = 0.055
 const MUZZLE_FLASH_SHADER: Shader = preload("res://assets/shaders/muzzle_flash.gdshader")
 const IMPACT_DURATION: float = 1.5
+const MIN_ATTACK_INTERVAL: float = 0.03
+const MIN_INTERVAL_SCALE: float = 0.25
 
 ## Recursos compartidos por todos los disparos/impactos: se crean una vez, no por disparo.
 static var _muzzle_mesh: QuadMesh
@@ -25,6 +27,7 @@ static var _impact_pool: Array[MeshInstance3D] = []
 @export var data: WeaponData
 @export var muzzle_offset: Vector3 = Vector3(0.15, -0.02, -0.38)
 
+var _base_data: WeaponData
 var _ammo: int = 0
 var _cooldown: float = 0.0
 var _reload_left: float = 0.0
@@ -38,6 +41,8 @@ func _ready() -> void:
 	if data == null:
 		push_error("Weapon sin WeaponData: %s" % name)
 		return
+	_base_data = data
+	data = _base_data.duplicate() as WeaponData
 	if data.attack_interval <= 0.0 or data.max_range <= 0.0:
 		push_warning("WeaponData con valores inválidos (attack_interval/max_range <= 0): %s" % name)
 	_ammo = data.magazine_size
@@ -131,6 +136,41 @@ func roll_damage() -> Dictionary:
 	var is_crit: bool = randf() < data.crit_chance
 	var amount: float = data.damage * (data.crit_multiplier if is_crit else 1.0)
 	return {"damage": amount, "crit": is_crit}
+
+
+## Aplica modificadores acumulados de mejoras (#79) sobre una copia limpia de _base_data.
+func apply_upgrade_modifiers(
+	flat_damage: float,
+	pct_damage: float,
+	crit_chance_bonus: float,
+	crit_damage_bonus: float,
+	fire_rate_reduction: float = 0.0,
+	mag_size_bonus: int = 0,
+	added_mag_bullets: int = 0
+) -> void:
+	if _base_data == null or data == null:
+		return
+	var base_dmg: float = maxf(_base_data.damage + flat_damage, 0.0)
+	data.damage = maxf(base_dmg * maxf(1.0 + pct_damage, 0.01), 0.0)
+	data.crit_chance = clampf(_base_data.crit_chance + crit_chance_bonus, 0.0, 1.0)
+	data.crit_multiplier = maxf(_base_data.crit_multiplier + crit_damage_bonus, 1.0)
+	if not is_melee():
+		var interval_scale: float = maxf(1.0 - fire_rate_reduction, MIN_INTERVAL_SCALE)
+		data.attack_interval = maxf(
+			_base_data.attack_interval * interval_scale, MIN_ATTACK_INTERVAL
+		)
+		if _base_data.magazine_size > 0:
+			data.magazine_size = maxi(_base_data.magazine_size + mag_size_bonus, 1)
+			if added_mag_bullets > 0:
+				_ammo = mini(_ammo + added_mag_bullets, data.magazine_size)
+			else:
+				_ammo = mini(_ammo, data.magazine_size)
+			ammo_changed.emit(_ammo, data.magazine_size)
+
+
+## Restaura los stats del arma a los valores base del WeaponData original.
+func reset_upgrade_modifiers() -> void:
+	apply_upgrade_modifiers(0.0, 0.0, 0.0, 0.0, 0.0, 0, 0)
 
 
 ## Disparo hitscan desde el centro de la cámara para armas de fuego.

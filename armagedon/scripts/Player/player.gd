@@ -50,6 +50,7 @@ var _heartbeat_fov_offset: float = 0.0
 var _hit_punch: float = 0.0
 var _slam_shake_strength: float = 0.0
 var _slam_shake_time_left: float = 0.0
+var _base_stats: PlayerStats
 var _weapon_manager: WeaponManager
 
 @onready var _head: Node3D = $Head
@@ -60,6 +61,8 @@ var _weapon_manager: WeaponManager
 func _ready() -> void:
 	if stats == null:
 		stats = PlayerStats.new()
+	_base_stats = stats
+	stats = _base_stats.duplicate() as PlayerStats
 	add_to_group("player")
 	# El WeaponManager se registra en su grupo en su propio _ready (hijo, corre antes que este).
 	_weapon_manager = get_tree().get_first_node_in_group("weapon_manager") as WeaponManager
@@ -578,3 +581,39 @@ func set_head_height(height_y: float) -> void:
 ## Devuelve la altura normal de la cabeza de pie.
 func get_head_stand_y() -> float:
 	return _head_stand_y
+
+
+## Aplica modificadores acumulados de mejoras (#79) sobre una copia limpia de _base_stats.
+func apply_upgrade_modifiers(
+	bonus_max_health: float,
+	bonus_dash_charges: float,
+	speed_pct_bonus: float,
+	bonus_air_jumps: int,
+	unlock_air_dash: bool,
+	health_delta: float = 0.0,
+	dash_delta: float = 0.0
+) -> void:
+	if _base_stats == null:
+		return
+	stats.max_health = maxf(_base_stats.max_health + bonus_max_health, 1.0)
+	stats.stamina = maxf(_base_stats.stamina + bonus_dash_charges, 1.0)
+	stats.move_speed = maxf(_base_stats.move_speed * (1.0 + speed_pct_bonus), 0.1)
+	stats.max_air_jumps = maxi(_base_stats.max_air_jumps + bonus_air_jumps, 0)
+	stats.dash_in_air = _base_stats.dash_in_air or unlock_air_dash
+	if health_delta > 0.0 and not _escaped:
+		_health = minf(_health + health_delta, stats.max_health)
+	else:
+		_health = minf(_health, stats.max_health)
+	if dash_delta > 0.0:
+		_charges = minf(_charges + dash_delta, stats.stamina)
+	else:
+		_charges = minf(_charges, stats.stamina)
+	if is_on_floor():
+		_air_jumps_left = stats.max_air_jumps
+	health_changed.emit(_health, stats.max_health)
+	stamina_changed.emit(_charges, stats.stamina)
+
+
+## Restaura los stats del jugador a los valores base del Resource original.
+func reset_stat_modifiers() -> void:
+	apply_upgrade_modifiers(0.0, 0.0, 0.0, 0, false)

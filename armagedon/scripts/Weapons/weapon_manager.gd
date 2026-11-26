@@ -56,6 +56,14 @@ func get_current_weapon() -> Weapon:
 	return _current
 
 
+func get_fire_weapon() -> Weapon:
+	return _fire
+
+
+func get_melee_weapon() -> Weapon:
+	return _melee
+
+
 func switch_weapon() -> void:
 	var other: Weapon = _melee if _current == _fire else _fire
 	if other != null:

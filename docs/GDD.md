@@ -183,7 +183,7 @@ Los stats de la tabla son los de la ronda 1 y escalan con la ronda (§9).
 
 - **Tope de enemigos simultáneos:** 30.
 - **Jefe de beta:** un enemigo más grande, con más vida y más daño. Lucifer, igual.
-- **Drops:** esferas azules (Fe), esferas rojas (vida) y Esquirlas de Alma (moneda). **[PENDIENTE]** cantidad y probabilidad por tipo.
+- **Drops:** esferas azules (Fe), esferas rojas (vida) y Esquirlas de Alma (moneda); ver valores, comportamiento y probabilidades por tipo de enemigo en §11.
 - **[FUTURO]** Comportamientos distintos por enemigo, jefes secretos (Malenia, animatrónicos) y eventos especiales. **Por ahora no hay eventos especiales.**
 
 ### 7.1 Variantes de enemigos con habilidades [FUTURO]
@@ -215,38 +215,40 @@ Moneda: Esquirlas de Alma. **[PENDIENTE]** confirmar.
 
 ### 8.1 Tabla de poderes y mejoras
 
-Los efectos ya están descritos; **precio, valor por nivel y nivel máximo se llenan poco a poco**.
+Valores base sincronizados con los recursos `.tres` de `armagedon/data/` (`upgrades/`, `faith_powers/` y `weapons/`), sujetos a ajuste en pruebas de QA. Todos los precios están expresados en **Esquirlas de Alma (Esq.)**.
 
 | Nombre | Categoría | Efecto | Precio | Valor por nivel | Nivel máx. |
 |---|---|---|---|---|---|
-| Vida (curación) | Siempre | Restaura una parte de la vida | | | — |
-| Fe (recarga) | Siempre | Restaura una parte de la barra de Fe | | | — |
-| Prob. de crítico (melee) | Melee | Aumenta la probabilidad de crítico de la espada | | |  |
-| Daño crítico (melee) | Melee | Aumenta el multiplicador de los críticos de la espada | | |  |
-| Daño plano (melee) | Melee | Suma daño fijo a cada golpe de la espada | | |  |
-| Daño % (melee) | Melee | Aumenta en porcentaje el daño de la espada | | |  |
-| Prob. de crítico (fuego) | Fuego | Aumenta la probabilidad de crítico del arma de fuego | | |  |
-| Daño crítico (fuego) | Fuego | Aumenta el multiplicador de los críticos del arma de fuego | | |  |
-| Daño plano (fuego) | Fuego | Suma daño fijo a cada disparo | | |  |
-| Daño % (fuego) | Fuego | Aumenta en porcentaje el daño del arma de fuego | | |  |
-| Cadencia | Fuego | Reduce el tiempo entre disparos | | |  |
-| Tamaño de cargador | Fuego | Aumenta las balas por cargador | | |  |
-| Vida máxima | Personaje | Aumenta los HP máximos | | |  |
-| Dash | Personaje | Mejora el dash (más distancia o más cargas de estamina) | | |  |
-| Velocidad | Personaje | Aumenta la velocidad de movimiento | | |  |
-| Doble salto (alas) | Personaje | Permite un segundo salto en el aire | | |  |
-| Dash en el aire | Personaje | Permite usar el dash mientras está en el aire | | |  |
-| Bola de fuego | Fe | Poder de Fe: lanza una bola de fuego que daña a los enemigos | | |  |
-| Curación pasiva | Fe | Poder de Fe: aumenta la regeneración de vida | | |  |
-| Daño extra al arma equipada | Fe | Poder de Fe: suma daño al arma que esté equipada | | |  |
-| Tajo a distancia | Habilidad de arma (espada) | Lanza un tajo hacia adelante que daña a distancia | | |  |
-| Pistola | Arma de fuego | Reemplaza el arma de fuego equipada por la pistola | | |  |
-| Escopeta | Arma de fuego | Reemplaza el arma de fuego equipada por la escopeta | | |  |
-| Subfusil | Arma de fuego | Reemplaza el arma de fuego equipada por el subfusil | | |  |
-| Rifle FX-05 | Arma de fuego | Reemplaza el arma de fuego equipada por el rifle | | |  |
-| Habilidades de otras armas | Habilidad de arma | Una habilidad única por arma (por pensar) | | |  |
+| Vida (curación) | Siempre | Restaura una parte de la vida | 50 Esq. | +30 HP por compra | Sin límite / Siempre disponible |
+| Fe (recarga) | Siempre | Restaura una parte de la barra de Fe | 50 Esq. | +30 Fe por compra | Sin límite / Siempre disponible |
+| Prob. de crítico (melee) | Melee | Aumenta la probabilidad de crítico de la espada | 100 Esq. | +5% | 5 |
+| Daño crítico (melee) | Melee | Aumenta el multiplicador de los críticos de la espada | 100 Esq. | +0.25× | 5 |
+| Daño plano (melee) | Melee | Suma daño fijo a cada golpe de la espada | 100 Esq. | +5 daño | 5 |
+| Daño % (melee) | Melee | Aumenta en porcentaje el daño de la espada | 120 Esq. | +10% | 5 |
+| Prob. de crítico (fuego) | Fuego | Aumenta la probabilidad de crítico del arma de fuego | 100 Esq. | +5% | 5 |
+| Daño crítico (fuego) | Fuego | Aumenta el multiplicador de los críticos del arma de fuego | 100 Esq. | +0.25× | 5 |
+| Daño plano (fuego) | Fuego | Suma daño fijo a cada disparo | 100 Esq. | +3 daño | 5 |
+| Daño % (fuego) | Fuego | Aumenta en porcentaje el daño del arma de fuego | 120 Esq. | +10% | 5 |
+| Cadencia | Fuego | Reduce el tiempo entre disparos | 120 Esq. | −10% intervalo entre disparos | 5 |
+| Tamaño de cargador | Fuego | Aumenta las balas por cargador | 100 Esq. | +4 balas | 5 |
+| Vida máxima | Personaje | Aumenta los HP máximos | 100 Esq. | +20 HP máx. | 5 |
+| Dash | Personaje | Mejora el dash (añade cargas adicionales de estamina) | 150 Esq. | +1 carga de estamina | 3 |
+| Velocidad | Personaje | Aumenta la velocidad de movimiento | 100 Esq. | +10% velocidad | 5 |
+| Doble salto (alas) | Personaje | Permite un segundo salto en el aire | 250 Esq. | +1 salto aéreo (desbloqueo) | 1 |
+| Dash en el aire | Personaje | Permite usar el dash mientras está en el aire | 250 Esq. | Habilita dash aéreo (desbloqueo) | 1 |
+| Bola de fuego | Poder de Fe | Poder de Fe: lanza una bola de fuego que daña a los enemigos | 150 Esq. | +20 daño (costo: 25 Fe · CD: 4 s) | 3 |
+| Curación pasiva | Poder de Fe | Poder de Fe: aumenta la regeneración de vida | 150 Esq. | +2 HP/s (costo: 20 Fe · CD: 8 s) | 3 |
+| Daño extra al arma equipada | Poder de Fe | Poder de Fe: suma daño al arma que esté equipada | 150 Esq. | +15 daño (costo: 30 Fe · CD: 10 s) | 3 |
+| Tajo a distancia | Armas y Habilidades | Habilidad de espada: lanza un tajo hacia adelante que daña a distancia | 200 Esq. | Desbloqueo de habilidad | 1 |
+| Pistola | Armas y Habilidades | Reemplaza el arma de fuego equipada por la pistola | 150 Esq. | Reemplazo de arma (ver §6.2) | Reemplazable (sin límite) |
+| Escopeta | Armas y Habilidades | Reemplaza el arma de fuego equipada por la escopeta | 250 Esq. | Reemplazo de arma (ver §6.2) | Reemplazable (sin límite) |
+| Subfusil | Armas y Habilidades | Reemplaza el arma de fuego equipada por el subfusil | 250 Esq. | Reemplazo de arma (ver §6.2) | Reemplazable (sin límite) |
+| Rifle FX-05 | Armas y Habilidades | Reemplaza el arma de fuego equipada por el rifle | 350 Esq. | Reemplazo de arma (ver §6.2) | Reemplazable (sin límite) |
+| Habilidades de otras armas | Armas y Habilidades | Una habilidad única por arma **[FUTURO]** | **[PENDIENTE]** | Desbloqueo de habilidad **[PENDIENTE]** | 1 **[PENDIENTE]** |
 
-Sugerencia: llenar primero precio y valor por nivel de lo que ya está en la tienda inicial, y dejar el resto para después.
+> **Notas de balance y economía:**
+> - **Coherencia con drops de Esquirlas de Alma (ref. `#25`):** la escala de precios se divide en niveles claros — consumibles siempre disponibles (`50 Esq.`), mejoras incrementales (`100–150 Esq.`), habilidades/movilidad avanzada (`200–250 Esq.`) y armas de tienda (`150–350 Esq.`) — calibrada para coordinar con la cantidad y probabilidad de drops de Esquirlas de Alma definidos en `#25`, de forma que el jugador pueda adquirir 1–2 mejoras o consumibles en descansos tempranos y ahorrar para armas o desbloqueos de mayor impacto.
+> - **Costo en Fe de los Poderes de Fe:** además de su precio de compra/mejora en tienda (`150 Esq.` por nivel, hasta nivel 3), cada activación en combate consume energía de la barra de Fe (recuperable mediante esferas azules de enemigos o la recarga de tienda de `+30 Fe` por `50 Esq.`): **Bola de fuego** (`25 Fe`, cooldown `4 s`), **Curación pasiva** (`20 Fe`, cooldown `8 s`) y **Daño extra al arma equipada** (`30 Fe`, cooldown `10 s`).
 
 ---
 
@@ -300,15 +302,33 @@ Diseñada para permitir *kiting* constante sin que el tope de 30 enemigos se tra
   - *Durante la ronda:* A ras del suelo (`y = 0`) dejando el centro transitable.
   - *Durante el descanso (40 s):* Asciende `+0.5 m` revelando al Mercante Anónimo y su tienda.
 
-## 11. Objetos
+## 11. Objetos y drops
 
-| Objeto | Efecto |
-|---|---|
-| Esfera azul | Restaura Fe |
-| Esfera roja | Restaura vida |
-| Esquirla de Alma | Moneda para la tienda |
+No hay cajas de munición porque la munición es infinita. Los enemigos derrotados pueden soltar tres tipos de objetos recolectables en la arena, calibrados con la economía de la tienda (§8.1, `#22`).
 
-No hay cajas de munición porque la munición es infinita.
+### 11.1 Valor y comportamiento de cada drop
+
+| Objeto | Efecto / Valor base | Agrupación y reglas | Recolección y tiempo de vida |
+|---|---|---|---|
+| **Esfera azul** (Fe) | Restaura **+15 Fe** por esfera (los Poderes de Fe cuestan 20–30 Fe; la recarga en tienda da +30 Fe por 50 Esq.) | 1 esfera por unidad sorteada; solo se consume si la barra de Fe no está llena | Radio de atracción magnética **`2.5 m`** (velocidad `12.0 m/s`, recolección a `< 0.8 m`). Desaparece tras **`25 s`** (parpadeo en los últimos `5 s`) o se limpia al iniciar la siguiente ronda |
+| **Esfera roja** (Vida) | Restaura **+15 HP** por esfera (base de 100 HP; la curación en tienda da +30 HP por 50 Esq.) | 1 esfera por unidad sorteada; solo se consume si los HP no están al máximo | Radio de atracción magnética **`2.5 m`** (velocidad `12.0 m/s`, recolección a `< 0.8 m`). Desaparece tras **`25 s`** (parpadeo en los últimos `5 s`) o se limpia al iniciar la siguiente ronda |
+| **Esquirlas de Alma** (Moneda) | **`10 Esq.`** por esquirla base (moneda para la tienda del Mercante) | Si un enemigo suelta más de `10 Esq.`, se agrupa en **1 pickup** con el monto total (enemigos normales) o en **`3–5` pickups** de mayor denominación (Jefes y Lucifer) para no saturar nodos en pantalla (§17) | Radio de atracción magnética **`2.5 m`** (`radio_recoleccion` en `currency_config.tres`, velocidad `12.0 m/s`, recolección a `< 0.8 m`). Desaparece tras **`25 s`** (parpadeo en los últimos `5 s`) o se limpia al iniciar la siguiente ronda |
+
+### 11.2 Probabilidad y cantidad de drops por tipo de enemigo
+
+Cada columna se evalúa de forma independiente al morir el enemigo (un mismo enemigo siempre otorga Esquirlas de Alma y, adicionalmente, puede soltar esferas de Fe y/o Vida):
+
+| Tipo de enemigo | Esquirlas de Alma (prob. y cantidad) | Esfera azul / Fe (prob. y cantidad) | Esfera roja / Vida (prob. y cantidad) |
+|---|---|---|---|
+| **Esqueleto Condenado** | `100%` · **10 Esq.** (1 pickup base) | `15%` · **1 esfera** (+15 Fe) | `10%` · **1 esfera** (+15 HP) |
+| **Demonio del Averno** | `100%` · **15–20 Esq.** (1 pickup agrupado) | `25%` · **1 esfera** (+15 Fe) | `20%` · **1 esfera** (+15 HP) |
+| **The Wrapped** | `100%` · **30–40 Esq.** (1 pickup agrupado) | `40%` · **1–2 esferas** (+15 a +30 Fe) | `35%` · **1–2 esferas** (+15 a +30 HP) |
+| **Jefe** (rondas 10, 20…) | `100%` · **100–150 Esq.** (agrupado en 3–5 pickups) | `100%` · **2–3 esferas** (+30 a +45 Fe) | `100%` · **2–3 esferas** (+30 a +45 HP) |
+| **Lucifer** (ronda 100) | `100%` · **300 Esq.** (agrupado en 5 pickups de 60 Esq.) | `100%` · **4 esferas** (+60 Fe) | `100%` · **4 esferas** (+60 HP) |
+
+> **Coherencia económica y nota técnica:**
+> - **Rendimiento por ronda:** con una densidad típica de 15–20 bajas en rondas normales, una ronda rinde aprox. **150–300 Esq.** según la composición de enemigos (ronda 1 de solo Esqueletos ≈ 150–200 Esq.; rondas con Demonios y The Wrapped ≈ 220–300+ Esq.), alineado con los precios de `#22` (consumibles `50 Esq.`, mejoras `100–150 Esq.`, habilidades `200–250 Esq.` y armas `150–350 Esq.`). Las probabilidades moderadas de esferas de Vida y Fe sostienen el ritmo del combate sin volver innecesarios los consumibles de la tienda.
+> - **Implementación configurable (`#64` y `#95`):** todos estos valores (cantidades, probabilidades, montos de restauración, radio magnético `2.5 m` y tiempo de vida) se expondrán como constantes configurables en recursos `Resource` dentro de `armagedon/data/` (p. ej. `EnemyData`, `CurrencyData` y un recurso de configuración de drops) y usarán pooling de pickups (§17.5), sin valores hardcodeados en los scripts, para facilitar su implementación en **`#64`** (Drops) y el ajuste fino en **`#95`** (Pruebas de balance).
 
 ---
 
@@ -532,6 +552,9 @@ Reglas que se aplican desde el inicio (la lista operativa vive en `AGENTS.md`, �
 6. Tabla de mejoras (precios y valores) — §8.1.
 7. ~~Multiplicador de combo, puntos de jefe/ronda/Fe, golpe recibido, rangos~~ (resuelto, §16; parámetros configurables en `armagedon/data/` para `#101–#106` y `#95`).
 8. Drops: cantidad y probabilidad.
+6. ~~Tabla de mejoras (precios y valores) — §8.1~~ (resuelto, §8.1; valores base sincronizados con `armagedon/data/`, sujetos a ajuste en QA).
+7. Multiplicador de combo, puntos de jefe/ronda/Fe, golpe recibido, rangos.
+8. ~~Drops: cantidad y probabilidad~~ (resuelto, §11; valores base configurables en `armagedon/data/`, sujetos a ajuste en `#64` y `#95`).
 9. Arena, boceto y storyboard.
 10. Menús (pausa, opciones, pantalla de escape).
 11. Confirmar licencias marcadas como "Verificar".

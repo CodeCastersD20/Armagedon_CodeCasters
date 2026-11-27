@@ -35,6 +35,9 @@ const COLOR: Color = Color(0.45, 0.27, 0.12)
 ## Centro del modelo Shield.glb (dónde queda el asa).
 @export var model_grip_center: Vector3 = Vector3(-0.031, 0.378, 0.0)
 
+## SFX al bloquear un golpe frontal (GDD §14: SFX_Shield_Block).
+@export var block_sfx: AudioStream
+
 var _player: Player
 var _bob_time: float = 0.0
 var _impact_recoil: float = 0.0
@@ -161,6 +164,8 @@ func _apply_weapon_visibility(weapon: Weapon, animate: bool) -> void:
 
 ## Retroceso visual rápido del escudo al absorber un golpe frontal.
 func _on_attack_blocked(_damage_blocked: float) -> void:
+	if block_sfx != null:
+		AudioManager.play_sfx(block_sfx)
 	_impact_recoil = 1.0
 	position = block_position + Vector3(0.03, -0.02, 0.10)
 	rotation_degrees = block_rotation_degrees + Vector3(-12.0, 8.0, 14.0)

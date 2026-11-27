@@ -11,6 +11,7 @@
 [ext_resource type="Resource" path="res://data/weapons/shotgun.tres" id="99_shotgun"]
 [ext_resource type="Resource" path="res://data/weapons/heavy_mg.tres" id="98_heavymg"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/angel_shield/AngelShield.glb" id="9_wwtew"]
+[ext_resource type="AudioStreamWAV" path="res://assets/audio/sfx/weapons/SFX_Shield_Block.wav" id="10_block"]
 [ext_resource type="Script" uid="uid://cj3txvpmxs7du" path="res://scripts/Debug/debug_view.gd" id="25_debugview"]
 [ext_resource type="Script" path="res://scripts/Player/double_jump_feathers.gd" id="26_feathers"]
 [ext_resource type="Shader" path="res://assets/shaders/slide_speed_lines.gdshader" id="27_slide_shader"]
@@ -62,6 +63,7 @@ extra2_data = ExtResource("98_heavymg")
 script = ExtResource("5_shield")
 rest_position = Vector3(-0.71, -1.06, -1.03)
 block_position = Vector3(-0.1, -0.55, -0.9)
+block_sfx = ExtResource("10_block")
 
 [node name="Shield2" parent="Head/Camera3D/Shield" unique_id=936461788 instance=ExtResource("9_wwtew")]
 transform = Transform3D(-5.2453668e-08, 0, 1.2, 0, 1.2, 0, -1.2, 0, -5.2453668e-08, 0, -0.652, 0)

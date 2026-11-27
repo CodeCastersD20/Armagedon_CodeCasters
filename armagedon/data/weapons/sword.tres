@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://xm0y4sjs75kk" path="res://scenes/Weapons/sword.tscn" id="1_scene"]
 [ext_resource type="Script" uid="uid://g3xkb2ao6fsg" path="res://scripts/Weapons/weapon_data.gd" id="1_wdata"]
+[ext_resource type="AudioStreamWAV" path="res://assets/audio/sfx/weapons/SFX_Sword_Slash.wav" id="2_slash"]
 
 [resource]
 script = ExtResource("1_wdata")
@@ -12,4 +13,5 @@ attack_interval = 0.8
 max_range = 2.5
 hit_delay_seconds = 0.1
 weapon_scene = ExtResource("1_scene")
+sfx_attack = ExtResource("2_slash")
 use_pack_animation = true

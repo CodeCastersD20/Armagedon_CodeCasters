@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="DropData" format=3]
+
+[ext_resource type="Script" path="res://scripts/Enemies/drop_data.gd" id="1_drop"]
+
+[resource]
+script = ExtResource("1_drop")
+shard_probability = 1.0
+shard_min = 300
+shard_max = 300
+shard_pickups_min = 5
+shard_pickups_max = 5
+faith_probability = 1.0
+faith_min = 4
+faith_max = 4
+health_probability = 1.0
+health_min = 4
+health_max = 4

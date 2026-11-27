@@ -20,6 +20,7 @@ const HIT_KNOCKBACK_DECAY: float = 24.0
 const _ENEMY_MANAGER = preload("res://scripts/Enemies/enemy_manager.gd")
 const _BONE_PIECE := preload("res://scripts/Enemies/bone_piece.gd")
 const _ENEMY_GIB := preload("res://scripts/Enemies/enemy_gib.gd")
+const _DROP_MANAGER := preload("res://scripts/Enemies/drop_manager.gd")
 
 static var _hit_stop_id: int = 0
 static var _hit_flash_material: StandardMaterial3D
@@ -497,7 +498,7 @@ func _die() -> void:
 		return
 	_dead = true
 	died.emit(self)
-	# TODO(GDD): drops/reposición los gestiona el sistema de oleadas/spawner.
+	_DROP_MANAGER.spawn_from(get_tree(), global_position, data)
 	if data != null:
 		var burst_origin: Vector3 = global_position + Vector3.UP * (data.damage_number_height * 0.5)
 		if data.death_explosion_type == EnemyData.DeathExplosionType.BONES:

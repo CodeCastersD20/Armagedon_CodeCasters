@@ -13,3 +13,4 @@ dash_recharge_seconds = 2.0
 dash_in_air = true
 air_friction = 0.25
 camera_tilt_enabled = false
+faith = 0.0

@@ -7,6 +7,8 @@ extends CharacterBody3D
 signal stamina_changed(current: float, maximum: float)
 ## Vida actual y máxima. Para el HUD (#88).
 signal health_changed(current: float, maximum: float)
+## Fe actual y máxima. Para el HUD (#88) y los Poderes de Fe (#80).
+signal faith_changed(current: float, maximum: float)
 ## Emite cuando el escudo bloquea exitosamente un ataque frontal (para sonido/efecto).
 signal attack_blocked(damage_blocked: float)
 ## HP llegó a 0: no es muerte, es el escape (aro de luz). Lo escucha el RoundManager (#72).
@@ -36,8 +38,7 @@ var _crouching: bool = false
 var _stand_height: float
 var _head_stand_y: float
 var _health: float
-var _time_since_damage: float = 0.0
-var _regen_timer: float = 0.0
+var _faith: float
 var _escaped: bool = false
 var _spawn_transform: Transform3D
 var _is_blocking: bool = false
@@ -82,6 +83,8 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_health = stats.max_health
 	health_changed.emit(_health, stats.max_health)
+	_faith = stats.faith
+	faith_changed.emit(_faith, stats.max_faith)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -103,7 +106,6 @@ func _physics_process(delta: float) -> void:
 	_invuln_timer = maxf(_invuln_timer - delta, 0.0)
 	_stun_time_left = maxf(_stun_time_left - delta, 0.0)
 	_recharge_dash(delta)
-	_regen_health(delta)
 	_respawn_if_fallen()
 
 	var on_floor: bool = is_on_floor()
@@ -501,13 +503,27 @@ func heal(amount: float) -> void:
 	health_changed.emit(_health, stats.max_health)
 
 
-## Segundos hasta el próximo HP regenerado (0 si la vida está llena o ya escapó).
-func get_regen_seconds_left() -> float:
-	if _escaped or _health >= stats.max_health:
-		return 0.0
-	if _time_since_damage < stats.regen_delay_seconds:
-		return stats.regen_delay_seconds - _time_since_damage + stats.regen_interval_seconds
-	return stats.regen_interval_seconds - _regen_timer
+func get_faith() -> float:
+	return _faith
+
+
+func is_faith_full() -> bool:
+	return _escaped or _faith >= stats.max_faith
+
+
+func is_health_full() -> bool:
+	return _escaped or _health >= stats.max_health
+
+
+## Suma Fe respetando max_faith y emite faith_changed.
+func add_faith(amount: float) -> void:
+	if _escaped or amount <= 0.0:
+		return
+	var next_faith: float = minf(_faith + amount, stats.max_faith)
+	if is_equal_approx(next_faith, _faith):
+		return
+	_faith = next_faith
+	faith_changed.emit(_faith, stats.max_faith)
 
 
 ## Aplica daño (ya con el multiplicador). Al llegar a 0 emite player_escaped una sola vez.
@@ -535,8 +551,6 @@ func take_damage(amount: float, damage_source_position: Vector3 = Vector3.INF) -
 
 	_health = maxf(_health - amount * damage_taken_multiplier, 0.0)
 	_invuln_timer = stats.invulnerability_seconds
-	_time_since_damage = 0.0
-	_regen_timer = 0.0
 	health_changed.emit(_health, stats.max_health)
 	if _health <= 0.0:
 		_escaped = true
@@ -566,19 +580,6 @@ func _update_shield_block() -> void:
 
 func is_blocking() -> bool:
 	return _is_blocking
-
-
-func _regen_health(delta: float) -> void:
-	if _escaped or _health >= stats.max_health:
-		return
-	_time_since_damage += delta
-	if _time_since_damage < stats.regen_delay_seconds:
-		return
-	_regen_timer += delta
-	if _regen_timer >= stats.regen_interval_seconds:
-		_regen_timer -= stats.regen_interval_seconds
-		_health = minf(_health + stats.regen_amount, stats.max_health)
-		health_changed.emit(_health, stats.max_health)
 
 
 ## Si caes fuera del mapa, vuelves al punto de inicio sin perder vida.
@@ -625,9 +626,8 @@ func set_cinematic_mode(enabled: bool) -> void:
 func reset_for_new_run() -> void:
 	_escaped = false
 	_health = stats.max_health
+	_faith = stats.faith
 	_charges = stats.stamina
-	_time_since_damage = 0.0
-	_regen_timer = 0.0
 	_dash_time_left = 0.0
 	_slide_time_left = 0.0
 	_slide_cooldown_left = 0.0
@@ -651,6 +651,7 @@ func reset_for_new_run() -> void:
 		_camera.position = Vector3.ZERO
 		_camera.rotation = Vector3.ZERO
 	health_changed.emit(_health, stats.max_health)
+	faith_changed.emit(_faith, stats.max_faith)
 	stamina_changed.emit(_charges, stats.stamina)
 
 

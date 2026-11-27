@@ -67,5 +67,6 @@ enum DeathExplosionType { BLOOD, BONES }
 ## Segundos que permanecen las piezas en el suelo antes de desaparecer (modo BONES).
 @export var bone_floor_lifetime: float = 2.5
 
-# TODO(GDD): drops (esferas de Fe/vida y Esquirlas de Alma), cantidades y
-# probabilidades no definidos (§7, §369).
+@export_group("Drops")
+## Probabilidades y cantidades por tipo de enemigo (GDD §11.2).
+@export var drops: DropData

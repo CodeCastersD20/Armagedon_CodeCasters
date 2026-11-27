@@ -6,7 +6,10 @@ extends Resource
 # Todos estos valores pueden ser inventados al inicio en el medio o QA del desarollo
 # seran cambiados para balancear y mejorar todo
 @export var stamina: float = 3.0
+## Fe inicial al empezar la partida.
 @export var faith: float = 10.0
+# TODO(GDD): capacidad máxima de Fe no definida; valor configurable provisional.
+@export var max_faith: float = 100.0
 @export var move_speed: float = 10.0  # velocidad al caminar
 @export var jump_velocity: float = 7.2
 ## Saltos extra en el aire (1 = doble salto). 0 = sin doble salto.
@@ -70,12 +73,8 @@ extends Resource
 @export var camera_tilt_enabled: bool = true
 @export var camera_tilt_degrees: float = 2.5
 
-# Vida. TODO(GDD): los segundos de espera antes de regenerar son [PENDIENTE]
-# (propuesta del GDD: 5 s, ver #27).
+## Vida máxima. La curación llega solo por esferas rojas y tienda.
 @export var max_health: float = 100.0
-@export var regen_delay_seconds: float = 5.0
-@export var regen_interval_seconds: float = 1.2
-@export var regen_amount: float = 1.0
 ## Segundos de invulnerabilidad (i-frames) tras recibir daño.
 @export var invulnerability_seconds: float = 0.25
 

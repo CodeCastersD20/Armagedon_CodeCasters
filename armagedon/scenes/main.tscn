@@ -10,6 +10,9 @@
 [ext_resource type="Resource" uid="uid://sch4sq7pudxq" path="res://data/round_config.tres" id="8_roundcfg"]
 [ext_resource type="Script" uid="uid://c0v5oqs3l1h3d" path="res://scripts/Rounds/horde_spawner.gd" id="9_horde"]
 [ext_resource type="Resource" uid="uid://b67posnsu3duq" path="res://data/horde_config.tres" id="10_hordecfg"]
+[ext_resource type="Script" path="res://scripts/Enemies/drop_manager.gd" id="9_dropmgr"]
+[ext_resource type="Resource" path="res://data/drop_config.tres" id="10_dropcfg"]
+[ext_resource type="Script" path="res://scripts/Shop/shard_wallet.gd" id="11_wallet"]
 
 [node name="Main" type="Node3D" unique_id=499188323]
 
@@ -36,3 +39,10 @@ config = ExtResource("8_roundcfg")
 script = ExtResource("9_horde")
 enabled = false
 config = ExtResource("10_hordecfg")
+
+[node name="ShardWallet" type="Node" parent="."]
+script = ExtResource("11_wallet")
+
+[node name="DropManager" type="Node" parent="."]
+script = ExtResource("9_dropmgr")
+config = ExtResource("10_dropcfg")

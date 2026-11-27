@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3]
 
 [ext_resource type="Script" uid="uid://c1fgbw3jtekfy" path="res://scripts/Enemies/enemy_data.gd" id="1_edata"]
+[ext_resource type="Resource" path="res://data/enemies/drops/demonio.tres" id="2_drops"]
 
 [resource]
 script = ExtResource("1_edata")
@@ -11,3 +12,4 @@ move_speed = 3.15
 contact_range = 1.84
 contact_hit_delay_seconds = 0.4
 damage_number_height = 2.41
+drops = ExtResource("2_drops")

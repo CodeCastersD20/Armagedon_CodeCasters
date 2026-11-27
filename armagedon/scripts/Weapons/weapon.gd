@@ -101,6 +101,7 @@ func try_attack() -> bool:
 	position.z = RECOIL_Z
 	_perform_attack()
 	attacked.emit()
+	_play_sfx(data.sfx_attack)
 	return true
 
 
@@ -114,7 +115,14 @@ func try_reload() -> bool:
 		return true
 	_reload_left = data.reload_seconds
 	reload_started.emit(data.reload_seconds)
+	_play_sfx(data.sfx_reload)
 	return true
+
+
+## Reproduce un SFX por el AudioManager (bus SFX, pool de 8). Null = sin sonido asignado.
+func _play_sfx(stream: AudioStream) -> void:
+	if stream != null:
+		AudioManager.play_sfx(stream)
 
 
 ## Al guardar el arma se cancela la recarga.

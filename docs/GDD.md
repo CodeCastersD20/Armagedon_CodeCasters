@@ -360,6 +360,12 @@ Cada columna se evalúa de forma independiente al morir el enemigo (un mismo ene
 | Rifle FX-05 | Puck — PSX Rifle Free | Verificar |
 | Demonio del Averno | Max Damage — Zombie low-poly | Requiere atribución |
 | The Wrapped | Codyanka — THE WRAPPED | Verificar |
+| `SFX_Sword_Slash` | CogFireStudios — Hit Swing Sword Small 3 (freesound 547041) | CC0 |
+| `SFX_Shield_Block` | JustInvoke — Shield Hit 2 (freesound 138489) | CC0 |
+| `SFX_Pistol_Fire` | Kodack — Pistol Shot (freesound 253736) | CC0 |
+| `SFX_Shotgun_Pump` | Dentrabert — Shotgun Pump (freesound 673320) | CC0 |
+| `SFX_Rifle_FX05` | Rijam — Rifle Shot M1 Garand (freesound 385785) | CC0 |
+| `SFX_Mag_Reload` | serøutōnin--deprivěd — Glock magazine reload (freesound 854460) | CC0 |
 
 ---
 

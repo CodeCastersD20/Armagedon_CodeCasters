@@ -5,6 +5,7 @@ extends Node
 const TIME_SCALES: Array[float] = [0.5, 1.0, 2.0, 3.0]
 const TEST_DAMAGE: float = 20.0
 const FULL_HEAL: float = 9999.0
+const DEBUG_FAITH: float = 50.0
 const DEBUG_SHARDS: int = 1000
 const SPAWN_DISTANCE: float = 6.0
 const SPAWN_SPACING: float = 1.6
@@ -17,6 +18,7 @@ var _status_label: Label
 var _god_toggle: CheckButton
 var _next_round_btn: Button
 var _add_shards_btn: Button
+var _add_faith_btn: Button
 var _replay_entry_btn: Button
 var _replay_escape_btn: Button
 var _time_buttons: Dictionary = {}
@@ -139,6 +141,8 @@ func _build_ui() -> void:
 	dmg_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var heal_btn := _add_action_button(hp_row, "Curar 100%", _on_heal_pressed)
 	heal_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_add_faith_btn = _add_action_button(hp_row, "+50 Fe", _on_add_faith_pressed)
+	_add_faith_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	var spawn_row := HBoxContainer.new()
 	spawn_row.add_theme_constant_override("separation", 3)
@@ -182,6 +186,7 @@ func _refresh_ui() -> void:
 	var god_on: bool = _player != null and _player.is_god_mode()
 	_god_toggle.set_pressed_no_signal(god_on)
 	_god_toggle.disabled = _player == null
+	_add_faith_btn.disabled = _player == null
 
 	for scale_val in TIME_SCALES:
 		var btn: Button = _time_buttons[scale_val]
@@ -252,6 +257,12 @@ func _on_heal_pressed() -> void:
 	_resolve_player()
 	if _player != null:
 		_player.heal(FULL_HEAL)
+
+
+func _on_add_faith_pressed() -> void:
+	_resolve_player()
+	if _player != null:
+		_player.add_faith(DEBUG_FAITH)
 
 
 func _on_replay_entry_pressed() -> void:

@@ -445,6 +445,23 @@ func add_faith(amount: float) -> void:
 	faith_changed.emit(_faith, stats.max_faith)
 
 
+## Consume Fe si hay suficiente; emite faith_changed y devuelve true si tuvo éxito.
+func consume_faith(cost: float) -> bool:
+	if _escaped or cost < 0.0 or _faith < cost:
+		return false
+	if is_zero_approx(cost):
+		return true
+	_faith = maxf(_faith - cost, 0.0)
+	faith_changed.emit(_faith, stats.max_faith)
+	return true
+
+
+## Restaura la Fe al valor inicial de stats y emite faith_changed.
+func reset_faith() -> void:
+	_faith = clampf(stats.faith, 0.0, stats.max_faith)
+	faith_changed.emit(_faith, stats.max_faith)
+
+
 ## Aplica daño (ya con el multiplicador). Al llegar a 0 emite player_escaped una sola vez.
 ## Acepta damage_source_position opcional para comprobar si el escudo lo bloquea de frente.
 func take_damage(amount: float, damage_source_position: Vector3 = Vector3.INF) -> void:

@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://scenes/UI/BossHealthBar.tscn" id="6_bossbar"]
 [ext_resource type="PackedScene" path="res://scenes/UI/FaithCounter.tscn" id="7_faith"]
 [ext_resource type="PackedScene" path="res://scenes/UI/ShardCounter.tscn" id="8_shards"]
+[ext_resource type="PackedScene" path="res://scenes/UI/FaithPowerBar.tscn" id="9_fpbar"]
 
 [node name="MainHud" type="Node2D" unique_id=77760244]
 
@@ -45,6 +46,8 @@ offset_top = 82.0
 offset_bottom = 127.0
 
 [node name="ShardCounter" parent="CanvasLayer" instance=ExtResource("8_shards")]
+
+[node name="FaithPowerBar" parent="CanvasLayer" instance=ExtResource("9_fpbar")]
 
 [node name="BossHealthBar" parent="CanvasLayer" instance=ExtResource("6_bossbar")]
 

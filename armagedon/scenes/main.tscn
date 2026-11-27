@@ -9,7 +9,7 @@
 [ext_resource type="Resource" uid="uid://sch4sq7pudxq" path="res://data/round_config.tres" id="8_roundcfg"]
 [ext_resource type="Script" path="res://scripts/Enemies/drop_manager.gd" id="9_dropmgr"]
 [ext_resource type="Resource" path="res://data/drop_config.tres" id="10_dropcfg"]
-[ext_resource type="Script" path="res://scripts/shop/shard_wallet.gd" id="11_wallet"]
+[ext_resource type="Script" path="res://scripts/shop/faith_power_manager.gd" id="11_faithmgr"]
 [ext_resource type="PackedScene" path="res://scenes/UI/shop_ui.tscn" id="12_shopui"]
 [ext_resource type="Script" path="res://scripts/shop/upgrade_applier.gd" id="13_upgapplier"]
 
@@ -37,8 +37,8 @@ script = ExtResource("7_bosspawner")
 script = ExtResource("6_roundmgr")
 config = ExtResource("8_roundcfg")
 
-[node name="ShardWallet" type="Node" parent="."]
-script = ExtResource("11_wallet")
+[node name="FaithPowerManager" type="Node" parent="."]
+script = ExtResource("11_faithmgr")
 
 [node name="DropManager" type="Node" parent="."]
 script = ExtResource("9_dropmgr")

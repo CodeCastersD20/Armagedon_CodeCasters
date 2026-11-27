@@ -37,6 +37,7 @@ var bonus_dash_charges: float = 0.0
 var speed_pct_bonus: float = 0.0
 var bonus_air_jumps: int = 0
 var unlock_air_dash: bool = false
+var temporary_damage_bonus: float = 0.0
 
 var _applied_levels: Dictionary = {}
 var _player: Player
@@ -81,10 +82,20 @@ func reset_upgrades() -> void:
 	speed_pct_bonus = 0.0
 	bonus_air_jumps = 0
 	unlock_air_dash = false
+	temporary_damage_bonus = 0.0
 	_applied_levels.clear()
 	_resolve_refs()
 	if _player != null:
 		_player.reset_stat_modifiers()
+	_sync_weapons(0)
+
+
+## Aplica o retira un bono temporal de daño plano (Poderes de Fe #80) sin mutar los .tres.
+func set_temporary_damage_bonus(bonus: float) -> void:
+	var clamped: float = maxf(bonus, 0.0)
+	if is_equal_approx(temporary_damage_bonus, clamped):
+		return
+	temporary_damage_bonus = clamped
 	_sync_weapons(0)
 
 
@@ -131,9 +142,8 @@ func _apply_upgrade(upgrade: UpgradeData, new_level: int) -> void:
 			_player.heal(maxf(upgrade.valor_por_nivel, 0.0))
 		return
 	if upgrade.id == ID_FE_RECARGA:
-		# TODO(#80): conectar con el sistema de Fe cuando se implemente.
-		if _player != null and _player.has_method("restore_faith"):
-			_player.call("restore_faith", maxf(upgrade.valor_por_nivel, 0.0))
+		if _player != null:
+			_player.add_faith(maxf(upgrade.valor_por_nivel, 0.0))
 		return
 
 	var target_level: int = maxi(new_level, 0)
@@ -221,12 +231,15 @@ func _sync_weapons(added_mag_bullets: int) -> void:
 	var melee_weapon: Weapon = _weapon_manager.get_melee_weapon()
 	if melee_weapon != null:
 		melee_weapon.apply_upgrade_modifiers(
-			melee_flat_damage, melee_pct_damage, melee_crit_chance, melee_crit_damage
+			melee_flat_damage + temporary_damage_bonus,
+			melee_pct_damage,
+			melee_crit_chance,
+			melee_crit_damage
 		)
 	var fire_weapon: Weapon = _weapon_manager.get_fire_weapon()
 	if fire_weapon != null:
 		fire_weapon.apply_upgrade_modifiers(
-			fire_flat_damage,
+			fire_flat_damage + temporary_damage_bonus,
 			fire_pct_damage,
 			fire_crit_chance,
 			fire_crit_damage,

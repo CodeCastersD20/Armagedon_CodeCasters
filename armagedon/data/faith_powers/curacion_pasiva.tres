@@ -9,4 +9,5 @@ nombre = "Curación pasiva"
 efecto = "Poder de Fe: aumenta la regeneración de vida"
 costo_fe = 20.0
 cooldown = 8.0
+duracion = 5.0
 valor_por_nivel = 2.0

@@ -9,4 +9,5 @@ nombre = "Daño extra al arma equipada"
 efecto = "Poder de Fe: suma daño al arma que esté equipada"
 costo_fe = 30.0
 cooldown = 10.0
+duracion = 8.0
 valor_por_nivel = 15.0

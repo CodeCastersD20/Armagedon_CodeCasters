@@ -15,6 +15,18 @@ var _ember_speeds: Array[float] = []
 
 @onready var _menu_box: CenterContainer = $Center
 @onready var _play_button: Button = $Center/VBox/PlayButton
+@onready var _slot_box: CenterContainer = $SlotCenter
+@onready var _back_button: Button = $SlotCenter/VBox/BackButton
+@onready var _slot_play_buttons: Array[Button] = [
+	$SlotCenter/VBox/Slot1Row/PlayButton,
+	$SlotCenter/VBox/Slot2Row/PlayButton,
+	$SlotCenter/VBox/Slot3Row/PlayButton,
+]
+@onready var _slot_delete_buttons: Array[Button] = [
+	$SlotCenter/VBox/Slot1Row/DeleteButton,
+	$SlotCenter/VBox/Slot2Row/DeleteButton,
+	$SlotCenter/VBox/Slot3Row/DeleteButton,
+]
 @onready var _overlay: Control = $LoadingOverlay
 @onready var _hell_bg: ColorRect = $LoadingOverlay/HellBackground
 
@@ -24,9 +36,54 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	set_process(false)
 	_build_embers_once()
-	_play_button.pressed.connect(_start_load)
+	_slot_box.visible = false
+	_play_button.pressed.connect(_open_slot_selector)
+	_back_button.pressed.connect(_close_slot_selector)
+	for i: int in _slot_play_buttons.size():
+		var slot: int = i + 1
+		_slot_play_buttons[i].pressed.connect(_on_slot_selected.bind(slot))
+		_slot_delete_buttons[i].pressed.connect(_on_slot_deleted.bind(slot))
 	_play_button.grab_focus()
 	AudioManager.play_menu_music()
+
+
+func _open_slot_selector() -> void:
+	_refresh_slots()
+	_menu_box.visible = false
+	_slot_box.visible = true
+	_slot_play_buttons[0].grab_focus()
+
+
+func _close_slot_selector() -> void:
+	_slot_box.visible = false
+	_menu_box.visible = true
+	_play_button.grab_focus()
+
+
+func _on_slot_selected(slot: int) -> void:
+	SaveManager.select_slot(slot)
+	_start_load()
+
+
+func _on_slot_deleted(slot: int) -> void:
+	SaveManager.delete_slot(slot)
+	_refresh_slots()
+
+
+func _refresh_slots() -> void:
+	for i: int in _slot_play_buttons.size():
+		var slot: int = i + 1
+		var summary: Dictionary = SaveManager.get_slot_summary(slot)
+		var exists: bool = bool(summary.get("exists", false))
+		if exists:
+			var best_score: int = int(summary.get("best_score", 0))
+			var best_round: int = int(summary.get("best_round", 0))
+			_slot_play_buttons[i].text = (
+				"Partida %d - Score: %d | Ronda: %d" % [slot, best_score, best_round]
+			)
+		else:
+			_slot_play_buttons[i].text = "Partida %d - Vacía" % slot
+		_slot_delete_buttons[i].disabled = not exists
 
 
 func _start_load() -> void:
@@ -36,6 +93,7 @@ func _start_load() -> void:
 	_elapsed = 0.0
 	_packed_scene = null
 	_menu_box.visible = false
+	_slot_box.visible = false
 	_overlay.visible = true
 
 	var err: Error = ResourceLoader.load_threaded_request(MAIN_SCENE_PATH)

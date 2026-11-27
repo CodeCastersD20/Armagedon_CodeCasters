@@ -19,6 +19,7 @@ config/features=PackedStringArray("4.7", "Forward Plus")
 
 AudioManager="*res://scripts/audio_manager.gd"
 DisplayConfig="*res://scripts/Settings/display_config.gd"
+SaveManager="*res://scripts/Settings/save_manager.gd"
 DebugControls="*res://scripts/Debug/debug_controls.gd"
 
 [display]

@@ -13,6 +13,8 @@ const SHADER: Shader = preload("res://assets/shaders/psx.gdshader")
 ## -> [original, ShaderMaterial].
 ## Así 30 enemigos del mismo tipo comparten UN solo material en vez de crear 30.
 static var _cache: Dictionary = {}
+## Caché de materiales teñidos: clave (material PSX, color) -> ShaderMaterial.
+static var _tint_cache: Dictionary = {}
 
 
 ## `snap_resolution` <= 0 usa el valor por defecto del shader.
@@ -71,3 +73,33 @@ static func _make_material(
 	if snap_resolution > 0.0:
 		material.set_shader_parameter("snap_resolution", snap_resolution)
 	return material
+
+
+## Multiplica el color del material PSX de cada malla por `tint`. Reutiliza materiales por color.
+## Llamar después de `apply()`.
+static func apply_tint(root: Node, tint: Color) -> void:
+	if tint == Color.WHITE:
+		return
+	var meshes: Array[Node] = root.find_children("*", "MeshInstance3D", true, false)
+	if root is MeshInstance3D:
+		meshes.append(root)
+	for node in meshes:
+		var mesh_instance := node as MeshInstance3D
+		if mesh_instance == null or mesh_instance.mesh == null:
+			continue
+		for surface in mesh_instance.mesh.get_surface_count():
+			var current := mesh_instance.get_surface_override_material(surface) as ShaderMaterial
+			if current == null or current.shader != SHADER:
+				continue
+			mesh_instance.set_surface_override_material(surface, _get_tinted(current, tint))
+
+
+static func _get_tinted(source: ShaderMaterial, tint: Color) -> ShaderMaterial:
+	var key: String = "%d|%s" % [source.get_instance_id(), tint.to_html()]
+	if not _tint_cache.has(key):
+		var tinted := source.duplicate() as ShaderMaterial
+		var base: Variant = source.get_shader_parameter("albedo_color")
+		var base_color: Color = base if base is Color else Color.WHITE
+		tinted.set_shader_parameter("albedo_color", base_color * tint)
+		_tint_cache[key] = [source, tinted]
+	return _tint_cache[key][1]

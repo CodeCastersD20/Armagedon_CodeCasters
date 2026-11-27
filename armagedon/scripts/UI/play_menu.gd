@@ -26,6 +26,7 @@ func _ready() -> void:
 	_build_embers_once()
 	_play_button.pressed.connect(_start_load)
 	_play_button.grab_focus()
+	AudioManager.play_menu_music()
 
 
 func _start_load() -> void:

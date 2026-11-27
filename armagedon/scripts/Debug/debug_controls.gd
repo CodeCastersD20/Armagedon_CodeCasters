@@ -9,9 +9,30 @@ const DEBUG_SHARDS: int = 1000
 const SPAWN_DISTANCE: float = 6.0
 const SPAWN_SPACING: float = 1.6
 const SQUELETOR_SCENE: PackedScene = preload("res://scenes/Enemies/Squeletor.tscn")
+const HORDE_CONFIG: HordeConfig = preload("res://data/horde_config.tres")
+const BOSS_ENTRIES: Array[Dictionary] = [
+	{"label": "Jefe Esqueleto", "scene": preload("res://scenes/Enemies/JefeSqueletor.tscn")},
+	{"label": "Jefe Demonio", "scene": preload("res://scenes/Enemies/JefeDemonio.tscn")},
+	{"label": "Jefe Wrapped", "scene": preload("res://scenes/Enemies/JefeWrapped.tscn")},
+]
+const SHIELD_MODELS: Array[Dictionary] = [
+	{
+		"label": "Escudo Clásico",
+		"scene": preload("res://assets/models/weapons/psx_weapons/Shield.glb"),
+	},
+	{
+		"label": "Escudo Angelical",
+		"scene": preload("res://assets/models/weapons/angel_shield/AngelShield.glb"),
+	},
+]
+const SUMMON_COLUMNS: int = 2
+const PANEL_WIDTH: float = 560.0
+const PANEL_SCREEN_MARGIN: float = 16.0
+const SNAPSHOT_INTERVAL: float = 2.0
 
 var _layer: CanvasLayer
 var _panel: PanelContainer
+var _scroll: ScrollContainer
 var _badge: Label
 var _status_label: Label
 var _god_toggle: CheckButton
@@ -20,23 +41,37 @@ var _add_shards_btn: Button
 var _replay_entry_btn: Button
 var _replay_escape_btn: Button
 var _time_buttons: Dictionary = {}
+var _champion_toggle: CheckButton
+var _shield_buttons: Array[Button] = []
 
 var _is_open: bool = false
 var _previous_mouse_mode: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
 var _previous_paused: bool = false
 var _player: Player
+var _snapshot_timer: float = 0.0
 
 
 func _ready() -> void:
 	if not OS.is_debug_build():
 		queue_free()
 		return
+	DebugLogger.start_session()
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build_ui()
 	_refresh_ui()
 
 
+func _process(delta: float) -> void:
+	if get_tree().paused:
+		return
+	_snapshot_timer += delta
+	if _snapshot_timer >= SNAPSHOT_INTERVAL:
+		_snapshot_timer = 0.0
+		DebugLogger.log_enemy_snapshot(get_tree())
+
+
 func _exit_tree() -> void:
+	DebugLogger.stop_session()
 	if _is_open:
 		get_tree().paused = _previous_paused
 	Engine.time_scale = 1.0
@@ -67,7 +102,20 @@ func _toggle_menu() -> void:
 		else:
 			Input.mouse_mode = _previous_mouse_mode
 	_panel.visible = _is_open
+	if _is_open:
+		_fit_panel.call_deferred()
 	_update_badge()
+
+
+## Limita la altura del panel a la pantalla; si el contenido no cabe, aparece la barra de scroll.
+func _fit_panel() -> void:
+	if _scroll == null or _scroll.get_child_count() == 0:
+		return
+	var content: Control = _scroll.get_child(0) as Control
+	var max_height: float = get_viewport().get_visible_rect().size.y - PANEL_SCREEN_MARGIN * 2.0
+	_scroll.custom_minimum_size = Vector2(
+		PANEL_WIDTH, minf(content.get_combined_minimum_size().y, max_height)
+	)
 
 
 func _resolve_player() -> void:
@@ -93,7 +141,7 @@ func _build_ui() -> void:
 
 	_panel = PanelContainer.new()
 	_panel.position = Vector2(8.0, 8.0)
-	_panel.custom_minimum_size = Vector2(250.0, 0.0)
+	_panel.custom_minimum_size = Vector2(PANEL_WIDTH, 0.0)
 	_panel.theme = compact_theme
 	_panel.visible = false
 	_layer.add_child(_panel)
@@ -103,11 +151,26 @@ func _build_ui() -> void:
 	margin.add_theme_constant_override("margin_right", 8)
 	margin.add_theme_constant_override("margin_top", 6)
 	margin.add_theme_constant_override("margin_bottom", 6)
-	_panel.add_child(margin)
+	_scroll = ScrollContainer.new()
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_panel.add_child(_scroll)
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scroll.add_child(margin)
+
+	var columns := HBoxContainer.new()
+	columns.add_theme_constant_override("separation", 12)
+	margin.add_child(columns)
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 3)
-	margin.add_child(vbox)
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	columns.add_child(vbox)
+
+	var right_box := VBoxContainer.new()
+	right_box.add_theme_constant_override("separation", 3)
+	right_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	columns.add_child(right_box)
 
 	var title := Label.new()
 	title.text = "DEBUG MENU (F1)"
@@ -150,6 +213,8 @@ func _build_ui() -> void:
 	var kill_btn := _add_action_button(spawn_row, "Matar todos", _on_kill_all_pressed)
 	kill_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
+	_build_summon_section(right_box)
+
 	var flow_row := HBoxContainer.new()
 	flow_row.add_theme_constant_override("separation", 3)
 	vbox.add_child(flow_row)
@@ -166,7 +231,56 @@ func _build_ui() -> void:
 	_add_shards_btn = _add_action_button(game_row, "+1000 Esq.", _on_add_shards_pressed)
 	_add_shards_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
+	_build_shield_section(vbox)
+
 	_add_action_button(vbox, "Cerrar (F1)", _toggle_menu)
+
+
+## Sección "Invocar": un botón por enemigo (normales, variantes y jefes) + interruptor de Campeón.
+## Los tipos y variantes salen de `HORDE_CONFIG`, así no se duplica la lista.
+func _build_summon_section(vbox: VBoxContainer) -> void:
+	var header := Label.new()
+	header.text = "Invocar enemigo"
+	vbox.add_child(header)
+
+	_champion_toggle = CheckButton.new()
+	_champion_toggle.text = "Como Campeón"
+	_champion_toggle.disabled = HORDE_CONFIG.champion == null
+	vbox.add_child(_champion_toggle)
+
+	var grid := GridContainer.new()
+	grid.columns = SUMMON_COLUMNS
+	grid.add_theme_constant_override("h_separation", 3)
+	grid.add_theme_constant_override("v_separation", 3)
+	vbox.add_child(grid)
+	for entry in HORDE_CONFIG.entries:
+		if entry == null or entry.scene == null:
+			continue
+		var base_name: String = _scene_label(entry.scene)
+		_add_summon_button(grid, base_name, entry.scene, null)
+		for variant in entry.variants:
+			if variant != null and variant.data != null:
+				_add_summon_button(grid, variant.data.display_name, entry.scene, variant.data)
+	for boss in BOSS_ENTRIES:
+		_add_summon_button(grid, boss["label"], boss["scene"], null)
+
+
+func _scene_label(scene: PackedScene) -> String:
+	var state: SceneState = scene.get_state()
+	return String(state.get_node_name(0)) if state.get_node_count() > 0 else "Enemigo"
+
+
+func _add_summon_button(
+	parent: Control, label_text: String, scene: PackedScene, data: EnemyData
+) -> void:
+	var btn := _add_action_button(parent, label_text, _on_summon_pressed.bind(scene, data))
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	btn.clip_text = true
+	btn.tooltip_text = label_text
+
+
+func _on_summon_pressed(scene: PackedScene, data: EnemyData) -> void:
+	_spawn_enemies(scene, data, 1)
 
 
 func _add_action_button(parent: Control, label_text: String, handler: Callable) -> Button:
@@ -201,6 +315,12 @@ func _refresh_ui() -> void:
 	var game_flow: Node = get_tree().get_first_node_in_group("game_flow")
 	_replay_entry_btn.disabled = game_flow == null
 	_replay_escape_btn.disabled = game_flow == null
+
+	var shield := _find_shield()
+	var shield_path: String = shield.get_model_path() if shield != null else ""
+	for i in range(_shield_buttons.size()):
+		var scene: PackedScene = SHIELD_MODELS[i]["scene"]
+		_shield_buttons[i].disabled = shield == null or scene.resource_path == shield_path
 
 	var enemy_count: int = get_tree().get_nodes_in_group("enemies").size()
 	_status_label.text = (
@@ -273,6 +393,12 @@ func _on_replay_escape_pressed() -> void:
 
 
 func _on_spawn_enemies_pressed(count: int) -> void:
+	_spawn_enemies(SQUELETOR_SCENE, null, count)
+
+
+## Instancia `count` enemigos delante del jugador. `data` (opcional) sustituye el EnemyData de la
+## escena (variantes); el interruptor "Como Campeón" les asigna `champion_data`.
+func _spawn_enemies(scene: PackedScene, data: EnemyData, count: int) -> void:
 	var scene_root: Node = get_tree().current_scene
 	if scene_root == null:
 		return
@@ -295,18 +421,27 @@ func _on_spawn_enemies_pressed(count: int) -> void:
 		if existing is Node3D:
 			occupied.append((existing as Node3D).global_position)
 
+	var round_mgr := get_tree().get_first_node_in_group("round_manager") as RoundManager
+	var round_number: int = round_mgr.get_current_round() if round_mgr != null else 0
 	var half: float = float(count - 1) * 0.5
 	for i in count:
-		var enemy := SQUELETOR_SCENE.instantiate() as Enemy
+		var enemy := scene.instantiate() as Enemy
 		if enemy == null:
-			push_error("DebugControls: no se pudo instanciar Squeletor.tscn")
+			push_error("DebugControls: la escena no es un Enemy")
 			return
+		if data != null:
+			enemy.data = data
+		if round_number > 0:
+			enemy.start_round = round_number
+		if _champion_toggle != null and _champion_toggle.button_pressed:
+			enemy.champion_data = HORDE_CONFIG.champion
 		var lateral: float = (float(i) - half) * SPAWN_SPACING
 		var desired: Vector3 = origin + forward * SPAWN_DISTANCE + right * lateral
 		var spawn_pos: Vector3 = _find_free_spawn_position(desired, occupied)
 		occupied.append(spawn_pos)
 		scene_root.add_child(enemy)
-		enemy.global_position = spawn_pos
+		enemy.set_spawn_position(spawn_pos)
+		DebugLogger.log_spawn("DebugControls", enemy, spawn_pos, round_number)
 	_refresh_ui()
 
 
@@ -353,3 +488,29 @@ func _on_add_shards_pressed() -> void:
 	var economy: Node = get_tree().get_first_node_in_group("economy")
 	if economy != null and economy.has_method("add_shards"):
 		economy.call("add_shards", DEBUG_SHARDS)
+
+
+func _build_shield_section(vbox: VBoxContainer) -> void:
+	var shield_row := HBoxContainer.new()
+	shield_row.add_theme_constant_override("separation", 3)
+	vbox.add_child(shield_row)
+	for i in range(SHIELD_MODELS.size()):
+		var btn := _add_action_button(
+			shield_row, SHIELD_MODELS[i]["label"], _on_shield_model_pressed.bind(i)
+		)
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_shield_buttons.append(btn)
+
+
+func _find_shield() -> Shield:
+	_resolve_player()
+	if _player == null:
+		return null
+	return _player.find_child("Shield", true, false) as Shield
+
+
+func _on_shield_model_pressed(index: int) -> void:
+	var shield := _find_shield()
+	if shield != null:
+		shield.set_model(SHIELD_MODELS[index]["scene"])
+	_refresh_ui()

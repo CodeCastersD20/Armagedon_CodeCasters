@@ -15,3 +15,7 @@ assets/animations/universal/UAL1_Standard.glb.import
 # Archivos temporales de editores
 \#*#
 *~
+
+# Logs de depuración locales
+logs/
+*.log

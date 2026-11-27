@@ -6,6 +6,8 @@
 [ext_resource type="PackedScene" uid="uid://cycl2my3yyk1v" path="res://scenes/UI/RoundCounter.tscn" id="4_d0hpa"]
 [ext_resource type="PackedScene" path="res://scenes/UI/Crosshair.tscn" id="5_cross"]
 [ext_resource type="PackedScene" path="res://scenes/UI/BossHealthBar.tscn" id="6_bossbar"]
+[ext_resource type="PackedScene" path="res://scenes/UI/FaithCounter.tscn" id="7_faith"]
+[ext_resource type="PackedScene" path="res://scenes/UI/ShardCounter.tscn" id="8_shards"]
 
 [node name="MainHud" type="Node2D" unique_id=77760244]
 
@@ -16,8 +18,8 @@ transform = Transform2D(1, 0, 0, 1, -5, 0)
 [node name="AmmoCounter" parent="CanvasLayer" unique_id=1392892048 instance=ExtResource("3_ru36m")]
 
 [node name="Ammo" parent="CanvasLayer/AmmoCounter" index="0" unique_id=400544608]
-offset_top = 46.0
-offset_bottom = 91.0
+offset_top = 64.0
+offset_bottom = 109.0
 
 [node name="DashCounter" parent="CanvasLayer" unique_id=489986782 instance=ExtResource("2_d0hpa")]
 
@@ -30,11 +32,19 @@ metadata/_edit_use_anchors_ = true
 offset_top = 28.0
 offset_bottom = 73.0
 
+[node name="FaithCounter" parent="CanvasLayer" instance=ExtResource("7_faith")]
+
+[node name="Fe" parent="CanvasLayer/FaithCounter" index="0"]
+offset_top = 46.0
+offset_bottom = 91.0
+
 [node name="RoundCounter" parent="CanvasLayer" unique_id=1782842749 instance=ExtResource("4_d0hpa")]
 
 [node name="Round" parent="CanvasLayer/RoundCounter" index="0" unique_id=400544608]
-offset_top = 63.0
-offset_bottom = 108.0
+offset_top = 82.0
+offset_bottom = 127.0
+
+[node name="ShardCounter" parent="CanvasLayer" instance=ExtResource("8_shards")]
 
 [node name="BossHealthBar" parent="CanvasLayer" instance=ExtResource("6_bossbar")]
 
@@ -43,4 +53,6 @@ offset_bottom = 108.0
 [editable path="CanvasLayer/AmmoCounter"]
 [editable path="CanvasLayer/DashCounter"]
 [editable path="CanvasLayer/VidaCounter"]
+[editable path="CanvasLayer/FaithCounter"]
 [editable path="CanvasLayer/RoundCounter"]
+[editable path="CanvasLayer/ShardCounter"]

@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/Player/counters/faith_counter.gd" id="1_faith"]
+
+[node name="FaithCounter" type="Node"]
+script = ExtResource("1_faith")
+
+[node name="Fe" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 20.0
+offset_right = 239.0
+offset_bottom = 65.0
+theme_override_font_sizes/font_size = 16
+text = "Fe: 0 / 100"

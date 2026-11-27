@@ -94,6 +94,11 @@ func get_ammo() -> int:
 	return _ammo
 
 
+## Habilidad única del arma (tecla de habilidad). Por defecto no hay: cada arma la sobrescribe.
+func try_ability() -> bool:
+	return false
+
+
 ## Ataca si la cadencia y el cargador lo permiten. Con el cargador vacío empieza a recargar.
 func try_attack() -> bool:
 	if _cooldown > 0.0 or is_reloading():

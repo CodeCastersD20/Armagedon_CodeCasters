@@ -49,6 +49,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_current.try_reload()
 	elif event.is_action_pressed("attack") and _can_attack():
 		_current.try_attack()
+	elif event.is_action_pressed("ability") and _can_attack():
+		_current.try_ability()
 
 
 func _process(_delta: float) -> void:

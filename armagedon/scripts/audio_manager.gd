@@ -5,6 +5,8 @@ extends Node
 ## El volumen del jugador se expone en linear 0..1 con
 ## set_bus_volume()/get_bus_volume(); guardarlo en user:// lo hace #91 (ConfigFile).
 
+enum MusicMode { NONE, MENU, CIRCLE_1, BOSS }
+
 const BUS_MUSIC: String = "Music"
 const BUS_SFX: String = "SFX"
 const BUS_VOICE: String = "Voice"
@@ -16,6 +18,15 @@ const DEFAULT_DUCK_SECONDS: float = 3.0
 const DUCK_FADE_SECONDS: float = 0.25
 ## Por debajo de este nivel se trata como silencio (linear_to_db(0.0) es -inf).
 const SILENCE_DB: float = -80.0
+const CIRCLE_1_MAX_ROUND: int = 10
+
+const MUSIC_MENU: AudioStream = preload("res://assets/audio/music/Seventh_Circle_Hymn.ogg")
+const MUSIC_BOSS_LIMBO: AudioStream = preload("res://assets/audio/music/Last_Gate_of_the_Maze.ogg")
+const CIRCLE_1_TRACKS: Array[AudioStream] = [
+	MUSIC_MENU,
+	preload("res://assets/audio/music/The_Gatekeeper_s_Toll.ogg"),
+	preload("res://assets/audio/music/Piston_and_Bone.ogg"),
+]
 
 var _music: AudioStreamPlayer
 var _voice: AudioStreamPlayer
@@ -26,6 +37,11 @@ var _bus_linear: Dictionary = {}
 ## Multiplicador de ducking sobre Music: 1.0 = sin atenuar.
 var _duck_factor: float = 1.0
 var _duck_tween: Tween
+## Multiplicador de fade-out sobre Music (p. ej. entrada dramática del jefe).
+var _music_fade_factor: float = 1.0
+var _fade_tween: Tween
+var _music_mode: MusicMode = MusicMode.NONE
+var _last_circle_1_track: AudioStream
 
 
 func _ready() -> void:
@@ -33,6 +49,7 @@ func _ready() -> void:
 	_ensure_bus(BUS_SFX)
 	_ensure_bus(BUS_VOICE)
 	_music = _new_player(BUS_MUSIC)
+	_music.finished.connect(_on_music_finished)
 	_voice = _new_player(BUS_VOICE)
 	for _i in SFX_POOL_SIZE:
 		_sfx_pool.append(_new_player(BUS_SFX))
@@ -44,13 +61,95 @@ func play_music(stream: AudioStream) -> void:
 	if stream == null:
 		push_error("AudioManager.play_music: stream nulo")
 		return
+	_kill_music_fade()
+	_set_music_fade_factor(1.0)
 	_music.stream = stream
 	_music.play()
+	var bus_idx: int = AudioServer.get_bus_index(BUS_MUSIC)
+	var bus_db: float = AudioServer.get_bus_volume_db(bus_idx) if bus_idx != -1 else -999.0
+	var master_db: float = AudioServer.get_bus_volume_db(0)
+	var master_mute: bool = AudioServer.is_bus_mute(0)
+	(
+		DebugLogger
+		. write(
+			"AUDIO",
+			(
+				(
+					"play_music=%s | playing=%s | bus=%s(idx=%d,db=%.1f,mute=%s)"
+					+ " | master(db=%.1f,mute=%s) | drv=%s dev=%s | mode=%d"
+				)
+				% [
+					stream.resource_path,
+					str(_music.playing),
+					_music.bus,
+					bus_idx,
+					bus_db,
+					str(AudioServer.is_bus_mute(bus_idx) if bus_idx != -1 else true),
+					master_db,
+					str(master_mute),
+					AudioServer.get_driver_name(),
+					AudioServer.output_device,
+					_music_mode,
+				]
+			)
+		)
+	)
 
 
 ## Detiene la pista que esté sonando.
 func stop_music() -> void:
+	DebugLogger.write("AUDIO", "stop_music()")
+	_kill_music_fade()
 	_music.stop()
+	_set_music_fade_factor(1.0)
+
+
+## Inicia la música del menú principal sin reiniciarla si ya está sonando.
+func play_menu_music() -> void:
+	_music_mode = MusicMode.MENU
+	if _music.playing and _music.stream == MUSIC_MENU:
+		_kill_music_fade()
+		_set_music_fade_factor(1.0)
+		return
+	play_music(MUSIC_MENU)
+
+
+## Actualiza la música al iniciar una ronda (solo primer círculo: rondas 1..10).
+func on_round_started(round_number: int, is_boss_round: bool) -> void:
+	if round_number > CIRCLE_1_MAX_ROUND:
+		if _music_mode == MusicMode.CIRCLE_1 or _music_mode == MusicMode.BOSS:
+			_music_mode = MusicMode.NONE
+			fade_out_music(1.5)
+		return
+	if is_boss_round:
+		return
+	_music_mode = MusicMode.CIRCLE_1
+	if _music.playing and _music.stream in CIRCLE_1_TRACKS:
+		return
+	_play_next_circle_1_track()
+
+
+## Inicia la música del jefe del primer círculo.
+func play_boss_limbo_music() -> void:
+	_music_mode = MusicMode.BOSS
+	play_music(MUSIC_BOSS_LIMBO)
+
+
+## Baja poco a poco el volumen de la música actual hasta detenerla.
+func fade_out_music(duration: float = 1.8) -> void:
+	DebugLogger.write(
+		"AUDIO", "fade_out_music(duration=%.2f, playing=%s)" % [duration, str(_music.playing)]
+	)
+	_kill_music_fade()
+	if not _music.playing:
+		_set_music_fade_factor(1.0)
+		return
+	if duration <= 0.0:
+		stop_music()
+		return
+	_fade_tween = create_tween()
+	_fade_tween.tween_method(_set_music_fade_factor, _music_fade_factor, 0.0, duration)
+	_fade_tween.tween_callback(stop_music)
 
 
 ## Reproduce un efecto desde el pool: el siguiente SFX no corta al anterior.
@@ -108,7 +207,7 @@ func _apply_bus_volume(bus_name: String) -> void:
 		return
 	var linear: float = float(_bus_linear.get(bus_name, 1.0))
 	if bus_name == BUS_MUSIC:
-		linear *= _duck_factor
+		linear *= _duck_factor * _music_fade_factor
 	AudioServer.set_bus_volume_db(index, SILENCE_DB if linear <= 0.0 else linear_to_db(linear))
 
 
@@ -121,6 +220,44 @@ func _kill_duck() -> void:
 	if _duck_tween != null and _duck_tween.is_valid():
 		_duck_tween.kill()
 	_duck_tween = null
+
+
+func _set_music_fade_factor(value: float) -> void:
+	_music_fade_factor = clampf(value, 0.0, 1.0)
+	_apply_bus_volume(BUS_MUSIC)
+
+
+func _kill_music_fade() -> void:
+	if _fade_tween != null and _fade_tween.is_valid():
+		_fade_tween.kill()
+	_fade_tween = null
+
+
+func _on_music_finished() -> void:
+	match _music_mode:
+		MusicMode.MENU:
+			play_music(MUSIC_MENU)
+		MusicMode.CIRCLE_1:
+			_play_next_circle_1_track()
+		MusicMode.BOSS:
+			play_music(MUSIC_BOSS_LIMBO)
+
+
+func _play_next_circle_1_track() -> void:
+	var count: int = CIRCLE_1_TRACKS.size()
+	if count == 0:
+		return
+	if count == 1:
+		_last_circle_1_track = CIRCLE_1_TRACKS[0]
+		play_music(_last_circle_1_track)
+		return
+	var candidates: Array[AudioStream] = []
+	for track: AudioStream in CIRCLE_1_TRACKS:
+		if track != _last_circle_1_track:
+			candidates.append(track)
+	var chosen: AudioStream = candidates[randi_range(0, candidates.size() - 1)]
+	_last_circle_1_track = chosen
+	play_music(chosen)
 
 
 ## Crea el bus si aún no existe; los buses se hacen en runtime para no versionar

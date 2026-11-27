@@ -5,6 +5,8 @@ extends Node
 ## El volumen del jugador se expone en linear 0..1 con
 ## set_bus_volume()/get_bus_volume(); guardarlo en user:// lo hace #91 (ConfigFile).
 
+signal bus_volume_changed(bus_name: String, linear: float)
+
 enum MusicMode { NONE, MENU, CIRCLE_1, BOSS }
 
 const BUS_MUSIC: String = "Music"
@@ -45,6 +47,7 @@ var _last_circle_1_track: AudioStream
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_ensure_bus(BUS_MUSIC)
 	_ensure_bus(BUS_SFX)
 	_ensure_bus(BUS_VOICE)
@@ -153,13 +156,14 @@ func fade_out_music(duration: float = 1.8) -> void:
 
 
 ## Reproduce un efecto desde el pool: el siguiente SFX no corta al anterior.
-func play_sfx(stream: AudioStream) -> void:
+func play_sfx(stream: AudioStream, volume_db: float = 0.0) -> void:
 	if stream == null:
 		push_error("AudioManager.play_sfx: stream nulo")
 		return
 	var player: AudioStreamPlayer = _sfx_pool[_sfx_cursor]
 	_sfx_cursor = (_sfx_cursor + 1) % _sfx_pool.size()
 	player.stream = stream
+	player.volume_db = volume_db
 	player.play()
 
 
@@ -194,6 +198,7 @@ func set_bus_volume(bus_name: String, linear: float) -> void:
 		return
 	_bus_linear[bus_name] = clampf(linear, 0.0, 1.0)
 	_apply_bus_volume(bus_name)
+	bus_volume_changed.emit(bus_name, float(_bus_linear[bus_name]))
 
 
 ## Volumen elegido por el usuario en un bus (0..1 lineal), sin el ducking de la voz.

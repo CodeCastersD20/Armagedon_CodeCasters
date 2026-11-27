@@ -35,6 +35,8 @@ enum Kind { FIRE, MELEE }
 @export var sfx_attack: AudioStream
 ## SFX al empezar la recarga del cargador (SFX_Mag_Reload).
 @export var sfx_reload: AudioStream
+## Ajuste de volumen en dB para los SFX de esta arma (0 = original, negativo = más bajo).
+@export_range(-40.0, 12.0, 0.5) var sfx_volume_db: float = 0.0
 
 @export_group("Animación procedural (armas de fuego)")
 ## Cuánto sube el cañón al disparar (grados). 0 = sin recoil.

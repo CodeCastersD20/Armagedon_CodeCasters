@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" uid="uid://g3xkb2ao6fsg" path="res://scripts/Weapons/weapon_data.gd" id="1_wdata"]
 [ext_resource type="PackedScene" uid="uid://cerj4pjjt0e6v" path="res://scenes/Weapons/pistol.tscn" id="2_a40w6"]
-[ext_resource type="AudioStreamWAV" path="res://assets/audio/sfx/weapons/SFX_Pistol_Fire.wav" id="3_fire"]
-[ext_resource type="AudioStreamWAV" path="res://assets/audio/sfx/weapons/SFX_Mag_Reload.wav" id="4_reload"]
+[ext_resource type="AudioStream" uid="uid://qff8ioj1qghj" path="res://assets/audio/sfx/weapons/SFX_Pistol_Fire.wav" id="3_fire"]
+[ext_resource type="AudioStream" uid="uid://0fg6goy4723b" path="res://assets/audio/sfx/weapons/SFX_Mag_Reload.wav" id="4_reload"]
 
 [resource]
 script = ExtResource("1_wdata")
@@ -14,6 +14,7 @@ attack_interval = 0.3
 weapon_scene = ExtResource("2_a40w6")
 sfx_attack = ExtResource("3_fire")
 sfx_reload = ExtResource("4_reload")
+sfx_volume_db = -30.0
 recoil_kick_degrees = 14.0
 recoil_lift = 0.024
 recoil_recovery_seconds = 0.22

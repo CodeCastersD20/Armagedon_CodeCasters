@@ -134,7 +134,8 @@ func try_reload() -> bool:
 ## Reproduce un SFX por el AudioManager (bus SFX, pool de 8). Null = sin sonido asignado.
 func _play_sfx(stream: AudioStream) -> void:
 	if stream != null:
-		AudioManager.play_sfx(stream)
+		var volume_db: float = data.sfx_volume_db if data != null else 0.0
+		AudioManager.play_sfx(stream, volume_db)
 
 
 ## Al guardar el arma se cancela la recarga.

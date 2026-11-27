@@ -40,6 +40,17 @@ enum DeathExplosionType { BLOOD, BONES }
 ## Altura sobre el origen donde aparece el número de daño.
 @export var damage_number_height: float = 1.8
 
+@export_group("Variant")
+## Tinte multiplicado sobre la textura (blanco = sin tinte). Distingue la variante con habilidad.
+# TODO(GDD): colores por habilidad propuestos, pendientes de confirmación.
+@export var tint_color: Color = Color.WHITE
+## Escala del modelo y la colisión (1 = tamaño normal).
+@export var scale_multiplier: float = 1.0
+
+## Habilidad especial (nulo = enemigo normal). Script que extiende EnemyAbility + sus parámetros.
+@export var ability_script: Script
+@export var ability: AbilityData
+
 @export_group("Death Explosion")
 ## Tipo de explosión al morir (sangre para demonios, piezas óseas para esqueletos).
 @export var death_explosion_type: DeathExplosionType = DeathExplosionType.BLOOD

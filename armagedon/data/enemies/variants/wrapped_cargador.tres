@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://cphs25cmhjfk4"]
+
+[ext_resource type="Script" uid="uid://c1fgbw3jtekfy" path="res://scripts/Enemies/enemy_data.gd" id="1_edata"]
+[ext_resource type="Script" uid="uid://m6k4wygx0ehg" path="res://scripts/Enemies/Abilities/ability_data.gd" id="2_abdata"]
+[ext_resource type="Script" uid="uid://dkbeu3pin2myd" path="res://scripts/Enemies/Abilities/charger.gd" id="3_ability"]
+
+[sub_resource type="Resource" id="Resource_ability"]
+script = ExtResource("2_abdata")
+cooldown = 5.0
+windup = 1.0
+duration = 1.2
+damage = 45.0
+max_range = 14.0
+projectile_speed = 14.0
+charge_speed = 25.0
+player_stun_seconds = 0.85
+animation_speed = 2.5
+color = Color(0.1, 0.1, 0.12, 1)
+knockback_speed = 20.0
+
+[resource]
+script = ExtResource("1_edata")
+display_name = "The Wrapped Cargador"
+max_health = 325.0
+contact_damage = 30.0
+move_speed = 2.8
+contact_range = 2.0
+contact_hit_delay_seconds = 0.45
+damage_number_height = 2.4
+tint_color = Color(0.25, 0.25, 0.3, 1)
+scale_multiplier = 1.1
+ability_script = ExtResource("3_ability")
+ability = SubResource("Resource_ability")

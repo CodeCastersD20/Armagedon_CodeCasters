@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://bms2norxoojd7"]
+
+[ext_resource type="Script" uid="uid://c1fgbw3jtekfy" path="res://scripts/Enemies/enemy_data.gd" id="1_edata"]
+[ext_resource type="Script" uid="uid://m6k4wygx0ehg" path="res://scripts/Enemies/Abilities/ability_data.gd" id="2_abdata"]
+[ext_resource type="Script" uid="uid://bgwmmeov7i6s6" path="res://scripts/Enemies/Abilities/projectile_shooter.gd" id="3_ability"]
+
+[sub_resource type="Resource" id="Resource_ability"]
+script = ExtResource("2_abdata")
+cooldown = 4.0
+windup = 0.5
+duration = 4.0
+damage = 4.0
+max_range = 16.0
+projectile_speed = 7.0
+radius = 3.0
+gravity = 6.0
+leaves_creep = true
+color = Color(0.7, 0.3, 1, 1)
+
+[resource]
+script = ExtResource("1_edata")
+display_name = "Demonio Escupe-creep"
+max_health = 80.0
+contact_damage = 21.0
+move_speed = 3.15
+contact_range = 1.84
+contact_hit_delay_seconds = 0.4
+damage_number_height = 2.41
+tint_color = Color(1, 0.5, 1.4, 1)
+scale_multiplier = 1.1
+ability_script = ExtResource("3_ability")
+ability = SubResource("Resource_ability")

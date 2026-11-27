@@ -16,8 +16,8 @@ static var _pool: Array[EnemyGib] = []
 static var _active_count: int = 0
 static var _sphere_mesh: SphereMesh
 static var _sphere_material: StandardMaterial3D
-static var _trail_mesh: RibbonTrailMesh
-static var _trail_material: StandardMaterial3D
+static var _drop_mesh: BoxMesh
+static var _drop_material: StandardMaterial3D
 static var _process_material: ParticleProcessMaterial
 static var _mist_mesh: QuadMesh
 static var _mist_material: StandardMaterial3D
@@ -41,7 +41,7 @@ static func spawn_burst(
 	_ensure_shared_resources()
 	var main_color: Color = colors[0] if not colors.is_empty() else Color(0.92, 0.05, 0.05)
 	_sphere_material.albedo_color = Color(main_color.r, main_color.g, main_color.b, SPHERE_ALPHA)
-	_trail_material.albedo_color = main_color
+	_drop_material.albedo_color = main_color
 	_mist_material.albedo_color = Color(main_color.r, main_color.g, main_color.b, 0.6)
 
 	var burst: EnemyGib = _take_or_create(tree)
@@ -60,27 +60,16 @@ static func _ensure_shared_resources() -> void:
 		_sphere_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		_sphere_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		_sphere_material.albedo_color = Color(0.92, 0.05, 0.05, SPHERE_ALPHA)
-	if _trail_material == null:
-		_trail_material = StandardMaterial3D.new()
-		_trail_material.use_particle_trails = true
-		_trail_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		_trail_material.cull_mode = BaseMaterial3D.CULL_DISABLED
-		_trail_material.vertex_color_use_as_albedo = true
-		_trail_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		_trail_material.albedo_color = Color(0.92, 0.05, 0.05)
-	if _trail_mesh == null:
-		var taper := Curve.new()
-		taper.add_point(Vector2(0.0, 0.75))
-		taper.add_point(Vector2(0.15, 1.0))
-		taper.add_point(Vector2(1.0, 0.0))
-		_trail_mesh = RibbonTrailMesh.new()
-		_trail_mesh.shape = RibbonTrailMesh.SHAPE_CROSS
-		_trail_mesh.size = 0.24
-		_trail_mesh.sections = 8
-		_trail_mesh.section_length = 0.10
-		_trail_mesh.section_segments = 3
-		_trail_mesh.curve = taper
-		_trail_mesh.material = _trail_material
+	if _drop_material == null:
+		_drop_material = StandardMaterial3D.new()
+		_drop_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_drop_material.vertex_color_use_as_albedo = true
+		_drop_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		_drop_material.albedo_color = Color(0.92, 0.05, 0.05)
+	if _drop_mesh == null:
+		_drop_mesh = BoxMesh.new()
+		_drop_mesh.size = Vector3(0.08, 0.28, 0.08)
+		_drop_mesh.material = _drop_material
 	if _process_material == null:
 		var grad := Gradient.new()
 		grad.set_color(0, Color(1.0, 0.10, 0.10, 1.0))
@@ -162,11 +151,10 @@ func _init() -> void:
 	_particles.one_shot = true
 	_particles.explosiveness = 1.0
 	_particles.lifetime = PARTICLE_LIFETIME
-	_particles.trail_enabled = true
-	_particles.trail_lifetime = TRAIL_LIFETIME
+	_particles.transform_align = GPUParticles3D.TRANSFORM_ALIGN_Y_TO_VELOCITY
 	_particles.fixed_fps = 60
 	_particles.process_material = _process_material
-	_particles.draw_pass_1 = _trail_mesh
+	_particles.draw_pass_1 = _drop_mesh
 	add_child(_particles)
 
 	_mist = GPUParticles3D.new()
@@ -209,7 +197,7 @@ func _process(delta: float) -> void:
 	else:
 		_sphere.visible = false
 
-	if _age >= PARTICLE_LIFETIME + TRAIL_LIFETIME:
+	if _age >= PARTICLE_LIFETIME:
 		_release()
 
 
@@ -221,7 +209,7 @@ func _activate(pos: Vector3, count: int) -> void:
 	_sphere.visible = true
 
 	_particles.process_material = _process_material
-	_particles.draw_pass_1 = _trail_mesh
+	_particles.draw_pass_1 = _drop_mesh
 	_particles.amount = maxi(count, 1)
 	_particles.restart()
 	_particles.emitting = true

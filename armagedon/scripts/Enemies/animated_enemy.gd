@@ -29,6 +29,7 @@ var _current_animation: String = ""
 var _anim_accum: float = 0.0
 var _last_dist_sq: float = INF
 var _resolved_anims: Dictionary = {}
+var _ability_anim_timer: float = 0.0
 
 @onready var _model: Node3D = get_node_or_null("Model")
 @onready var _anim: AnimationPlayer = get_node_or_null("AnimationPlayer")
@@ -70,6 +71,7 @@ func step_physics(delta: float, player_node: Node3D, allow_nav: bool = true) -> 
 	super.step_physics(delta, player_node, allow_nav)
 	if _dead or data == null or _model == null:
 		return
+	_ability_anim_timer = maxf(_ability_anim_timer - delta, 0.0)
 	var dist_sq: float = INF
 	if _player != null and is_instance_valid(_player):
 		dist_sq = _player.global_position.distance_squared_to(global_position)
@@ -77,7 +79,11 @@ func step_physics(delta: float, player_node: Node3D, allow_nav: bool = true) -> 
 	var distance: float = sqrt(dist_sq) if dist_sq < INF else INF
 	var speed: float = Vector2(velocity.x, velocity.z).length()
 	var next_animation: String = idle_animation
-	if _current_animation == attack_animation:
+	if override_animation != "" and _resolve_animation(override_animation) != "":
+		next_animation = override_animation
+	elif _ability_anim_timer > 0.0:
+		next_animation = attack_animation
+	elif _current_animation == attack_animation:
 		if distance <= data.contact_range + attack_hysteresis:
 			next_animation = attack_animation
 	elif distance <= data.contact_range:
@@ -88,6 +94,10 @@ func step_physics(delta: float, player_node: Node3D, allow_nav: bool = true) -> 
 	elif speed > walk_enter_speed:
 		next_animation = walk_animation
 	_play_animation(next_animation)
+
+
+func trigger_ability_attack_anim(duration: float = 0.45) -> void:
+	_ability_anim_timer = maxf(_ability_anim_timer, duration)
 
 
 func _can_apply_contact_damage() -> bool:
@@ -214,7 +224,8 @@ func _apply_fit(bounds: AABB) -> void:
 
 func _play_animation(anim_name: String) -> void:
 	if _anim != null:
-		_anim.speed_scale = walk_animation_speed if anim_name == walk_animation else 1.0
+		var base_speed: float = walk_animation_speed if anim_name == walk_animation else 1.0
+		_anim.speed_scale = base_speed * animation_speed_boost
 	var resolved: String = _resolve_animation(anim_name)
 	if resolved == "":
 		if anim_name == _current_animation:

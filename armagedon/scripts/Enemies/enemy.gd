@@ -11,19 +11,39 @@ const FALL_LIMIT_Y: float = -20.0
 const CENTER_HOLE_RADIUS: float = 5.4
 const HIT_STOP_SCALE: float = 0.0
 const HIT_STOP_CRIT_SECONDS: float = 0.045
+const HIT_STOP_KILL_SECONDS: float = 0.06
 const HIT_STOP_CRIT_KILL_SECONDS: float = 0.11
 const HIT_STOP_LAST_KILL_SECONDS: float = 0.14
+const HIT_FLASH_SECONDS: float = 0.075
+const HIT_KNOCKBACK_SPEED: float = 4.2
+const HIT_KNOCKBACK_DECAY: float = 24.0
 const _ENEMY_MANAGER = preload("res://scripts/Enemies/enemy_manager.gd")
 const _BONE_PIECE := preload("res://scripts/Enemies/bone_piece.gd")
 const _ENEMY_GIB := preload("res://scripts/Enemies/enemy_gib.gd")
 
 static var _hit_stop_id: int = 0
+static var _hit_flash_material: StandardMaterial3D
 
 @export var data: EnemyData
 ## Ronda usada para el escalado inicial de stats (GDD §9).
 @export var start_round: int = 1
 @export var use_psx_style: bool = true
 @export var attack_stop_distance: float = 0.0
+## Si se asigna, este enemigo es un Campeón (corona + aura, stats mayores).
+@export var champion_data: ChampionData
+
+## Multiplicadores de variante (campeón, mini invocado). Se fijan antes de añadir al árbol.
+var health_scale: float = 1.0
+var damage_scale: float = 1.0
+var speed_scale: float = 1.0
+var visual_scale: float = 1.0
+var contact_cooldown_scale: float = 1.0
+## Velocidad de giro en rad/s (0 = instantáneo). La usa el blindado frontal.
+var turn_speed: float = 0.0
+## Multiplicador temporal de la velocidad de animación (lo usan habilidades como la embestida).
+var animation_speed_boost: float = 1.0
+## Animación forzada por una habilidad (ej. grito o carrera al cargar); "" = automática.
+var override_animation: String = ""
 
 var _health: float = 0.0
 var _max_health: float = 0.0
@@ -36,6 +56,12 @@ var _player: Node3D
 var _dead: bool = false
 var _spawn_position: Vector3 = Vector3.ZERO
 var _avoid_center_hole: bool = false
+var _abilities: Array[EnemyAbility] = []
+var _flash_meshes: Array[MeshInstance3D] = []
+var _hit_flash_timer: float = 0.0
+var _hit_knockback: Vector3 = Vector3.ZERO
+var _step_delta: float = 0.016
+var _move_log_timer: float = 0.0
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var _nav_agent: NavigationAgent3D = get_node_or_null("NavigationAgent3D")
@@ -50,12 +76,21 @@ func _ready() -> void:
 	_avoid_center_hole = scene != null and scene.find_child("HuecoCentral", true, false) != null
 	if use_psx_style:
 		PsxStyle.apply(self)
+		if data != null:
+			PsxStyle.apply_tint(self, data.tint_color)
+	_apply_variant_visuals()
+	_cache_flash_meshes()
 	_resolve_spawn_overlap.call_deferred()
 	_nav_timer = randf_range(0.0, NAV_UPDATE_INTERVAL)
 	if data == null:
 		push_error("Enemy sin EnemyData: %s" % name)
 		return
 	_player = get_tree().get_first_node_in_group("player") as Node3D
+	if champion_data != null:
+		health_scale *= champion_data.health_multiplier
+		damage_scale *= champion_data.damage_multiplier
+		speed_scale *= champion_data.speed_multiplier
+	_setup_ability()
 	apply_round_scaling(start_round)
 	_health = _max_health
 	health_changed.emit(_health, _max_health)
@@ -75,6 +110,24 @@ func step_physics(delta: float, player_node: Node3D, allow_nav: bool = true) -> 
 	if _dead or data == null or not is_inside_tree() or not can_process():
 		return
 	if global_position.y < FALL_LIMIT_Y:
+		(
+			DebugLogger
+			. write(
+				"FALL_RESPAWN",
+				(
+					"%s | from=(%.2f, %.2f, %.2f) -> to=(%.2f, %.2f, %.2f)"
+					% [
+						name,
+						global_position.x,
+						global_position.y,
+						global_position.z,
+						_spawn_position.x,
+						_spawn_position.y,
+						_spawn_position.z,
+					]
+				)
+			)
+		)
 		global_position = _spawn_position
 		velocity = Vector3.ZERO
 		return
@@ -84,13 +137,28 @@ func step_physics(delta: float, player_node: Node3D, allow_nav: bool = true) -> 
 	else:
 		velocity.y = maxf(velocity.y, 0.0)
 
+	_step_delta = delta
 	_contact_timer = maxf(_contact_timer - delta, 0.0)
 	_nav_timer -= delta
+	if _hit_flash_timer > 0.0:
+		_hit_flash_timer -= delta
+		if _hit_flash_timer <= 0.0:
+			_clear_hit_flash()
 
 	if _player != null and is_instance_valid(_player):
 		var to_player: Vector3 = _player.global_position - global_position
 		to_player.y = 0.0
 		var distance: float = to_player.length()
+		var ability_controls: bool = false
+		for ability in _abilities:
+			if ability.step(delta, _player):
+				ability_controls = true
+		if _dead:
+			return
+		if ability_controls:
+			_apply_hit_knockback(delta)
+			move_and_slide()
+			return
 		if attack_stop_distance > 0.0 and distance <= attack_stop_distance:
 			velocity.x = 0.0
 			velocity.z = 0.0
@@ -111,7 +179,31 @@ func step_physics(delta: float, player_node: Node3D, allow_nav: bool = true) -> 
 		velocity.x = move_toward(velocity.x, 0.0, _move_speed)
 		velocity.z = move_toward(velocity.z, 0.0, _move_speed)
 
+	_apply_hit_knockback(delta)
 	move_and_slide()
+	if OS.is_debug_build():
+		_move_log_timer -= delta
+		if _move_log_timer <= 0.0 or is_on_wall():
+			_move_log_timer = 0.25
+			var nav_next: Vector3 = (
+				_nav_agent.get_next_path_position() if _nav_agent != null else Vector3.ZERO
+			)
+			var nav_fin: bool = _nav_agent.is_navigation_finished() if _nav_agent != null else true
+			var dist_p: float = (
+				_player.global_position.distance_to(global_position)
+				if _player != null and is_instance_valid(_player)
+				else -1.0
+			)
+			(
+				DebugLogger
+				. log_enemy_move(
+					self,
+					Vector3(velocity.x, 0.0, velocity.z),
+					nav_next,
+					nav_fin,
+					dist_p,
+				)
+			)
 
 
 func step_process(
@@ -133,12 +225,81 @@ func apply_round_scaling(round_number: int) -> void:
 	_max_health = data.max_health * multiplier
 	_contact_damage = data.contact_damage * multiplier
 	_move_speed = data.move_speed * multiplier
+	_max_health *= health_scale
+	_contact_damage *= damage_scale
+	_move_speed *= speed_scale
 	_health = minf(_health, _max_health) if _health > 0.0 else _max_health
 	health_changed.emit(_health, _max_health)
 
 
+## Escala del modelo/colisión (no del CharacterBody3D) y marcador de Campeón.
+func _apply_variant_visuals() -> void:
+	if data == null:
+		return
+	var factor: float = maxf(data.scale_multiplier, 0.01)
+	if champion_data != null:
+		factor *= maxf(champion_data.scale_multiplier, 0.01)
+	factor *= maxf(visual_scale, 0.01)
+	visual_scale = factor
+	if champion_data != null:
+		var marker: ChampionMarker = ChampionMarker.create(
+			champion_data, data.damage_number_height * factor
+		)
+		add_child(marker)
+	if is_equal_approx(factor, 1.0):
+		return
+	for child_name in ["Model", "CollisionShape3D"]:
+		var child := get_node_or_null(child_name) as Node3D
+		if child != null:
+			child.scale *= factor
+			child.position *= factor
+
+
+func _setup_ability() -> void:
+	if data == null or data.ability_script == null:
+		return
+	if data.ability == null:
+		push_error("Enemy con ability_script pero sin AbilityData: %s" % name)
+		return
+	var ability := data.ability_script.new() as EnemyAbility
+	if ability == null:
+		push_error("ability_script no extiende EnemyAbility: %s" % name)
+		return
+	add_child(ability)
+	ability.setup(self, data.ability)
+	_abilities.append(ability)
+
+
+## Multiplicador de daño actual respecto al base (ronda + variante), para escalar habilidades.
+func get_damage_multiplier() -> float:
+	if data == null:
+		return 1.0
+	return _contact_damage / maxf(data.contact_damage, 0.01)
+
+
+func get_player() -> Node3D:
+	return _player if _player != null and is_instance_valid(_player) else null
+
+
+func face_direction(direction: Vector3) -> void:
+	_look_toward_direction(direction)
+
+
+func die() -> void:
+	_die()
+
+
+## Dispara brevemente la animación de ataque cuando una habilidad activa se ejecuta.
+func trigger_ability_attack_anim(_duration: float = 0.45) -> void:
+	pass
+
+
 func take_damage(amount: float, is_critical: bool = false) -> void:
 	if _dead or amount <= 0.0 or data == null:
+		return
+	for ability in _abilities:
+		amount = ability.modify_damage(amount)
+	if amount <= 0.0:
 		return
 	_health = maxf(_health - amount, 0.0)
 	DamageNumber.spawn(
@@ -147,14 +308,68 @@ func take_damage(amount: float, is_critical: bool = false) -> void:
 	health_changed.emit(_health, _max_health)
 	var is_kill: bool = _health <= 0.0
 	if is_kill:
+		_clear_hit_flash()
 		var is_last: bool = _is_last_living_enemy()
 		if is_last:
 			_trigger_hit_stop(get_tree(), HIT_STOP_LAST_KILL_SECONDS, 1.6, true)
 		elif is_critical:
 			_trigger_hit_stop(get_tree(), HIT_STOP_CRIT_KILL_SECONDS, 1.4, true)
+		else:
+			_trigger_hit_stop(get_tree(), HIT_STOP_KILL_SECONDS, 0.95, true)
 		_die()
-	elif is_critical:
-		_trigger_hit_stop(get_tree(), HIT_STOP_CRIT_SECONDS, 0.75, false)
+	else:
+		_start_hit_flash()
+		_apply_damage_knockback(is_critical)
+		if is_critical:
+			_trigger_hit_stop(get_tree(), HIT_STOP_CRIT_SECONDS, 0.85, false)
+		elif _player != null and _player.has_method("add_camera_punch"):
+			_player.call("add_camera_punch", 0.4)
+
+
+func _cache_flash_meshes() -> void:
+	_flash_meshes.clear()
+	for child in find_children("*", "MeshInstance3D", true, false):
+		var mesh_node := child as MeshInstance3D
+		if mesh_node != null:
+			_flash_meshes.append(mesh_node)
+
+
+func _start_hit_flash() -> void:
+	if _hit_flash_material == null:
+		_hit_flash_material = StandardMaterial3D.new()
+		_hit_flash_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_hit_flash_material.albedo_color = Color(1.0, 0.9, 0.85, 0.88)
+		_hit_flash_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_hit_flash_timer = HIT_FLASH_SECONDS
+	for mesh_node in _flash_meshes:
+		if is_instance_valid(mesh_node):
+			mesh_node.material_overlay = _hit_flash_material
+
+
+func _clear_hit_flash() -> void:
+	_hit_flash_timer = 0.0
+	for mesh_node in _flash_meshes:
+		if is_instance_valid(mesh_node):
+			mesh_node.material_overlay = null
+
+
+func _apply_damage_knockback(is_critical: bool) -> void:
+	if _player == null or not is_instance_valid(_player):
+		return
+	var away: Vector3 = global_position - _player.global_position
+	away.y = 0.0
+	if away.length_squared() < 0.0001:
+		return
+	var mult: float = 1.6 if is_critical else 1.0
+	_hit_knockback = away.normalized() * (HIT_KNOCKBACK_SPEED * mult)
+
+
+func _apply_hit_knockback(delta: float) -> void:
+	if _hit_knockback.length_squared() <= 0.0001:
+		return
+	velocity.x += _hit_knockback.x
+	velocity.z += _hit_knockback.z
+	_hit_knockback = _hit_knockback.move_toward(Vector3.ZERO, HIT_KNOCKBACK_DECAY * delta)
 
 
 func _is_last_living_enemy() -> bool:
@@ -216,7 +431,7 @@ func _get_navigation_direction(
 			var next_pos: Vector3 = _nav_agent.get_next_path_position()
 			var to_next: Vector3 = next_pos - global_position
 			to_next.y = 0.0
-			if to_next.length_squared() >= 0.0001:
+			if to_next.length_squared() >= 0.0001 and to_next.dot(fallback_dir) > 0.0:
 				_cached_nav_dir = to_next.normalized()
 			else:
 				_cached_nav_dir = fallback_dir
@@ -260,12 +475,17 @@ func _try_contact_damage(distance: float) -> void:
 		return
 	if _player.has_method("take_damage"):
 		_player.call("take_damage", _contact_damage, global_position)
-		_contact_timer = data.contact_cooldown
+		_contact_timer = data.contact_cooldown * maxf(contact_cooldown_scale, 0.01)
 
 
 func _look_toward_direction(direction: Vector3) -> void:
 	var flat_dir: Vector3 = Vector3(direction.x, 0.0, direction.z)
 	if flat_dir.length_squared() < 0.0001:
+		return
+	if turn_speed > 0.0:
+		var target_yaw: float = atan2(-flat_dir.x, -flat_dir.z)
+		var step_angle: float = turn_speed * _step_delta
+		rotation.y += clampf(angle_difference(rotation.y, target_yaw), -step_angle, step_angle)
 		return
 	var target: Vector3 = global_position + flat_dir.normalized()
 	target.y = global_position.y
@@ -310,6 +530,12 @@ func _die() -> void:
 	queue_free()
 
 
+## Fija la posición inicial del enemigo y actualiza su punto de respawn tras caer.
+func set_spawn_position(pos: Vector3) -> void:
+	global_position = pos
+	_spawn_position = pos
+
+
 ## Evita que dos enemigos queden superpuestos al spawnear en la misma coordenada
 ## (lo que provoca impulsos bruscos en move_and_slide).
 func _resolve_spawn_overlap() -> void:
@@ -336,10 +562,16 @@ func _resolve_spawn_overlap() -> void:
 			)
 			if _is_spot_clear(candidate, others, min_sq):
 				global_position = candidate
+				_spawn_position = candidate
 				return
 
 
 func _is_spot_clear(pos: Vector3, others: Array[Node], min_sq: float) -> bool:
+	if (
+		_avoid_center_hole
+		and Vector2(pos.x, pos.z).length_squared() < CENTER_HOLE_RADIUS * CENTER_HOLE_RADIUS
+	):
+		return false
 	for other in others:
 		if other == self or not (other is Node3D):
 			continue

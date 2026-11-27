@@ -7,6 +7,9 @@
 [ext_resource type="Script" uid="uid://drugt0fk0h8th" path="res://scripts/Rounds/round_manager.gd" id="6_roundmgr"]
 [ext_resource type="Script" path="res://scripts/Rounds/boss_spawner.gd" id="7_bosspawner"]
 [ext_resource type="Resource" uid="uid://sch4sq7pudxq" path="res://data/round_config.tres" id="8_roundcfg"]
+[ext_resource type="Script" path="res://scripts/Enemies/drop_manager.gd" id="9_dropmgr"]
+[ext_resource type="Resource" path="res://data/drop_config.tres" id="10_dropcfg"]
+[ext_resource type="Script" path="res://scripts/Shop/shard_wallet.gd" id="11_wallet"]
 
 [node name="Main" type="Node3D" unique_id=499188323]
 
@@ -26,3 +29,10 @@ script = ExtResource("7_bosspawner")
 [node name="RoundManager" type="Node" parent="." unique_id=1843836750]
 script = ExtResource("6_roundmgr")
 config = ExtResource("8_roundcfg")
+
+[node name="ShardWallet" type="Node" parent="."]
+script = ExtResource("11_wallet")
+
+[node name="DropManager" type="Node" parent="."]
+script = ExtResource("9_dropmgr")
+config = ExtResource("10_dropcfg")

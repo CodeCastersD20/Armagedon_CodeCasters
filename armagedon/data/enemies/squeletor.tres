@@ -1,8 +1,10 @@
 [gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://drd4tr5j7ofy6"]
 
 [ext_resource type="Script" uid="uid://c1fgbw3jtekfy" path="res://scripts/Enemies/enemy_data.gd" id="1_edata"]
+[ext_resource type="Resource" path="res://data/enemies/drops/esqueletor.tres" id="2_drops"]
 
 [resource]
 script = ExtResource("1_edata")
 display_name = "Esqueleto Condenado"
 death_explosion_type = 1
+drops = ExtResource("2_drops")

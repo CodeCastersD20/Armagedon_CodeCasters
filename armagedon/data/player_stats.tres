@@ -13,3 +13,4 @@ slam_shake_rotation_degrees = 1.5
 dash_distance = 8.0
 dash_in_air = true
 camera_tilt_enabled = false
+faith = 0.0

@@ -50,14 +50,30 @@ const CIRCLE_NAMES: Array[String] = [
 	"EL VACÍO",
 ]
 const LOW_HP_THRESHOLD: float = 0.35
+const MOON_PHASE_TEXTURES: Array[Texture2D] = [
+	preload("res://assets/textures/moon/moon_phase_1.png"),
+	preload("res://assets/textures/moon/moon_phase_2.png"),
+	preload("res://assets/textures/moon/moon_phase_3.png"),
+	preload("res://assets/textures/moon/moon_phase_4.png"),
+	preload("res://assets/textures/moon/moon_phase_5.png"),
+	preload("res://assets/textures/moon/moon_phase_6.png"),
+	preload("res://assets/textures/moon/moon_phase_7.png"),
+	preload("res://assets/textures/moon/moon_phase_8.png"),
+]
+const MOON_LUCIFER_COLOR: Color = Color(0.95, 0.14, 0.12, 1.0)
+const MOON_NEUTRAL_COLOR: Color = Color(0.86, 0.84, 0.80, 1.0)
 
 @export_enum("Tinte Rojo", "Manchas de Sangre", "Ambos") var damage_fx_mode: int = 0
+## Temporal para pruebas: tiñe la luna y el horizonte del cielo con el color del círculo actual.
+@export var circle_tint_moon: bool = true
 @export var world_path: NodePath = NodePath("../World")
 @export var hud_path: NodePath = NodePath("../MainHud")
 @export var round_manager_path: NodePath = NodePath("../RoundManager")
 
 var _world: Node3D
 var _world_env: WorldEnvironment
+var _moon_mat: ShaderMaterial
+var _moon_color: Color = MOON_NEUTRAL_COLOR
 var _hud: Node
 var _round_manager: RoundManager
 var _player: Player
@@ -95,6 +111,13 @@ func _ready() -> void:
 	_world = get_node_or_null(world_path) as Node3D
 	if _world != null:
 		_world_env = _world.get_node_or_null("WorldEnvironment") as WorldEnvironment
+		var moon := _world.get_node_or_null("LunaRoja") as MeshInstance3D
+		if moon != null:
+			_moon_mat = moon.get_active_material(0) as ShaderMaterial
+			if _moon_mat != null:
+				var initial: Variant = _moon_mat.get_shader_parameter("albedo_color")
+				if initial is Color:
+					_moon_color = initial as Color
 	_hud = get_node_or_null(hud_path)
 	_round_manager = get_node_or_null(round_manager_path) as RoundManager
 	if _world == null:
@@ -682,8 +705,9 @@ func _process(delta: float) -> void:
 		_player.set_heartbeat_fov_offset(0.0)
 
 
-func _on_round_started(round_number: int, _is_boss: bool) -> void:
+func _on_round_started(round_number: int, is_boss: bool) -> void:
 	_apply_circle_fog(round_number, false)
+	AudioManager.on_round_started(round_number, is_boss)
 
 
 func _apply_circle_fog(round_number: int, instant: bool) -> void:
@@ -695,7 +719,7 @@ func _apply_circle_fog(round_number: int, instant: bool) -> void:
 	elif round_number >= 91:
 		idx = 9
 	else:
-		idx = clampi((maxi(round_number, 1) - 1) / 10, 0, 8)
+		idx = clampi(floori(float(maxi(round_number, 1) - 1) / 10.0), 0, 8)
 	var target_color: Color = CIRCLE_FOG_COLORS[idx]
 	var env: Environment = _world_env.environment
 	if instant:
@@ -709,6 +733,49 @@ func _apply_circle_fog(round_number: int, instant: bool) -> void:
 		if idx != _current_circle_idx:
 			_current_circle_idx = idx
 			_show_circle_banner(CIRCLE_NAMES[idx])
+	_apply_moon_for_round(round_number, idx, target_color, instant)
+
+
+func _apply_moon_for_round(
+	round_number: int, circle_idx: int, circle_color: Color, instant: bool
+) -> void:
+	var is_lucifer: bool = circle_idx == 9
+	var phase_idx: int = (
+		0 if is_lucifer else posmod(maxi(round_number, 1) - 1, MOON_PHASE_TEXTURES.size())
+	)
+	var tinted_circle: Color = Color.from_hsv(
+		circle_color.h, circle_color.s, clampf(circle_color.v + 0.45, 0.75, 1.0), 1.0
+	)
+	var target_moon_color: Color = (
+		MOON_LUCIFER_COLOR
+		if is_lucifer
+		else (tinted_circle if circle_tint_moon else MOON_NEUTRAL_COLOR)
+	)
+	if _moon_mat != null:
+		_moon_mat.set_shader_parameter("albedo_texture", MOON_PHASE_TEXTURES[phase_idx])
+		if instant:
+			_set_moon_color(target_moon_color)
+		else:
+			create_tween().tween_method(_set_moon_color, _moon_color, target_moon_color, 1.5)
+	if circle_tint_moon and _world_env != null and _world_env.environment != null:
+		var sky := _world_env.environment.sky
+		var sky_mat := sky.sky_material as ProceduralSkyMaterial if sky != null else null
+		if sky_mat != null:
+			var horizon: Color = circle_color.darkened(0.2)
+			if instant:
+				sky_mat.sky_horizon_color = horizon
+				sky_mat.ground_horizon_color = horizon
+			else:
+				var sky_tw: Tween = create_tween()
+				sky_tw.set_parallel(true)
+				sky_tw.tween_property(sky_mat, "sky_horizon_color", horizon, 1.5)
+				sky_tw.tween_property(sky_mat, "ground_horizon_color", horizon, 1.5)
+
+
+func _set_moon_color(color: Color) -> void:
+	_moon_color = color
+	if _moon_mat != null:
+		_moon_mat.set_shader_parameter("albedo_color", color)
 
 
 func _show_circle_banner(circle_name: String) -> void:

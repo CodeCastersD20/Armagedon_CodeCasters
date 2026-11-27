@@ -14,10 +14,13 @@ const BOSS_SCENES: Array[PackedScene] = [
 const SPAWN_DISTANCE: float = 8.0
 # TODO(GDD): puntos de aparición del arena y separación sin definir (§269).
 const MIN_CLEARANCE: float = 3.0
+const BOSS_ENTRANCE_FADE_SECONDS: float = 1.8
+const CIRCLE_1_MAX_ROUND: int = 10
 
 var _round_manager: RoundManager
 var _boss: Enemy
 var _last_boss_index: int = -1
+var _spawn_request_id: int = 0
 
 
 func _ready() -> void:
@@ -50,6 +53,24 @@ func _on_round_started(round_number: int, is_boss_round: bool) -> void:
 	var boss_index: int = _pick_boss_index()
 	if boss_index < 0:
 		return
+	_spawn_request_id += 1
+	var request_id: int = _spawn_request_id
+	var is_circle_1: bool = round_number <= CIRCLE_1_MAX_ROUND
+	if is_circle_1:
+		AudioManager.fade_out_music(BOSS_ENTRANCE_FADE_SECONDS)
+		await get_tree().create_timer(BOSS_ENTRANCE_FADE_SECONDS).timeout
+		if not is_inside_tree() or request_id != _spawn_request_id:
+			return
+		if (
+			_round_manager == null
+			or _round_manager.current_state != RoundManager.State.ROUND
+			or _round_manager.current_round != round_number
+		):
+			return
+	_spawn_boss(boss_index, round_number, is_circle_1)
+
+
+func _spawn_boss(boss_index: int, round_number: int, is_circle_1: bool) -> void:
 	var boss: Enemy = BOSS_SCENES[boss_index].instantiate() as Enemy
 	if boss == null:
 		push_error("BossSpawner: escena de jefe inválida en la ronda %d" % round_number)
@@ -59,9 +80,12 @@ func _on_round_started(round_number: int, is_boss_round: bool) -> void:
 	boss.health_changed.connect(_on_boss_health_changed)
 	boss.died.connect(_on_boss_died)
 	add_child(boss)
-	boss.global_position = _find_spawn_point(boss)
+	boss.set_spawn_position(_find_spawn_point(boss))
+	DebugLogger.log_spawn("BossSpawner", boss, boss.global_position, round_number)
 	_boss = boss
 	_on_boss_health_changed(boss.get_health(), boss.get_max_health())
+	if is_circle_1:
+		AudioManager.play_boss_limbo_music()
 	boss_spawned.emit(boss)
 
 
@@ -96,7 +120,8 @@ func _find_spawn_point(boss: Enemy) -> Vector3:
 		if other is Node3D and other != boss:
 			occupied.append(other)
 	var clearance: float = MIN_CLEARANCE + _get_body_radius(boss)
-	if _is_spot_clear(desired, occupied, clearance):
+	var avoid_center: bool = _has_center_hole()
+	if _is_spot_clear(desired, occupied, clearance, avoid_center):
 		return desired
 	for ring in range(1, 8):
 		var radius: float = clearance * float(ring)
@@ -105,9 +130,14 @@ func _find_spawn_point(boss: Enemy) -> Vector3:
 			var candidate: Vector3 = (
 				desired + Vector3(cos(angle) * radius, 0.0, sin(angle) * radius)
 			)
-			if _is_spot_clear(candidate, occupied, clearance):
+			if _is_spot_clear(candidate, occupied, clearance, avoid_center):
 				return candidate
 	return desired
+
+
+func _has_center_hole() -> bool:
+	var scene: Node = get_tree().current_scene
+	return scene != null and scene.find_child("HuecoCentral", true, false) != null
 
 
 func _get_body_radius(boss: Enemy) -> float:
@@ -117,7 +147,17 @@ func _get_body_radius(boss: Enemy) -> float:
 	return 0.0
 
 
-func _is_spot_clear(pos: Vector3, occupied: Array[Node], clearance: float) -> bool:
+func _is_spot_clear(
+	pos: Vector3, occupied: Array[Node], clearance: float, avoid_center: bool = false
+) -> bool:
+	if (
+		avoid_center
+		and (
+			Vector2(pos.x, pos.z).length_squared()
+			< Enemy.CENTER_HOLE_RADIUS * Enemy.CENTER_HOLE_RADIUS
+		)
+	):
+		return false
 	var min_sq: float = clearance * clearance
 	for other in occupied:
 		if not is_instance_valid(other) or not (other is Node3D):
@@ -136,6 +176,7 @@ func _on_boss_health_changed(current: float, maximum: float) -> void:
 func _on_boss_died(enemy: Node) -> void:
 	if enemy != _boss:
 		return
+	AudioManager.fade_out_music(1.5)
 	boss_died.emit(enemy)
 	_clear_boss()
 

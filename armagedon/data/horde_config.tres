@@ -1,0 +1,82 @@
+[gd_resource type="Resource" script_class="HordeConfig" format=3 uid="uid://b67posnsu3duq"]
+
+[ext_resource type="Script" uid="uid://cr3ehrl5auhep" path="res://scripts/Rounds/horde_config.gd" id="cfg"]
+[ext_resource type="Resource" path="res://data/champion.tres" id="champ"]
+[ext_resource type="Resource" uid="uid://bms2norxoojd7" path="res://data/enemies/variants/demonio_creep.tres" id="d_demonio_creep"]
+[ext_resource type="Resource" uid="uid://cpdhvbcjcc1pn" path="res://data/enemies/variants/demonio_lanzallamas.tres" id="d_demonio_lanzallamas"]
+[ext_resource type="Resource" uid="uid://c8fqw4bvm7wnk" path="res://data/enemies/variants/demonio_teletransporte.tres" id="d_demonio_teletransporte"]
+[ext_resource type="Resource" uid="uid://dwpgoj4sybfpr" path="res://data/enemies/variants/squeletor_invocador.tres" id="d_squeletor_invocador"]
+[ext_resource type="Resource" uid="uid://dbowpthkuhhtj" path="res://data/enemies/variants/squeletor_kamikaze.tres" id="d_squeletor_kamikaze"]
+[ext_resource type="Resource" uid="uid://gjwetvufxn6x" path="res://data/enemies/variants/squeletor_tirador.tres" id="d_squeletor_tirador"]
+[ext_resource type="Resource" uid="uid://dbyuyk6pphduu" path="res://data/enemies/variants/wrapped_artillero.tres" id="d_wrapped_artillero"]
+[ext_resource type="Resource" uid="uid://b86giwrbag3a3" path="res://data/enemies/variants/wrapped_blindado.tres" id="d_wrapped_blindado"]
+[ext_resource type="Resource" uid="uid://cphs25cmhjfk4" path="res://data/enemies/variants/wrapped_cargador.tres" id="d_wrapped_cargador"]
+[ext_resource type="Script" uid="uid://dh68kttrdcpps" path="res://scripts/Rounds/horde_entry.gd" id="ent"]
+[ext_resource type="PackedScene" path="res://scenes/Enemies/Demonio.tscn" id="sc_demonio"]
+[ext_resource type="PackedScene" uid="uid://dx6klwqxgn31o" path="res://scenes/Enemies/Squeletor.tscn" id="sc_squeletor"]
+[ext_resource type="PackedScene" uid="uid://dvuwiwrhq2sma" path="res://scenes/Enemies/TheWrapped.tscn" id="sc_wrapped"]
+[ext_resource type="Script" uid="uid://bc3mwed5fpn27" path="res://scripts/Rounds/horde_variant.gd" id="var"]
+
+[sub_resource type="Resource" id="v_squeletor_tirador"]
+script = ExtResource("var")
+data = ExtResource("d_squeletor_tirador")
+
+[sub_resource type="Resource" id="v_squeletor_invocador"]
+script = ExtResource("var")
+data = ExtResource("d_squeletor_invocador")
+
+[sub_resource type="Resource" id="v_squeletor_kamikaze"]
+script = ExtResource("var")
+data = ExtResource("d_squeletor_kamikaze")
+
+[sub_resource type="Resource" id="e_squeletor"]
+script = ExtResource("ent")
+scene = ExtResource("sc_squeletor")
+variants = Array[ExtResource("var")]([SubResource("v_squeletor_tirador"), SubResource("v_squeletor_invocador"), SubResource("v_squeletor_kamikaze")])
+
+[sub_resource type="Resource" id="v_demonio_lanzallamas"]
+script = ExtResource("var")
+data = ExtResource("d_demonio_lanzallamas")
+min_round = 5
+
+[sub_resource type="Resource" id="v_demonio_creep"]
+script = ExtResource("var")
+data = ExtResource("d_demonio_creep")
+min_round = 5
+
+[sub_resource type="Resource" id="v_demonio_teletransporte"]
+script = ExtResource("var")
+data = ExtResource("d_demonio_teletransporte")
+min_round = 5
+
+[sub_resource type="Resource" id="e_demonio"]
+script = ExtResource("ent")
+scene = ExtResource("sc_demonio")
+min_round = 2
+variants = Array[ExtResource("var")]([SubResource("v_demonio_lanzallamas"), SubResource("v_demonio_creep"), SubResource("v_demonio_teletransporte")])
+
+[sub_resource type="Resource" id="v_wrapped_cargador"]
+script = ExtResource("var")
+data = ExtResource("d_wrapped_cargador")
+min_round = 7
+
+[sub_resource type="Resource" id="v_wrapped_blindado"]
+script = ExtResource("var")
+data = ExtResource("d_wrapped_blindado")
+min_round = 7
+
+[sub_resource type="Resource" id="v_wrapped_artillero"]
+script = ExtResource("var")
+data = ExtResource("d_wrapped_artillero")
+min_round = 7
+
+[sub_resource type="Resource" id="e_wrapped"]
+script = ExtResource("ent")
+scene = ExtResource("sc_wrapped")
+min_round = 4
+variants = Array[ExtResource("var")]([SubResource("v_wrapped_cargador"), SubResource("v_wrapped_blindado"), SubResource("v_wrapped_artillero")])
+
+[resource]
+script = ExtResource("cfg")
+entries = Array[ExtResource("ent")]([SubResource("e_squeletor"), SubResource("e_demonio"), SubResource("e_wrapped")])
+champion = ExtResource("champ")

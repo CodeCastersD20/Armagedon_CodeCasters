@@ -4,12 +4,12 @@
 
 [resource]
 script = ExtResource("1_stats")
-max_air_jumps = 25
+max_air_jumps = 1
 always_run = true
+slide_duration = 1.15
 slam_cooldown = 1.5
-slam_shake_strength = 1.0
-slam_shake_duration = 0.22
-slam_shake_rotation_degrees = 1.5
 dash_distance = 8.0
+dash_recharge_seconds = 2.0
 dash_in_air = true
+air_friction = 0.25
 camera_tilt_enabled = false

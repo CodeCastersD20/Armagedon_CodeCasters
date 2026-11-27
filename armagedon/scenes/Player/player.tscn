@@ -8,12 +8,26 @@
 [ext_resource type="Script" uid="uid://cujw4666a0c1f" path="res://scripts/Weapons/weapon_manager.gd" id="5_uiqp4"]
 [ext_resource type="Resource" uid="uid://bgk1r21ac0jqu" path="res://data/weapons/pistol.tres" id="6_pistol"]
 [ext_resource type="Resource" uid="uid://7txwl60gdnn2" path="res://data/weapons/sword.tres" id="7_sword"]
-[ext_resource type="PackedScene" uid="uid://vp2e0hlsnvco" path="res://assets/models/weapons/psx_weapons/Shield.glb" id="9_wwtew"]
+[ext_resource type="Resource" path="res://data/weapons/shotgun.tres" id="99_shotgun"]
+[ext_resource type="Resource" path="res://data/weapons/heavy_mg.tres" id="98_heavymg"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/angel_shield/AngelShield.glb" id="9_wwtew"]
 [ext_resource type="Script" uid="uid://cj3txvpmxs7du" path="res://scripts/Debug/debug_view.gd" id="25_debugview"]
+[ext_resource type="Script" path="res://scripts/Player/double_jump_feathers.gd" id="26_feathers"]
+[ext_resource type="Shader" path="res://assets/shaders/slide_speed_lines.gdshader" id="27_slide_shader"]
+[ext_resource type="Shader" path="res://assets/shaders/stun_effect.gdshader" id="28_stun_shader"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 radius = 0.35
 height = 1.8
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_slide"]
+shader = ExtResource("27_slide_shader")
+shader_parameter/intensity = 0.0
+shader_parameter/line_color = Color(0.95, 0.95, 1, 0.18)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_stun"]
+shader = ExtResource("28_stun_shader")
+shader_parameter/intensity = 0.0
 
 [node name="Player" type="CharacterBody3D" unique_id=1210332556]
 collision_mask = 2
@@ -41,14 +55,43 @@ bob_stats = ExtResource("4_bobstats")
 script = ExtResource("5_uiqp4")
 fire_data = ExtResource("6_pistol")
 melee_data = ExtResource("7_sword")
+extra_data = ExtResource("99_shotgun")
+extra2_data = ExtResource("98_heavymg")
 
 [node name="Shield" type="Node3D" parent="Head/Camera3D" unique_id=1989403883]
 script = ExtResource("5_shield")
-rest_position = Vector3(-0.81, -1.06, -1.03)
-block_position = Vector3(-0.2, -0.55, -0.9)
+rest_position = Vector3(-0.71, -1.06, -1.03)
+block_position = Vector3(-0.1, -0.55, -0.9)
 
 [node name="Shield2" parent="Head/Camera3D/Shield" unique_id=936461788 instance=ExtResource("9_wwtew")]
-transform = Transform3D(-3.4969112e-08, 0, 0.8, 0, 0.8, 0, -0.8, 0, -3.4969112e-08, 0, -0.5, 0)
+transform = Transform3D(-5.2453668e-08, 0, 1.2, 0, 1.2, 0, -1.2, 0, -5.2453668e-08, 0, -0.652, 0)
 
 [node name="DebugView" type="Node3D" parent="." unique_id=598295452]
 script = ExtResource("25_debugview")
+
+[node name="DoubleJumpFeathers" type="MultiMeshInstance3D" parent="." unique_id=1842903112]
+script = ExtResource("26_feathers")
+
+[node name="SlideOverlay" type="CanvasLayer" parent="."]
+layer = 1
+
+[node name="SpeedLines" type="ColorRect" parent="SlideOverlay"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("ShaderMaterial_slide")
+
+[node name="StunOverlay" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="StunRect" type="ColorRect" parent="StunOverlay"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("ShaderMaterial_stun")

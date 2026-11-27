@@ -13,6 +13,8 @@ signal attack_blocked(damage_blocked: float)
 signal player_escaped
 ## Emite al impactar contra el suelo tras un ground slam (Ctrl en el aire).
 signal slam_landed(impact_pos: Vector3)
+## Emite al realizar un doble salto en el aire (para partículas/plumas).
+signal double_jumped(origin: Vector3)
 
 @export var stats: PlayerStats
 
@@ -50,11 +52,16 @@ var _heartbeat_fov_offset: float = 0.0
 var _hit_punch: float = 0.0
 var _slam_shake_strength: float = 0.0
 var _slam_shake_time_left: float = 0.0
+var _slide_effect_intensity: float = 0.0
+var _stun_time_left: float = 0.0
+var _stun_effect_intensity: float = 0.0
 var _weapon_manager: WeaponManager
 
 @onready var _head: Node3D = $Head
 @onready var _camera: Camera3D = $Head/Camera3D
 @onready var _collision: CollisionShape3D = $Colison
+@onready var _slide_lines: ColorRect = get_node_or_null("SlideOverlay/SpeedLines")
+@onready var _stun_rect: ColorRect = get_node_or_null("StunOverlay/StunRect")
 
 
 func _ready() -> void:
@@ -79,10 +86,13 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		if _stun_time_left > 0.0:
+			return
 		rotate_y(-event.relative.x * stats.mouse_sensitivity)
-		_head.rotate_x(-event.relative.y * stats.mouse_sensitivity)
 		var limit: float = deg_to_rad(stats.max_pitch_degrees)
-		_head.rotation.x = clampf(_head.rotation.x, -limit, limit)
+		_head.rotation.x = clampf(
+			_head.rotation.x - event.relative.y * stats.mouse_sensitivity, -limit, limit
+		)
 	elif event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	elif event is InputEventMouseButton and event.pressed:
@@ -91,11 +101,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	_invuln_timer = maxf(_invuln_timer - delta, 0.0)
+	_stun_time_left = maxf(_stun_time_left - delta, 0.0)
 	_recharge_dash(delta)
 	_regen_health(delta)
 	_respawn_if_fallen()
 
 	var on_floor: bool = is_on_floor()
+	var stunned: bool = _stun_time_left > 0.0
 	_slide_cooldown_left = maxf(_slide_cooldown_left - delta, 0.0)
 	_slam_cooldown_left = maxf(_slam_cooldown_left - delta, 0.0)
 	if on_floor:
@@ -109,7 +121,7 @@ func _physics_process(delta: float) -> void:
 		if _dash_time_left <= 0.0 and not _slamming:
 			velocity.y -= _gravity * delta
 
-	if Input.is_action_just_pressed("jump"):
+	if not stunned and Input.is_action_just_pressed("jump"):
 		if on_floor or _coyote_timer > 0.0:
 			if _slide_time_left > 0.0:
 				velocity.y = stats.jump_velocity * stats.slide_jump_vertical_multiplier
@@ -127,37 +139,46 @@ func _physics_process(delta: float) -> void:
 			_air_jumps_left -= 1
 			velocity.y = stats.air_jump_velocity
 			_slide_time_left = 0.0
+			double_jumped.emit(global_position)
 			if _crouching or Input.is_action_pressed("crouch"):
 				_crouch_release_required = true
 				_crouching = false
 				_stand_up_immediately()
 
-	var input_dir: Vector2 = Input.get_vector(
-		"move_left", "move_right", "move_forward", "move_back"
+	var input_dir: Vector2 = (
+		Vector2.ZERO
+		if stunned
+		else Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	)
 	var direction: Vector3 = (transform.basis * Vector3(input_dir.x, 0.0, input_dir.y)).normalized()
 
 	if not Input.is_action_pressed("crouch"):
 		_crouch_release_required = false
 
-	if Input.is_action_just_pressed("crouch"):
+	if not stunned and Input.is_action_just_pressed("crouch"):
 		if on_floor:
 			_try_slide(direction, input_dir, on_floor)
 		elif not _slamming:
 			_start_ground_slam()
-	elif not Input.is_action_pressed("crouch") or not on_floor:
+	elif stunned or not Input.is_action_pressed("crouch") or not on_floor:
 		_slide_time_left = 0.0
 
 	_update_crouch(delta)
 	_update_running(input_dir)
-	_update_shield_block()
+	if not stunned:
+		_update_shield_block()
+	else:
+		_is_blocking = false
 
-	if Input.is_action_just_pressed("dash"):
+	if not stunned and Input.is_action_just_pressed("dash"):
 		_slide_time_left = 0.0
 		_slamming = false
 		_try_dash(direction)
 
-	if _slamming:
+	if stunned:
+		velocity.x = 0.0
+		velocity.z = 0.0
+	elif _slamming:
 		velocity.x = 0.0
 		velocity.z = 0.0
 		velocity.y = -stats.slam_speed
@@ -261,10 +282,10 @@ func _apply_slam_impact() -> void:
 				enemy_3d.call("take_damage", stats.slam_damage, false)
 
 
-func _try_slide(direction: Vector3, input_dir: Vector2, on_floor: bool) -> void:
+func _try_slide(direction: Vector3, _input_dir: Vector2, on_floor: bool) -> void:
 	if not on_floor or _slide_cooldown_left > 0.0 or _dash_time_left > 0.0:
 		return
-	if input_dir.y >= -0.1 or direction == Vector3.ZERO:
+	if direction == Vector3.ZERO:
 		return
 	var current_horiz: float = Vector2(velocity.x, velocity.z).length()
 	if current_horiz < stats.move_speed * 0.5:
@@ -322,16 +343,26 @@ func _apply_horizontal_movement(delta: float, direction: Vector3, on_floor: bool
 
 
 func _update_camera_feel(delta: float, input_dir: Vector2) -> void:
+	var is_sliding: bool = _slide_time_left > 0.0
 	var target_tilt: float = (
 		-input_dir.x * deg_to_rad(stats.camera_tilt_degrees) if stats.camera_tilt_enabled else 0.0
 	)
+	if is_sliding:
+		var slide_tilt_sign: float = -signf(input_dir.x) if absf(input_dir.x) > 0.1 else 1.0
+		target_tilt += deg_to_rad(3.5) * slide_tilt_sign
+	if _stun_time_left > 0.0:
+		target_tilt += deg_to_rad(4.5) * sin(float(Time.get_ticks_msec()) * 0.025)
 	_head.rotation.z = lerpf(_head.rotation.z, target_tilt, 10.0 * delta)
+	_update_slide_visual(delta, is_sliding)
+	_update_stun_visual(delta, _stun_time_left > 0.0)
 	if _camera == null:
 		return
 	var horiz_speed: float = Vector2(velocity.x, velocity.z).length()
 	var target_fov_boost: float = 0.0
 	if _dash_time_left > 0.0:
 		target_fov_boost = stats.dash_fov_boost
+	elif is_sliding:
+		target_fov_boost = maxf(stats.speed_fov_boost, 6.0)
 	elif horiz_speed > stats.move_speed * 1.15:
 		var t: float = clampf(
 			(horiz_speed - stats.move_speed) / maxf(stats.dash_residual_speed, 1.0), 0.0, 1.0
@@ -369,6 +400,32 @@ func _update_camera_feel(delta: float, input_dir: Vector2) -> void:
 	_camera.fov = _base_fov + _dynamic_fov_offset + _heartbeat_fov_offset + (_hit_punch * 4.5)
 
 
+func _update_stun_visual(delta: float, is_stunned_now: bool) -> void:
+	var target: float = 1.0 if is_stunned_now else 0.0
+	var rate: float = 22.0 if is_stunned_now else 8.0
+	var next_intensity: float = move_toward(_stun_effect_intensity, target, rate * delta)
+	if is_equal_approx(next_intensity, _stun_effect_intensity):
+		return
+	_stun_effect_intensity = next_intensity
+	if _stun_rect != null and _stun_rect.material is ShaderMaterial:
+		(_stun_rect.material as ShaderMaterial).set_shader_parameter(
+			"intensity", _stun_effect_intensity
+		)
+
+
+func _update_slide_visual(delta: float, is_sliding: bool) -> void:
+	var target: float = 1.0 if is_sliding else 0.0
+	var rate: float = 18.0 if is_sliding else 10.0
+	var next_intensity: float = move_toward(_slide_effect_intensity, target, rate * delta)
+	if is_equal_approx(next_intensity, _slide_effect_intensity):
+		return
+	_slide_effect_intensity = next_intensity
+	if _slide_lines != null and _slide_lines.material is ShaderMaterial:
+		(_slide_lines.material as ShaderMaterial).set_shader_parameter(
+			"intensity", _slide_effect_intensity
+		)
+
+
 ## Golpe seco de cámara estilo ULTRAKILL al conectar un hit-stop.
 func add_camera_punch(strength: float = 1.0) -> void:
 	_hit_punch = clampf(maxf(_hit_punch, strength), 0.0, 1.5)
@@ -378,6 +435,33 @@ func add_camera_punch(strength: float = 1.0) -> void:
 func _start_slam_camera_shake() -> void:
 	_slam_shake_strength = maxf(_slam_shake_strength, stats.slam_shake_strength)
 	_slam_shake_time_left = maxf(_slam_shake_time_left, stats.slam_shake_duration)
+
+
+## Sacudida de cámara externa (explosiones): `strength` como la del slam (1.0), `duration` en s.
+func add_camera_shake(strength: float, duration: float) -> void:
+	_slam_shake_strength = maxf(_slam_shake_strength, strength)
+	_slam_shake_time_left = maxf(_slam_shake_time_left, duration)
+
+
+## Empuje horizontal externo que decae solo (explosiones).
+func apply_knockback(impulse: Vector3) -> void:
+	_knockback_velocity = Vector3(impulse.x, 0.0, impulse.z)
+
+
+## Aturde brevemente al jugador (ej. impacto de embestida del cargador).
+func apply_stun(duration: float) -> void:
+	if duration <= 0.0:
+		return
+	_stun_time_left = maxf(_stun_time_left, duration)
+	_slide_time_left = 0.0
+	_dash_time_left = 0.0
+	_slamming = false
+	_is_blocking = false
+	add_camera_shake(0.65, 0.25)
+
+
+func is_stunned() -> bool:
+	return _stun_time_left > 0.0
 
 
 ## Suma un desplazamiento temporal al FOV (p. ej. latido con poca vida en GameFlow).

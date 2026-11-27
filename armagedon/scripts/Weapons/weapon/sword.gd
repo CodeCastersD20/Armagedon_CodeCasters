@@ -127,9 +127,20 @@ func _perform_combat_hit() -> void:
 		var roll: Dictionary = roll_damage()
 		collider.call("take_damage", roll["damage"], roll["crit"])
 		var normal: Vector3 = -to_target.normalized()
-		_spawn_impact(target_point, normal)
+		_spawn_impact(target_point, normal, ENEMY_IMPACT_SCALE)
 		hit_enemy.emit(collider, target_point)
 		hit_target.emit(collider, target_point, normal)
+	if not hit_targets.is_empty():
+		var player_node := _player_body
+		if player_node == null or not is_instance_valid(player_node):
+			player_node = get_tree().get_first_node_in_group("player") as CollisionObject3D
+			_player_body = player_node
+		if player_node != null:
+			if player_node.has_method("add_camera_punch"):
+				player_node.call("add_camera_punch", 0.85)
+			if player_node.has_method("add_camera_shake"):
+				player_node.call("add_camera_shake", 0.35, 0.12)
+		Enemy._trigger_hit_stop(get_tree(), 0.035, 0.85, false)
 
 
 ## Ninguna pared debe estar entre el jugador y el enemigo.

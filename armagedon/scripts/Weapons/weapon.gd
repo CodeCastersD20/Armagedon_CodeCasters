@@ -14,6 +14,8 @@ const RECOIL_RECOVERY_SPEED: float = 14.0
 const MUZZLE_FLASH_DURATION: float = 0.055
 const MUZZLE_FLASH_SHADER: Shader = preload("res://assets/shaders/muzzle_flash.gdshader")
 const IMPACT_DURATION: float = 1.5
+const ENEMY_IMPACT_SCALE: float = 2.0
+const _HITSCAN_TRACER = preload("res://scripts/Weapons/hitscan_tracer.gd")
 
 ## Recursos compartidos por todos los disparos/impactos: se crean una vez, no por disparo.
 static var _muzzle_mesh: QuadMesh
@@ -32,9 +34,14 @@ var _muzzle_left: float = 0.0
 var _muzzle_flash: MeshInstance3D
 var _mesh_instance: MeshInstance3D
 var _player_body: CollisionObject3D
+var _base_recoil_tween: Tween
+var _initial_rot_x: float = 0.0
+var _initial_pos_y: float = 0.0
 
 
 func _ready() -> void:
+	_initial_rot_x = rotation.x
+	_initial_pos_y = position.y
 	if data == null:
 		push_error("Weapon sin WeaponData: %s" % name)
 		return
@@ -98,7 +105,7 @@ func try_attack() -> bool:
 	if uses_magazine():
 		_ammo -= 1
 		ammo_changed.emit(_ammo, data.magazine_size)
-	position.z = RECOIL_Z
+	position.z = data.recoil_z_kick if data.recoil_z_kick > 0.0 else RECOIL_Z
 	_perform_attack()
 	attacked.emit()
 	return true
@@ -123,6 +130,10 @@ func cancel_reload() -> void:
 	_muzzle_left = 0.0
 	if _muzzle_flash != null:
 		_muzzle_flash.visible = false
+	if _base_recoil_tween != null and _base_recoil_tween.is_valid():
+		_base_recoil_tween.kill()
+	rotation.x = _initial_rot_x
+	position.y = _initial_pos_y
 	position.z = 0.0
 
 
@@ -145,16 +156,54 @@ func _perform_attack() -> void:
 	var query := PhysicsRayQueryParameters3D.create(from, to, 0xFFFFFFFF, _player_exclude())
 	var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
 	_show_muzzle_flash()
+	_apply_fire_camera_feedback()
+	_play_base_recoil()
+	var tracer_from: Vector3 = _muzzle_flash.global_position if _muzzle_flash != null else from
 	if hit.is_empty():
+		if data.tracer_enabled:
+			_spawn_tracer(tracer_from, to)
 		return
 	var hit_pos: Vector3 = hit["position"]
 	var hit_norm: Vector3 = hit["normal"]
-	_spawn_impact(hit_pos, hit_norm)
+	if data.tracer_enabled:
+		_spawn_tracer(tracer_from, hit_pos)
 	var collider: Object = hit["collider"]
-	if collider.has_method("take_damage"):
+	var is_enemy: bool = collider != null and collider.has_method("take_damage")
+	_spawn_impact(hit_pos, hit_norm, ENEMY_IMPACT_SCALE if is_enemy else 1.0)
+	if is_enemy:
 		var roll: Dictionary = roll_damage()
 		collider.call("take_damage", roll["damage"], roll["crit"])
 	hit_target.emit(collider, hit_pos, hit_norm)
+
+
+func _apply_fire_camera_feedback() -> void:
+	var player_node := _player_body
+	if player_node == null or not is_instance_valid(player_node):
+		player_node = get_tree().get_first_node_in_group("player") as CollisionObject3D
+		_player_body = player_node
+	if player_node == null:
+		return
+	if data.camera_punch_on_fire > 0.0 and player_node.has_method("add_camera_punch"):
+		player_node.call("add_camera_punch", data.camera_punch_on_fire)
+	if data.camera_shake_on_fire > 0.0 and player_node.has_method("add_camera_shake"):
+		player_node.call(
+			"add_camera_shake", data.camera_shake_on_fire, maxf(data.camera_shake_duration, 0.01)
+		)
+
+
+func _play_base_recoil() -> void:
+	if data.recoil_kick_degrees == 0.0 and data.recoil_lift == 0.0:
+		return
+	if _base_recoil_tween != null and _base_recoil_tween.is_valid():
+		_base_recoil_tween.kill()
+	_base_recoil_tween = create_tween()
+	var total: float = maxf(data.recoil_recovery_seconds, 0.01)
+	var kick: float = _initial_rot_x + deg_to_rad(data.recoil_kick_degrees)
+	var up: float = _initial_pos_y + data.recoil_lift
+	_base_recoil_tween.tween_property(self, "rotation:x", kick, total * 0.14)
+	_base_recoil_tween.parallel().tween_property(self, "position:y", up, total * 0.14)
+	_base_recoil_tween.tween_property(self, "rotation:x", _initial_rot_x, total * 0.86)
+	_base_recoil_tween.parallel().tween_property(self, "position:y", _initial_pos_y, total * 0.86)
 
 
 ## RID del jugador para excluirlo de los raycasts. El nodo se busca una vez y se guarda.
@@ -233,16 +282,22 @@ func _acquire_impact(pos: Vector3, normal: Vector3) -> MeshInstance3D:
 		_impact_mesh.material = mat
 	var node := _pool_take(_impact_pool, scene)
 	node.mesh = _impact_mesh
+	node.scale = Vector3.ONE
 	node.global_position = pos + normal * 0.02
 	return node
 
 
-func _spawn_impact(pos: Vector3, normal: Vector3) -> void:
+func _spawn_impact(pos: Vector3, normal: Vector3, scale_mult: float = 1.0) -> void:
 	var node := _acquire_impact(pos, normal)
 	if node != null:
+		node.scale = Vector3.ONE * scale_mult
 		get_tree().create_timer(IMPACT_DURATION).timeout.connect(
 			Weapon._pool_release.bind(node, _impact_pool)
 		)
+
+
+func _spawn_tracer(from_pos: Vector3, to_pos: Vector3) -> void:
+	_HITSCAN_TRACER.spawn(get_tree(), from_pos, to_pos)
 
 
 ## Dibuja una vez, frente a la cámara, cada efecto del arma para que sus shaders se compilen
@@ -255,8 +310,7 @@ func prewarm() -> void:
 	var impact := _acquire_impact(pos, Vector3.ZERO)
 	if _muzzle_flash != null:
 		_muzzle_flash.visible = true
-	await get_tree().process_frame
-	await get_tree().process_frame
+	await _HITSCAN_TRACER.prewarm(get_tree())
 	_pool_release(impact, _impact_pool)
 	if is_instance_valid(_muzzle_flash):
 		_muzzle_flash.visible = false

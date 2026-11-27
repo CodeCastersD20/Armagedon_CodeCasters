@@ -58,3 +58,15 @@ enum Kind { FIRE, MELEE }
 @export var pack_grip_offset: Vector3 = Vector3(-0.02, 0.08, 0.0)
 ## Velocidad de reproducción (1 = la del pack).
 @export_range(0.25, 3.0, 0.05) var pack_animation_speed: float = 1.0
+
+@export_group("Efectos de impacto y cámara")
+## Golpe seco de cámara (FOV + sacudida en Z) al disparar.
+@export var camera_punch_on_fire: float = 0.0
+## Sacudida de cámara al disparar.
+@export var camera_shake_on_fire: float = 0.0
+## Duración de la sacudida de cámara al disparar (segundos).
+@export var camera_shake_duration: float = 0.1
+## Retroceso hacia atrás del arma al disparar (0 = usa RECOIL_Z por defecto).
+@export var recoil_z_kick: float = 0.0
+## Si es true, dibuja un trazador rápido en disparos hitscan.
+@export var tracer_enabled: bool = true

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3 uid="uid://dp5tavgw6qj7c"]
+
+[ext_resource type="Script" uid="uid://g3xkb2ao6fsg" path="res://scripts/Weapons/weapon_data.gd" id="1_wdata"]
+[ext_resource type="PackedScene" path="res://scenes/Weapons/shotgun.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_wdata")
+display_name = "Shotgun"
+magazine_size = 2
+reload_seconds = 1.5
+attack_interval = 0.8
+automatic = false
+weapon_scene = ExtResource("2_scene")
+recoil_kick_degrees = 26.0
+recoil_lift = 0.045
+recoil_recovery_seconds = 0.35
+camera_punch_on_fire = 0.85
+camera_shake_on_fire = 0.65
+camera_shake_duration = 0.18
+recoil_z_kick = 0.16

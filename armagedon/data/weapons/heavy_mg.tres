@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" uid="uid://g3xkb2ao6fsg" path="res://scripts/Weapons/weapon_data.gd" id="1_wdata"]
+[ext_resource type="PackedScene" path="res://scenes/Weapons/heavy_mg.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_wdata")
+display_name = "HeavyMG"
+magazine_size = 60
+reload_seconds = 2.5
+attack_interval = 0.08
+automatic = true
+weapon_scene = ExtResource("2_scene")

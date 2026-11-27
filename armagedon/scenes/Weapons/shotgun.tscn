@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/Weapons/weapon.gd" id="1_weapon"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/shotgun/Shotgun.glb" id="2_model"]
+
+[node name="Shotgun" type="Node3D"]
+script = ExtResource("1_weapon")
+muzzle_offset = Vector3(0.15, 0.01, -0.52)
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(-0.34, 0, -2.972e-08, 0, 0.34, 0, 2.972e-08, 0, -0.34, 0.15, -0.05, 0.03)

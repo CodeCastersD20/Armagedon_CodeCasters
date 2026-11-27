@@ -38,6 +38,8 @@ const COLOR: Color = Color(0.45, 0.27, 0.12)
 var _player: Player
 var _bob_time: float = 0.0
 var _impact_recoil: float = 0.0
+var _hide_tween: Tween
+var _vis_id: int = 0
 
 @onready var _model: Node3D = get_node_or_null("Shield2")
 
@@ -54,9 +56,34 @@ func _ready() -> void:
 	var manager := get_tree().get_first_node_in_group("weapon_manager") as WeaponManager
 	if manager != null:
 		manager.weapon_changed.connect(_on_weapon_changed)
-		_on_weapon_changed(manager.get_current_weapon())
+		_apply_weapon_visibility(manager.get_current_weapon(), false)
 	else:
 		visible = false
+
+
+## Cambia el modelo visible del escudo (p. ej. desde el menú debug). Conserva el transform del
+## modelo actual, así que el nuevo debe tener la misma huella (alto ~1.55 m, frente hacia +X).
+func set_model(scene: PackedScene) -> void:
+	if scene == null:
+		push_error("Shield.set_model recibió una escena nula")
+		return
+	var new_model := scene.instantiate() as Node3D
+	if new_model == null:
+		push_error("Shield.set_model: la raíz de la escena no es Node3D")
+		return
+	if _model != null:
+		new_model.transform = _model.transform
+		remove_child(_model)
+		_model.queue_free()
+	new_model.name = "Shield2"
+	add_child(new_model)
+	PsxStyle.apply(new_model)
+	_model = new_model
+
+
+## Ruta de la escena del modelo actual ("" si es la malla provisional).
+func get_model_path() -> String:
+	return _model.scene_file_path if _model != null else ""
 
 
 func _process(delta: float) -> void:
@@ -101,7 +128,35 @@ func _build_mesh() -> void:
 
 
 func _on_weapon_changed(weapon: Weapon) -> void:
-	visible = weapon != null and weapon.is_melee()
+	_apply_weapon_visibility(weapon, true)
+
+
+func _apply_weapon_visibility(weapon: Weapon, animate: bool) -> void:
+	var show_shield: bool = weapon != null and weapon.is_melee()
+	_vis_id += 1
+	var req_id: int = _vis_id
+	if _hide_tween != null and _hide_tween.is_valid():
+		_hide_tween.kill()
+	if show_shield:
+		if animate and not visible:
+			position = rest_position + Vector3(-0.08, -0.35, 0.08)
+			rotation_degrees = rest_rotation_degrees + Vector3(-24.0, -10.0, 12.0)
+		visible = true
+		return
+	if not animate or not visible:
+		visible = false
+		return
+	var drop_pos: Vector3 = rest_position + Vector3(-0.08, -0.35, 0.08)
+	var drop_rot: Vector3 = rest_rotation_degrees + Vector3(-24.0, -10.0, 12.0)
+	_hide_tween = create_tween()
+	_hide_tween.set_parallel(true)
+	_hide_tween.tween_property(self, "position", drop_pos, 0.08).set_ease(Tween.EASE_IN)
+	_hide_tween.tween_property(self, "rotation_degrees", drop_rot, 0.08).set_ease(Tween.EASE_IN)
+	_hide_tween.chain().tween_callback(
+		func() -> void:
+			if req_id == _vis_id:
+				visible = false
+	)
 
 
 ## Retroceso visual rápido del escudo al absorber un golpe frontal.

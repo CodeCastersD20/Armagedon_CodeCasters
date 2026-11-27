@@ -7,21 +7,36 @@ signal ammo_changed(current: int, magazine: int)
 signal reload_started(seconds: float)
 signal reload_finished
 
+const SWITCH_DROP_SECONDS: float = 0.07
+const SWITCH_DRAW_SECONDS: float = 0.16
+const SWITCH_OFFSET: Vector3 = Vector3(0.06, -0.34, 0.08)
+const SWITCH_ROTATION_DEG: Vector3 = Vector3(-26.0, 8.0, -12.0)
+
 @export var fire_data: WeaponData
 @export var melee_data: WeaponData
+## Tercera arma provisional (solo para verla; se cambia con Q/rueda).
+@export var extra_data: WeaponData
+## Cuarta arma provisional (solo para verla).
+@export var extra2_data: WeaponData
 ## GDD §5: el arma inicial es espada + escudo.
 @export var start_with_melee: bool = true
 
 var _fire: Weapon
 var _melee: Weapon
+var _extra: Weapon
+var _extra2: Weapon
 var _current: Weapon
 var _player: Player
+var _switch_tween: Tween
+var _switch_id: int = 0
 
 
 func _ready() -> void:
 	add_to_group("weapon_manager")
 	_fire = _spawn(fire_data)
 	_melee = _spawn(melee_data)
+	_extra = _spawn(extra_data)
+	_extra2 = _spawn(extra2_data)
 	var first: Weapon = _melee if start_with_melee else _fire
 	_equip(first if first != null else (_fire if _melee == null else _melee))
 	_prewarm_inactive.call_deferred()
@@ -49,7 +64,7 @@ func _can_attack() -> bool:
 		return false
 	if _player == null:
 		_player = get_tree().get_first_node_in_group("player") as Player
-	return not (_player != null and _player.is_blocking())
+	return not (_player != null and (_player.is_blocking() or _player.is_stunned()))
 
 
 func get_current_weapon() -> Weapon:
@@ -57,9 +72,68 @@ func get_current_weapon() -> Weapon:
 
 
 func switch_weapon() -> void:
-	var other: Weapon = _melee if _current == _fire else _fire
-	if other != null:
-		_equip(other)
+	var order: Array[Weapon] = []
+	for weapon: Weapon in [_fire, _melee, _extra, _extra2]:
+		if weapon != null:
+			order.append(weapon)
+	if order.size() < 2:
+		return
+	var idx: int = order.find(_current)
+	_play_switch_to(order[(idx + 1) % order.size()])
+
+
+func _play_switch_to(target: Weapon) -> void:
+	_switch_id += 1
+	var req_id: int = _switch_id
+	if _switch_tween != null and _switch_tween.is_valid():
+		_switch_tween.kill()
+	if _current == null:
+		_equip(target)
+		_animate_draw()
+		return
+	_current.cancel_reload()
+	_switch_tween = create_tween()
+	_switch_tween.set_parallel(true)
+	(
+		_switch_tween
+		. tween_property(self, "position", SWITCH_OFFSET, SWITCH_DROP_SECONDS)
+		. set_ease(Tween.EASE_IN)
+		. set_trans(Tween.TRANS_QUAD)
+	)
+	(
+		_switch_tween
+		. tween_property(self, "rotation_degrees", SWITCH_ROTATION_DEG, SWITCH_DROP_SECONDS)
+		. set_ease(Tween.EASE_IN)
+		. set_trans(Tween.TRANS_QUAD)
+	)
+	_switch_tween.chain().tween_callback(
+		func() -> void:
+			if req_id != _switch_id or not is_inside_tree():
+				return
+			_equip(target)
+			_animate_draw()
+	)
+
+
+func _animate_draw() -> void:
+	if _switch_tween != null and _switch_tween.is_valid():
+		_switch_tween.kill()
+	position = SWITCH_OFFSET
+	rotation_degrees = SWITCH_ROTATION_DEG
+	_switch_tween = create_tween()
+	_switch_tween.set_parallel(true)
+	(
+		_switch_tween
+		. tween_property(self, "position", Vector3.ZERO, SWITCH_DRAW_SECONDS)
+		. set_ease(Tween.EASE_OUT)
+		. set_trans(Tween.TRANS_BACK)
+	)
+	(
+		_switch_tween
+		. tween_property(self, "rotation_degrees", Vector3.ZERO, SWITCH_DRAW_SECONDS)
+		. set_ease(Tween.EASE_OUT)
+		. set_trans(Tween.TRANS_BACK)
+	)
 
 
 ## Reemplaza el arma del mismo tipo (tienda en el descanso).

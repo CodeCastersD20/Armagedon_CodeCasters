@@ -3,14 +3,15 @@
 [ext_resource type="PackedScene" uid="uid://c7gojarrgqvgl" path="res://scenes/Player/player.tscn" id="1_6rd1t"]
 [ext_resource type="PackedScene" path="res://scenes/Dummy/TrainingDummy.tscn" id="2_dummy"]
 [ext_resource type="PackedScene" uid="uid://0yqvgwuhcafw" path="res://scenes/World/coliseo.tscn" id="4_kurpr"]
-[ext_resource type="PackedScene" uid="uid://dx6klwqxgn31o" path="res://scenes/Enemies/Squeletor.tscn" id="4_squeletor"]
-[ext_resource type="PackedScene" path="res://scenes/Enemies/Demonio.tscn" id="6_demonio"]
-[ext_resource type="PackedScene" path="res://scenes/Enemies/TheWrapped.tscn" id="7_wrapped"]
+[ext_resource type="Texture2D" uid="uid://dnhx0lapupnsw" path="res://assets/textures/moon/moon_alt_1.png" id="5_moon"]
+[ext_resource type="Shader" uid="uid://btxn8aoborlxj" path="res://assets/shaders/moon_glow.gdshader" id="6_moon_shader"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_lsecn"]
 sky_top_color = Color(0.078431375, 0.011764706, 0.011764706, 1)
 sky_horizon_color = Color(0.34901962, 0.03137255, 0.03137255, 1)
 ground_horizon_color = Color(0.34901962, 0.03137255, 0.03137255, 1)
+sun_angle_max = 0.0
+sun_curve = 0.02
 
 [sub_resource type="Sky" id="Sky_1bnsl"]
 sky_material = SubResource("ProceduralSkyMaterial_lsecn")
@@ -27,8 +28,20 @@ fog_sky_affect = 0.85
 fog_depth_begin = 8.0
 fog_depth_end = 35.0
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_moon"]
+render_priority = 0
+shader = ExtResource("6_moon_shader")
+shader_parameter/albedo_texture = ExtResource("5_moon")
+shader_parameter/albedo_color = Color(0.95, 0.18, 0.14, 1)
+shader_parameter/glow_strength = 0.55
+shader_parameter/edge_softness = 0.08
+
+[sub_resource type="QuadMesh" id="QuadMesh_moon"]
+material = SubResource("ShaderMaterial_moon")
+size = Vector2(40, 40)
+
 [sub_resource type="NavigationMesh" id="NavigationMesh_floor"]
-vertices = PackedVector3Array(-20, 0, -20, 20, 0, -20, 20, 0, 20, -20, 0, 20)
+vertices = PackedVector3Array(-25, 0, -25, 25, 0, -25, 25, 0, 25, -25, 0, 25)
 polygons = [PackedInt32Array(0, 1, 2), PackedInt32Array(0, 2, 3)]
 geometry_parsed_geometry_type = 1
 geometry_collision_mask = 2
@@ -43,6 +56,11 @@ environment = SubResource("Environment_mbmvx")
 transform = Transform3D(0.899554, -0.432538, 0.06093937, -0.31086242, -0.5359126, 0.78496003, -0.30686688, -0.7250576, -0.6165421, 1.633307, 12.122532, -13.46772)
 light_energy = 0.9
 
+[node name="LunaRoja" type="MeshInstance3D" parent="." unique_id=494051249]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 55.98835, -75)
+cast_shadow = 0
+mesh = SubResource("QuadMesh_moon")
+
 [node name="Player" parent="." unique_id=1210332556 instance=ExtResource("1_6rd1t")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 15)
 
@@ -53,13 +71,3 @@ navigation_mesh = SubResource("NavigationMesh_floor")
 
 [node name="TrainingDummy" parent="." unique_id=1883699490 instance=ExtResource("2_dummy")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -3)
-
-[node name="Squeletor" parent="." unique_id=1904340952 instance=ExtResource("4_squeletor")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 5.7286406, -6)
-
-<<<<<<< HEAD
-[node name="Demonio" parent="." unique_id=720841796 instance=ExtResource("6_demonio")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 5.566267, -4)
-
-[node name="TheWrapped" parent="." instance=ExtResource("7_wrapped")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 5.5, 8)

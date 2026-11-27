@@ -21,7 +21,7 @@ Tablero de tarjetas: [Armagedon kanban](https://github.com/orgs/CodeCastersD20/p
 | Plataforma | PC |
 | Motor | Godot 4, GDScript |
 | Referencias | ULTRAKILL, DOOM, Dusk |
-| Partida | Rondas de 3:30, sin progreso entre partidas, rejugable |
+| Partida | Rondas sin límite de tiempo (cronómetro ascendente), sin progreso entre partidas, rejugable |
 
 **Pilares**
 1. **Movimiento constante** y combate rápido.
@@ -66,8 +66,8 @@ Cada 10 rondas es un círculo. Al iniciar cada tramo se muestra el nombre del c�
 ```
 Inicio → cinemática de caída (8 s, omitible)
    ↓
-┌→ RONDA (3:30): enemigos aparecen y siguen a Zahariel
-│     ↓ (fin de ronda)
+┌→ RONDA (cronómetro ascendente): enemigos aparecen y siguen a Zahariel
+│     ↓ (fin de ronda al derrotar a todos)
 │  DESCANSO (40 s): aparece el Mercante, tienda y cambio de arma
 │     ↓ ([F] o fin del tiempo)
 └─ siguiente ronda (más amenaza)
@@ -75,12 +75,10 @@ Inicio → cinemática de caída (8 s, omitible)
    Escape: aro de luz → Cielo → pantalla de Score
 ```
 
-- **Duración de ronda:** 3 min 30 s. La ronda termina con **lo que ocurra primero**:
-  - **Matar a todos antes de tiempo:** la ronda acaba y se otorgan **100 puntos de Score por cada segundo sobrante**. Empieza el descanso.
-  - **Se agota el tiempo:** dejan de aparecer enemigos nuevos (si aún no habían salido todos) y arranca la cuenta de **40 s del descanso**. El Mercante y la tienda quedan **activos** mientras se **sigue combatiendo**: matar es tiempo de tienda que no se pierde.
-  - **Deuda de enemigos:** los enemigos vivos al terminar el descanso **pasan a la siguiente ronda**. Esa ronda genera solo los que faltan para el tope de 30 (ej.: sobreviven 4 → salen 26) y, al morir cualquiera (de la ronda anterior o de la actual), aparece uno nuevo hasta completar la cuota de la ronda. La deuda se puede arrastrar durante varias rondas.
-  - **Ronda con jefe:** aparece el jefe **junto con todos los enemigos sobrantes**.
-  - Todos estos valores (3:30, 40 s, 100 pts/s) son provisionales y se ajustan durante el desarrollo y la fase de QA.
+- **Duración de ronda:** sin límite de tiempo; un **cronómetro ascendente** mide cuánto tardas desde `00:00`. La ronda termina únicamente al derrotar a todos los enemigos de la ronda, y entonces inicia el descanso de **40 s**.
+- **Recompensa por tiempo de ronda:** al superar la ronda se otorgan un **Score fijo** y **Esquirlas de Alma fijas** modulados por el cronómetro (**a menor tiempo, más puntos y esquirlas; a mayor tiempo, menos**, con un piso mínimo configurable).
+- **Ronda con jefe:** aparece el jefe junto con la oleada de la ronda.
+- Todos estos valores (`40 s` de descanso, recompensa base de Score/Esquirlas y curva de tiempo) son provisionales y se ajustan durante el desarrollo y la fase de QA.
 - **Ronda 10, 20, …:** ronda con jefe.
 - **Cuando HP llega a 0:** no es una muerte real. Un **aro de luz** protege a Zahariel y lo lleva de vuelta al Cielo "para que la siguiente vez vuelva mejor". La partida termina y se guarda el mayor Score.
 - **Ronda 100:** final contra Lucifer. Aun así el juego continúa en la **101+ (El Vacío)** con rondas infinitas.
@@ -104,7 +102,8 @@ Inicio → cinemática de caída (8 s, omitible)
 | Saltar el descanso | F |
 | Omitir cinemática | Espacio |
 
-Cámara en primera persona, FOV 90°, balanceo ligero de arma.
+Cámara en primera persona, FOV 90°, balanceo ligero de arma y animación de desenfunde al cambiar de arma/escudo (`Q` o rueda).
+Slide omnidireccional (`C` en el suelo mientras te mueves, `1.15 s` en `data/player_stats.tres`) con líneas de velocidad PSX en los bordes.
 
 ---
 
@@ -182,24 +181,33 @@ Ejemplo propuesto (ajustable):
 Los stats de la tabla son los de la ronda 1 y escalan con la ronda (§9).
 
 - **Tope de enemigos simultáneos:** 30.
-- **Jefe de beta:** un enemigo más grande, con más vida y más daño. Lucifer, igual.
+- **Jefe de beta:** un enemigo más grande (`1.5×` la altura del modelo base), con más vida (`3,534 HP`) y más daño (`40`). Lucifer, igual. En las rondas múltiplo de 10 (`BossSpawner`) sale al azar uno de estos 3 modelos (sin repetir el inmediatamente anterior):
+  - **Jefe Esqueleto** (`JefeSqueletor.tscn`): versión gigante (`2.7 m` de alto, radio `0.6 m`) del Esqueleto Condenado; `move_speed = 3.0 m/s`, `contact_range = 2.25 m`.
+  - **Jefe Demonio** (`JefeDemonio.tscn`): versión gigante (`3.45 m` de alto, radio `0.78 m`) del Demonio del Averno; `move_speed = 3.15 m/s`, `contact_range = 2.76 m`.
+  - **Jefe The Wrapped** (`JefeWrapped.tscn`): versión gigante (`3.9 m` de alto, radio `0.9 m`) de The Wrapped; `move_speed = 2.8 m/s`, `contact_range = 3.0 m`.
 - **Drops:** esferas azules (Fe), esferas rojas (vida) y Esquirlas de Alma (moneda). **[PENDIENTE]** cantidad y probabilidad por tipo.
 - **[FUTURO]** Comportamientos distintos por enemigo, jefes secretos (Malenia, animatrónicos) y eventos especiales. **Por ahora no hay eventos especiales.**
 
-### 7.1 Variantes de enemigos con habilidades [FUTURO]
+### 7.1 Variantes de enemigos con habilidades [EXPERIMENTO]
 
-Para evitar que las armas automáticas vuelvan demasiado fácil el daño solo por contacto, estas variantes se implementarán en una base/rama separada **sin mezclar su lógica con los enemigos actuales de la beta**:
+Implementadas en `experiment/sandbox` (a validar con playtest antes de pasar a issue). Cada modelo tiene 3 variantes, distinguidas por un **tinte de color** sobre la textura y un modelo un 10 % más grande; todas las variantes con habilidad activa disparan su animación de ataque al ejecutarla. Los valores viven en `data/enemies/variants/*.tres` y son **propuestas** (`TODO(GDD)`).
 
-1. **Francotirador de rayo rojo:** se queda quieto, fija al jugador con un rayo rojo y, tras **2 s** de línea de visión continua, mantiene la posición y dispara un rayo de daño. Si un muro interrumpe la vista, el contador se reinicia a `0` hasta volver a verlo. **[PENDIENTE]** daño y cadencia.
-2. **Tirador de proyectiles (estilo Doom):** dispara proyectiles con velocidad y daño propios; su visual es un sprite/PNG *billboard* que cambia según la dirección desde la que lo ve el jugador. **[PENDIENTE]** velocidad, daño y cadencia.
-3. **Tirador de cono / aro de proyectiles:** variante del anterior que lanza un aro de proyectiles en un **cono bastante abierto**, apuntando hacia arriba o hacia abajo según la altura del jugador. **[PENDIENTE]** cantidad de proyectiles, ángulo del cono y daño.
-4. **Lanzallamas (daño en el tiempo):** ataca con una llamarada de corto/medio alcance que aplica efecto de quemadura durante **1.5 s** haciendo daño continuo. **[PENDIENTE]** alcance y daño por tick.
-5. **Invocador de mini esqueletos:** genera de **2 a 4 mini esqueletos** con menos vida y menos daño, pero que atacan más rápido. **[PENDIENTE]** cooldown de invocación y stats exactos.
-6. **Embestida / Cargador:** al detectar al jugador, hace una animación o sonido de carga claro durante **1 s** y sale disparado en línea recta a gran velocidad hasta chocar con el jugador o una pared. **[PENDIENTE]** velocidad y daño de impacto.
-7. **Artillero parabólico:** lanza proyectiles en arco afectados por gravedad. **[PENDIENTE]** cadencia, gravedad del proyectil y daño/área.
-8. **Lanzador de *creep*:** dispara un proyectil lento de corta distancia que deja una zona dañina/*creep* en el suelo al caer. **[PENDIENTE]** duración y daño del *creep*.
-9. **Kamikaze:** corre rápido hacia el jugador y explota al llegar, muriendo en el proceso. Se puede matar antes para hacerlo explotar lejos; su explosión también daña a enemigos cercanos con daño reducido (aprox. **50 %** del daño al jugador, ej. `10` al jugador / `5` a enemigos). **[PENDIENTE]** radio y daño definitivo.
-10. **Blindado frontal:** enemigo al que **solo se le puede hacer daño por la espalda**. **[PENDIENTE]** ángulo trasero vulnerable y feedback al golpear de frente.
+| Modelo | Variante | Color | Habilidad | Desde ronda |
+|---|---|---|---|---|
+| Esqueleto Condenado | Tirador | Azul | Proyectil recto (8 de daño, cada 2 s, aviso 0.4 s) | 3 |
+| | Invocador | Verde | 2-4 mini esqueletos (40 % vida, 50 % daño, atacan más rápido), cada 8 s | 3 |
+| | Kamikaze | Amarillo | Velocidad ×1.8; explota al llegar (radio 4 m, 50 % del daño a enemigos) | 3 |
+| Demonio del Averno | Lanzallamas | Rojo | Cono de 5 m; quemadura de 1.5 s, 3 de daño cada 0.5 s | 5 |
+| | Escupe-creep | Morado | Proyectil en arco que deja una zona dañina 4 s | 5 |
+| | Teletransportador | Cian | Parpadea 0.7 s y reaparece detrás del jugador, cada 6 s | 5 |
+| The Wrapped | Cargador | Negro | Aviso de 1 s con línea roja y grito (`Scream_lol`), embestida a `25 m/s` (`Run_Frantic`, 45 de daño); aturde al jugador `0.85 s` (bloquea movimiento, ataque y cámara) y lo empuja (`knockback_speed = 20`); si choca con pared queda aturdido `2.0 s` (`WallSlam_Recover`) | 7 |
+| | Blindado | Gris acero | Solo recibe daño por la espalda (arco de 150°); gira muy lento; vida 260 | 7 |
+| | Artillero | Naranja | 7 proyectiles rectos (sin gravedad, 12 de daño c/u) disparados uno tras otro cada 0.15 s en abanico de 60° que alterna entre horizontal y vertical; ráfaga cada 3 s | 7 |
+
+Ideas del GDD original sin asignar todavía: **Francotirador de rayo rojo** (2 s de línea de vista y rayo), **Tirador de cono / aro de proyectiles** y las nuevas **Curandero de aura** (cura/buffea enemigos cercanos).
+
+- **Aparición:** cada spawn de un modelo tiene 20 % de ser una variante (si hay alguna disponible esa ronda), con máximo 4 variantes vivas.
+- **Campeones:** sistema aparte, combinable con cualquier variante. Corona flotante y aura pequeña; vida ×2.5, daño ×1.5, velocidad ×1.1, tamaño ×1.25. 5 % por spawn desde la ronda 5, máximo 2 vivos. Valores en `data/champion.tres`.
 
 ---
 
@@ -264,9 +272,11 @@ Sugerencia: llenar primero precio y valor por nivel de lo que ya está en la tie
   | 10+ (excepto la 100) | La horda anterior; en las rondas múltiplos de 10 se añade el jefe |
   | 100 | La horda anterior y Lucifer en lugar del jefe |
 
+Sobre la horda pueden salir variantes con habilidad y campeones (§7.1). Configuración en `data/horde_config.tres`.
+
 - **Ronda con jefe:** cada 10 rondas aparece el jefe junto a la horda, nunca solo.
 - **Eventos especiales:** ninguno por ahora.
-- **Arena y puntos de aparición:** **[PENDIENTE]** la arena aún no se ha diseñado.
+- **Arena y puntos de aparición:** coliseo circular (`coliseo.tscn`, radio `25 m`, ver §10) con 4 `SpawnPoints` en `(±16.5, 1, ±16.5)`, pilares en `(±14, 1.75, ±14)`, `HuecoCentral` (radio `5 m`) y `PlataformaMercader` central. En el cielo (`World.tscn`), la luna (`moon_glow.gdshader`) cambia entre 8 fases por ronda y en el círculo de Lucifer (`91–100`) se fuerza luna llena roja.
 
 ---
 
@@ -320,7 +330,7 @@ No hay cajas de munición porque la munición es infinita.
 - **Ranuras de poderes** (centro): íconos de ejemplo, solo boceto (no son necesariamente poderes de Fe).
 - **Munición:** cargador (la reserva es infinita).
 - **Mira** al centro.
-- **Ronda actual** y **cronómetro** (3:30). **[PENDIENTE]** Score y combo en pantalla.
+- **Ronda actual** y **cronómetro** (ascendente desde 00:00). **[PENDIENTE]** Score y combo en pantalla.
 
 **Menús:** splash ("Presiona ENTER para descender"), tienda del Mercante. **[PENDIENTE]** pausa, pantalla de escape con Score. **Opciones:** límite de FPS y V-Sync (ver §17.4); el resto de ajustes **[PENDIENTE]**.
 
@@ -393,7 +403,7 @@ Propuesta de multiplicador: `×(1 + 0.1 · bajas del combo)`, tope **×5**. **[P
 | Demonio | 120 | × multiplicador de combo |
 | The Wrapped | 350 | × multiplicador de combo |
 | Jefe | **[PEND.]** | × multiplicador de combo |
-| Ronda superada | **[PEND.]** | + bono de puntos y **Esquirlas de Alma extra** por tiempo restante (de los 3:30) |
+| Ronda superada | **[PEND.]** | Puntaje fijo y **Esquirlas de Alma fijas** modulados por el cronómetro (menor tiempo → más recompensa; mayor tiempo → menos) |
 | Poder de Fe/divino recuperado | **[PEND.]** | |
 | Golpe recibido | **[A CONFIRMAR]** | Antes −50; ¿sigue? ¿reinicia el combo? |
 
@@ -450,6 +460,8 @@ Principio: medir antes de optimizar (Profiler y Monitors de Godot, siempre sobre
 
 ### 17.7 Reglas de código de rendimiento
 
+**Regla de calidad (siempre):** todo error o aviso que aparezca en la consola de Godot, en el arranque headless o en `gdlint`/`gdformat` se soluciona; y antes de cada commit y push se comprueba en local que el CI pasará (`godot-ci.yml`: lint, formato, importación y carga del proyecto), y tras el push que los checks del PR estén en verde. El detalle operativo está en `AGENTS.md`.
+
 Reglas que se aplican desde el inicio (la lista operativa vive en `AGENTS.md`, «Rendimiento: reglas desde el inicio»):
 - Recursos (mallas, materiales, formas, consultas de física) se crean una vez y se reutilizan; no se crean por disparo, golpe o frame.
 - Referencias a nodos (jugador, manager, cámara) se resuelven una vez y se guardan; no se buscan por grupo en cada frame ni en cada ataque.
@@ -457,12 +469,12 @@ Reglas que se aplican desde el inicio (la lista operativa vive en `AGENTS.md`, �
 - Al guardar un arma se cancelan sus animaciones, tweens y golpes pendientes.
 - Los datos de los Resources y los nodos opcionales se validan antes de usarse (divisores en 0, `null`).
 - Las ayudas de depuración no corren en el juego exportado.
-- Hallazgo conocido: el renderer Forward+ es el más pesado para este estilo; evaluar Mobile o Compatibility si el QA de rendimiento (#94) lo pide. **[PENDIENTE]**
+- Renderer activo: **Compatibility (`gl_compatibility`)** en `project.godot` (ligero para el estilo PSX y compatible con GPUs modestas; pendiente validar QA final #94).
 
 ### 17.8 Compatibilidad y costo del shader PSX
 
-- **Multiplataforma:** el shader (`assets/shaders/psx.gdshader`) es shader estándar de Godot 4 (`.gdshader`), sin código específico de plataforma. Godot lo compila para Vulkan (Linux), Direct3D 12 (Windows, ver `project.godot`) y Compatibility. No usa extensiones ni texturas especiales.
-- **Estado de la verificación:** probado solo en Linux (AMD RX 7600, Vulkan, Forward+). **[PENDIENTE]** probarlo en Windows y en la PC más modesta (iGPU) antes de cerrar #37.
+- **Multiplataforma:** el shader (`assets/shaders/psx.gdshader`) es shader estándar de Godot 4 (`.gdshader`), sin código específico de plataforma. Godot lo compila para Compatibility (OpenGL/GLES3), Vulkan (Linux) y Direct3D 12 (Windows, ver `project.godot`). No usa extensiones ni texturas especiales.
+- **Estado de la verificación:** probado en Linux (AMD RX 7600, OpenGL Compatibility). **[PENDIENTE]** probarlo en Windows y en la PC más modesta (iGPU) antes de cerrar #37.
 - **Costo:** el vertex snapping es una multiplicación de matriz, una división y un `floor` por vértice; con modelos de 300–1,200 triángulos es despreciable. El fragment shader (`lambert`, sin especular) es más barato que el material estándar. El costo real en una iGPU está en los píxeles (resolución, sombras, glow, luces), no en el shader.
 - **Cómo medirlo:** ejecutar `scenes/Test/psx_test.tscn` (F6) y anotar FPS y tiempo de frame (Debugger → Monitors) con y sin el shader en cada PC. Meta: 60 FPS (16.6 ms por frame).
 

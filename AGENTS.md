@@ -2,6 +2,12 @@
 
 Guía para agentes de IA (Claude Code, OpenCode, Codex, Cursor, etc.) y para el equipo. Este archivo es la fuente única; `CLAUDE.md` solo lo importa.
 
+## Logs de depuración locales (para agentes e IA)
+- **Ubicación:** `armagedon/logs/debug.log` (gitignorado en `armagedon/.gitignore`, **no se sube al repo**).
+- **Solo en desarrollo:** `DebugLogger` (`armagedon/scripts/Debug/debug_logger.gd`) solo escribe cuando `OS.is_debug_build()` es `true`; en builds exportados de producción no hace nada.
+- **Qué registra automáticamente:** cada sesión reinicia `armagedon/logs/debug.log`, captura errores y avisos del motor/debugger (`ERROR`, `WARNING`, `SCRIPT_ERROR`, `SHADER_ERROR`, `STDOUT`/`STDERR` mediante `OS.add_logger`), además de las coordenadas de cada spawn (`SPAWN`), caídas al vacío (`FALL_RESPAWN`) y snapshots periódicos (`SNAPSHOT` / `ENEMY`) con la posición del jugador y de todos los enemigos vivos.
+- **Uso por agentes:** cuando el usuario reporte un problema en ejecución (spawns, enemigos invisibles, posiciones), lee `armagedon/logs/debug.log` después de que ejecute el juego. Para añadir trazas temporales o de diagnóstico, usa `DebugLogger.write("TAG", "mensaje")` en lugar de `print()`.
+
 ## Proyecto
 Armageddon: roguelike shooter en primera persona por rondas, low-poly PSX. **Godot 4, GDScript, 3D.** Desarrollo rápido (< 1 mes): hacer lo mínimo que sea entretenido. Equipo de 4: Sadrach (@Sadrach34), Adrián (@AdrianS-127), Erick (@Ddarielz), Alfion (@Alfion72).
 
@@ -17,7 +23,7 @@ Armageddon: roguelike shooter en primera persona por rondas, low-poly PSX. **God
 - Todos los enemigos siguen al jugador y dañan al contacto.
 - HP 0 = escape (aro de luz), no muerte. Sin progreso entre partidas salvo el mejor Score.
 - El crítico es una tirada aleatoria y no afecta el Score.
-- Ronda 3:30; descanso 40 s; jefe cada 10 rondas; ronda 100 Lucifer; 101+ el Vacío.
+- Ronda sin límite de tiempo (cronómetro ascendente); descanso 40 s; jefe cada 10 rondas; ronda 100 Lucifer; 101+ el Vacío.
 
 ## Estructura del repo (proyecto Godot en `armagedon/`)
 ```
@@ -101,6 +107,8 @@ Se optimiza desde el principio, no al final (detalle y motivos en `docs/GDD.md` 
 
 ## Cómo trabajar como agente
 - Cambios pequeños y enfocados en una sola issue. No refactorices lo que no se pidió.
+- **Cero errores y avisos:** todo `ERROR`, `SCRIPT ERROR`, `Parse Error` o `WARNING` que salga en la consola de Godot, en `godot --headless` o en `gdlint`/`gdformat` se **soluciona siempre**, no se ignora ni se deja «para después». Si el aviso viene de un archivo ajeno a la tarea, avisa al equipo y proponlo como arreglo aparte; no lo dejes pasar en silencio.
+- **Antes de `git commit` y `git push` se comprueba que el CI pasará**, ejecutando en local lo mismo que `.github/workflows/godot-ci.yml`: `gdlint armagedon`, `gdformat --check armagedon`, `godot --headless --path armagedon --import --quit` y `godot --headless --path armagedon --quit` (sin `SCRIPT ERROR` ni `Parse Error`). Después del push se revisa que los checks del PR queden en verde. Si falla, se corrige antes de seguir; nunca se hace push «a ver si pasa».
 - No agregues dependencias ni addons sin avisar.
 - Si falta información del GDD, pregunta o deja un `TODO(GDD)`.
 - Respeta las licencias de assets (ver `docs/GDD.md` §13).
@@ -139,4 +147,8 @@ Se optimiza desde el principio, no al final (detalle y motivos en `docs/GDD.md` 
 | `SCRIPT ERROR: Parse Error: Class "AudioManager" hides an autoload singleton` | El `class_name` del script coincide con el nombre con el que se registra en `[autoload]` (Godot ≥ 4.3 lo prohibe) | Quitar el `class_name` y usar el identificador del autoload como referencia global (`AudioManager.play_sfx(...)`); dejar la explicación en la cabecera del script y validar con `godot --headless --path armagedon --import --quit` |
 | `Trying to assign invalid previously freed instance` al sacar nodos de un `static var _pool` tras cambiar de escena | Al hacer `var x: Clase = pool.pop_back()`, GDScript valida el tipo antes de llegar a `is_instance_valid(x)` y falla si la instancia fue liberada al cambiar de escena | Sacar en `var raw: Variant = pool.pop_back()`, comprobar `is_instance_valid(raw)` primero y luego castear con `raw as Clase` |
 | `Parameter "space" is null` en `JoltPhysicsServer3D::body_test_motion()` al cambiar de escena | `EnemyManager._physics_process()` llama `step_physics()` / `move_and_slide()` sobre enemigos que ya salieron del árbol o están desactivados | Limpiar `_enemies` en `EnemyManager._exit_tree()`, saltar `not enemy.is_inside_tree()` y proteger `step_physics()` con `if not is_inside_tree() or not can_process(): return` |
+| `Cannot convert argument 1 from Object to Object` en `Array.filter(func(e: Clase) ...)` o `Trying to assign an array of type "Array" to a variable of type "Array[Clase]"` | La lambda tipada (o el `Array[Clase]`) recibe instancias ya liberadas (`queue_free`) y falla antes de llegar a `is_instance_valid` | Guardar en `Array` sin tipar, recorrer con `var raw: Variant`, comprobar `is_instance_valid(raw)` y castear después con `raw as Clase` |
+| `gdlint: class-definitions-order` por un `static var` declarado después de funciones | La variable estática se añadió al final del archivo | Declarar todas las variables (`static var` incluidas) antes de las funciones y verificar con `gdlint armagedon` |
+| `gdlint: max-line-length (100)` en comentarios `##` de cabecera | Las líneas largas no se parten solas con `gdformat` | Partir el comentario en dos líneas y correr `gdformat armagedon` + `gdlint armagedon` |
 | `SHADOWED_VARIABLE_BASE_CLASS: The local function parameter "name" is shadowing...` | Usar `name` como nombre de parámetro en una función de un script que hereda de `Node` | Renombrar el parámetro (p. ej. `anim_name` o `target_name`) |
+| La cámara gira "a la espalda" (boca abajo) y se invierten W/S al mover el mouse rápido arriba/abajo | Usar `_head.rotate_x(...)` antes de `clampf(_head.rotation.x, -limit, limit)`; al pasar de ±90° la descomposición Euler YXZ voltea `Y` y `Z` en 180° y deja `X` dentro del rango | Modificar y acotar directamente `_head.rotation.x = clampf(_head.rotation.x - delta_y, -limit, limit)` sin llamar a `rotate_x()` |

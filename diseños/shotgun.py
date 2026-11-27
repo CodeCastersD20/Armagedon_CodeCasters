@@ -1,0 +1,56 @@
+# Escopeta estilo handcannon. Blender: adelante = -Y (glTF +Z), arriba = +Z. En escena: escala 0.34, giro 180° Y.
+import os
+D=os.path.dirname(os.path.abspath(__file__))+'/'
+exec(open(D+'style_head.py').read()); exec(open(D+'gun_palette.py').read())
+D=D_
+box('Slab',(0,-0.80,0.12),(0.40,1.40,0.34),reg=D)
+box('SlabLow',(0,-0.80,-0.10),(0.34,1.30,0.12),reg=D2)
+for s in(-1,1):
+    box(f'Decal{s}',(s*0.205,-0.80,0.12),(0.012,0.46,0.22),reg=DC,tile=False,bev=0)
+    box(f'Slot{s}',(s*0.205,-1.18,0.12),(0.012,0.36,0.05),reg=BK,tile=False,bev=0)
+    box(f'BarLine{s}',(s*0.203,-0.55,0.20),(0.014,0.30,0.012),reg=RD,tile=False,bev=0)
+box('Rail1',(0,-0.80,0.305),(0.26,1.20,0.03),reg=PL)
+box('Rail2',(0,-0.80,0.335),(0.15,1.20,0.03),reg=D2)
+box('RedInset',(0,-0.80,0.352),(0.05,1.10,0.012),reg=RD,tile=False,bev=0)
+for i in range(5): box(f'Notch{i}',(0,-0.45-0.2*i,0.360),(0.07,0.03,0.014),reg=BK,tile=False,bev=0)
+box('Muzzle',(0,-1.55,0.12),(0.46,0.12,0.40),reg=D2)
+for s in(-1,1):
+    cyl(f'Ring{s}',(s*0.10,-1.615,0.12),0.088,0.02,reg=PL)
+    cyl(f'Bore{s}',(s*0.10,-1.622,0.12),0.062,0.02,reg=BK)
+box('FrontSight',(0,-1.52,0.355),(0.05,0.07,0.07),reg=BK)
+box('FrontSightB',(0,-1.40,0.36),(0.03,0.05,0.05),reg=BK)
+box('Forearm',(0,-0.95,-0.22),(0.38,0.72,0.20),reg=GR)
+box('ForearmCap',(0,-1.34,-0.20),(0.42,0.06,0.24),reg=D2)
+box('ForearmBack',(0,-0.56,-0.20),(0.42,0.06,0.24),reg=D2)
+for i in range(5):
+    for s in(-1,1): box(f'Rib{i}{s}',(s*0.196,-0.78-0.12*i,-0.22),(0.014,0.045,0.15),reg=BK,tile=False,bev=0)
+box('PumpRail',(0,-0.95,-0.075),(0.20,0.74,0.05),reg=D2)
+box('Receiver',(0,0.02,0.12),(0.44,0.80,0.52),reg=D)
+box('ReceiverTop',(0,0.00,0.40),(0.30,0.70,0.04),reg=PL)
+box('ReceiverRear',(0,0.46,0.20),(0.40,0.12,0.38),reg=D2)
+for s in(-1,1):
+    box(f'SidePlate{s}',(s*0.245,-0.02,0.14),(0.06,0.44,0.30),reg=PL,bev=0.02)
+    box(f'SideRedTop{s}',(s*0.28,-0.02,0.30),(0.012,0.46,0.02),reg=RD,tile=False,bev=0)
+    box(f'SideRedBot{s}',(s*0.28,-0.02,-0.02),(0.012,0.46,0.02),reg=RD,tile=False,bev=0)
+    box(f'Fin{s}',(s*0.235,0.30,0.30),(0.03,0.22,0.12),reg=PL)
+box('RearSight',(0,0.30,0.45),(0.05,0.07,0.07),reg=BK)
+box('HammerA',(0,0.48,0.46),(0.05,0.04,0.16),reg=BK,bev=0.01)
+box('HammerB',(0,0.60,0.54),(0.05,0.26,0.04),reg=BK,bev=0.01)
+box('HammerC',(0,0.72,0.40),(0.05,0.04,0.32),reg=BK,bev=0.01)
+box('GuardF',(0,-0.26,-0.20),(0.05,0.04,0.20),reg=BK,bev=0.008)
+box('GuardB',(0,0.22,-0.20),(0.05,0.04,0.20),reg=BK,bev=0.008)
+box('GuardBot',(0,-0.02,-0.30),(0.05,0.52,0.04),reg=BK,bev=0.008)
+box('Trigger',(0,-0.04,-0.16),(0.035,0.04,0.14),rot=(-15,0,0),reg=BK,bev=0.006)
+box('Grip',(0,0.34,-0.28),(0.28,0.26,0.62),rot=(24,0,0),reg=GR)
+box('GripEdge',(0,0.22,-0.30),(0.20,0.025,0.56),rot=(24,0,0),reg=PL,tile=False)
+box('Stock',(0,0.92,0.02),(0.30,0.96,0.40),rot=(-7,0,0),reg=GR)
+box('StockTopStripe',(0,0.92,0.222),(0.07,0.88,0.014),rot=(-7,0,0),reg=RD,tile=False,bev=0)
+box('StockEdge',(0,0.92,-0.19),(0.20,0.88,0.025),rot=(-7,0,0),reg=PL,tile=False)
+box('ButtPlate',(0,1.42,-0.04),(0.34,0.07,0.52),rot=(-7,0,0),reg=D2)
+box('ButtPad',(0,1.465,-0.04),(0.30,0.02,0.44),rot=(-7,0,0),reg=BK,tile=False)
+for i in range(4):
+    for s_ in(-1,1):
+        cyl(f'Shell{i}{s_}',(s_*0.165,0.80+0.15*i,0.12-0.012*i),0.05,0.07,reg=BR,seg=8,axis='X')
+        cyl(f'ShellCap{i}{s_}',(s_*0.20,0.80+0.15*i,0.12-0.012*i),0.052,0.012,reg=D2,seg=8,axis='X')
+g=join('Gun'); export(OUT+'Shotgun.glb'); print('DIMS',g.dimensions)
+renders('sg',(0,-0.1,0.05),[(4.2,-0.1,0.9),(-4.2,-0.1,0.9),(2.6,-3.0,2.2)])

@@ -15,10 +15,16 @@ func _connect_wallet() -> void:
 		push_error("ShardCounter: no hay wallet en la escena")
 		return
 	_wallet.shards_changed.connect(_on_shards_changed)
+	LocalizationManager.language_changed.connect(_on_language_changed)
 	_on_shards_changed(_wallet.get_shards())
 
 
+func _on_language_changed(_locale: String) -> void:
+	if _wallet != null:
+		_on_shards_changed(_wallet.get_shards())
+
+
 func _on_shards_changed(current: int) -> void:
-	var text: String = "Esquirlas: %d" % current
+	var text: String = LocalizationManager.tf("shards.label", [current])
 	if _label.text != text:
 		_label.text = text

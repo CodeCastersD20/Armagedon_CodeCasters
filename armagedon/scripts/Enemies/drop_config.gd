@@ -2,6 +2,10 @@ class_name DropConfig
 extends Resource
 ## Comportamiento compartido por todos los pickups (GDD §11.1).
 
+## Aspecto de los pickups: primitivas de color, modelos 3D low-poly o sprites 2D que miran
+## siempre a la cámara. Se puede cambiar en vivo desde el menú debug (F1).
+enum PickupVisual { CLASSIC, MODEL_3D, SPRITE_2D }
+
 ## Distancia a la que el pickup empieza a atraerse hacia el jugador.
 @export var magnet_radius: float = 2.5
 ## Distancia a la que se recoge.
@@ -16,6 +20,8 @@ extends Resource
 @export var faith_per_sphere: float = 15.0
 ## Vida restaurada por esfera roja.
 @export var health_per_sphere: float = 15.0
+## TODO(GDD): elegir el aspecto definitivo tras probar 3D y 2D.
+@export var visual: PickupVisual = PickupVisual.MODEL_3D
 ## Pickups simultáneos por tipo (pool por MultiMesh).
 @export var max_pickups_per_type: int = 48
 

@@ -110,9 +110,16 @@ static func log_enemy_snapshot(tree: SceneTree) -> void:
 		return
 	var player := tree.get_first_node_in_group("player") as Node3D
 	var p_pos: Vector3 = player.global_position if player != null else Vector3.ZERO
+	# Hacia dónde mira y se mueve el jugador: sirve para ver si un enemigo sigue la mira.
+	var p_look: Vector3 = -player.global_basis.z if player != null else Vector3.ZERO
+	var p_body := player as CharacterBody3D
+	var p_vel: Vector3 = p_body.velocity if p_body != null else Vector3.ZERO
 	write(
 		"SNAPSHOT",
-		"player=(%.2f, %.2f, %.2f) | enemigos=%d" % [p_pos.x, p_pos.y, p_pos.z, enemies.size()]
+		(
+			"player=(%.2f, %.2f, %.2f) look=(%.2f,%.2f) vel=(%.2f,%.2f) | enemigos=%d"
+			% [p_pos.x, p_pos.y, p_pos.z, p_look.x, p_look.z, p_vel.x, p_vel.z, enemies.size()]
+		)
 	)
 	for node in enemies:
 		if not is_instance_valid(node) or not (node is Node3D):
@@ -136,6 +143,7 @@ static func log_enemy_move(
 	nav_next: Vector3,
 	nav_finished: bool,
 	dist_player: float,
+	behavior_info: String = "",
 ) -> void:
 	if not OS.is_debug_build() or enemy == null:
 		return
@@ -155,11 +163,12 @@ static func log_enemy_move(
 		"MOVE",
 		(
 			(
-				"%s | pos=(%.2f,%.2f,%.2f) vel=(%.2f,%.2f,%.2f) dir=(%.2f,%.2f)"
+				"%s | ai=%s | pos=(%.2f,%.2f,%.2f) vel=(%.2f,%.2f,%.2f) dir=(%.2f,%.2f)"
 				+ " nav=(%.2f,%.2f fin=%s) dist_p=%.2f floor=%s%s"
 			)
 			% [
 				enemy.name,
+				behavior_info if behavior_info != "" else "-",
 				pos.x,
 				pos.y,
 				pos.z,

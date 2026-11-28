@@ -13,11 +13,17 @@ func _ready() -> void:
 		push_error("DashCounter: no hay jugador en la escena")
 		return
 	_player.stamina_changed.connect(_on_stamina_changed)
+	LocalizationManager.language_changed.connect(_on_language_changed)
 	_on_stamina_changed(_player.get_charges(), _player.stats.stamina)
 
 
+func _on_language_changed(_locale: String) -> void:
+	if _player != null:
+		_on_stamina_changed(_player.get_charges(), _player.stats.stamina)
+
+
 func _on_stamina_changed(current: float, maximum: float) -> void:
-	var text: String = "Dash: %d / %d" % [floori(current), int(maximum)]
+	var text: String = LocalizationManager.tf("dash.label", [floori(current), int(maximum)])
 	if current < maximum:
 		var seconds_left: float = (
 			(floorf(current) + 1.0 - current) * _player.stats.dash_recharge_seconds

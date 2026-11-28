@@ -15,14 +15,17 @@ const MUZZLE_FLASH_DURATION: float = 0.055
 const MUZZLE_FLASH_SHADER: Shader = preload("res://assets/shaders/muzzle_flash.gdshader")
 const IMPACT_DURATION: float = 1.5
 const ENEMY_IMPACT_SCALE: float = 2.0
+## World (capa 2 = 2) | Enemy (capa 3 = 4).
+const HIT_MASK: int = 6
 const _HITSCAN_TRACER = preload("res://scripts/Weapons/hitscan_tracer.gd")
 
 ## Recursos compartidos por todos los disparos/impactos: se crean una vez, no por disparo.
 static var _muzzle_mesh: QuadMesh
 static var _muzzle_material: ShaderMaterial
 static var _impact_mesh: SphereMesh
-## Nodos de impacto libres para reutilizar (no se crean ni liberan por disparo).
-static var _impact_pool: Array[MeshInstance3D] = []
+static var _ray_query: PhysicsRayQueryParameters3D
+## Nodos de impacto libres para reutilizar (sin tipar para validar instancias tras cambio de escena).
+static var _impact_pool: Array = []
 
 @export var data: WeaponData
 @export var muzzle_offset: Vector3 = Vector3(0.15, -0.02, -0.38)
@@ -99,6 +102,11 @@ func try_ability() -> bool:
 	return false
 
 
+## Se suelta la tecla de habilidad (habilidades que se cargan). Por defecto no hace nada.
+func release_ability() -> void:
+	pass
+
+
 ## Ataca si la cadencia y el cargador lo permiten. Con el cargador vacío empieza a recargar.
 func try_attack() -> bool:
 	if _cooldown > 0.0 or is_reloading():
@@ -167,8 +175,13 @@ func _perform_attack() -> void:
 		return
 	var from: Vector3 = camera.global_position
 	var to: Vector3 = from - camera.global_basis.z * data.max_range
-	var query := PhysicsRayQueryParameters3D.create(from, to, 0xFFFFFFFF, _player_exclude())
-	var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
+	if _ray_query == null:
+		_ray_query = PhysicsRayQueryParameters3D.new()
+	_ray_query.collision_mask = HIT_MASK
+	_ray_query.from = from
+	_ray_query.to = to
+	_ray_query.exclude = _player_exclude()
+	var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(_ray_query)
 	_show_muzzle_flash()
 	_apply_fire_camera_feedback()
 	_play_base_recoil()
@@ -232,7 +245,7 @@ func _player_exclude() -> Array[RID]:
 
 ## Toma un nodo libre del pool o crea uno nuevo (solo la primera vez que hace falta).
 ## Devuelve null si no hay escena activa.
-static func _pool_take(pool: Array[MeshInstance3D], scene: Node) -> MeshInstance3D:
+static func _pool_take(pool: Array, scene: Node) -> MeshInstance3D:
 	var node: MeshInstance3D = null
 	while not pool.is_empty() and node == null:
 		var raw: Variant = pool.pop_back()
@@ -249,8 +262,11 @@ static func _pool_take(pool: Array[MeshInstance3D], scene: Node) -> MeshInstance
 	return node
 
 
-static func _pool_release(node: MeshInstance3D, pool: Array[MeshInstance3D]) -> void:
-	if is_instance_valid(node) and not pool.has(node):
+static func _pool_release(raw_node: Variant, pool: Array) -> void:
+	if not is_instance_valid(raw_node):
+		return
+	var node := raw_node as MeshInstance3D
+	if node != null and not pool.has(node):
 		node.visible = false
 		pool.append(node)
 

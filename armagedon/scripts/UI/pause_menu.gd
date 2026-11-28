@@ -19,6 +19,9 @@ const BUS_MASTER: String = "Master"
 @onready var _music_value: Label = $Root/Center/Panel/Margin/SettingsPanel/MusicRow/Value
 @onready var _sfx_slider: HSlider = $Root/Center/Panel/Margin/SettingsPanel/SfxRow/Slider
 @onready var _sfx_value: Label = $Root/Center/Panel/Margin/SettingsPanel/SfxRow/Value
+@onready var _language_option: OptionButton = (
+	$Root/Center/Panel/Margin/SettingsPanel/LanguageRow/OptionButton
+)
 
 
 func _ready() -> void:
@@ -35,6 +38,13 @@ func _ready() -> void:
 	_bind_volume_slider(_master_slider, _master_value, BUS_MASTER)
 	_bind_volume_slider(_music_slider, _music_value, AudioManager.BUS_MUSIC)
 	_bind_volume_slider(_sfx_slider, _sfx_value, AudioManager.BUS_SFX)
+
+	_language_option.clear()
+	_language_option.add_item("language.spanish", 0)
+	_language_option.add_item("language.english", 1)
+	_language_option.item_selected.connect(_on_language_selected)
+	LocalizationManager.language_changed.connect(_on_language_changed)
+	_sync_language_option()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -108,6 +118,23 @@ func _sync_sliders() -> void:
 		var vol: float = AudioManager.get_bus_volume(bus_name)
 		slider.set_value_no_signal(vol)
 		_update_percent_label(label, vol)
+	_sync_language_option()
+
+
+func _sync_language_option() -> void:
+	var is_en: bool = LocalizationManager.get_language() == LocalizationManager.LOCALE_EN
+	_language_option.select(1 if is_en else 0)
+
+
+func _on_language_selected(index: int) -> void:
+	var locale: String = (
+		LocalizationManager.LOCALE_EN if index == 1 else LocalizationManager.LOCALE_ES
+	)
+	LocalizationManager.set_language(locale)
+
+
+func _on_language_changed(_locale: String) -> void:
+	_sync_language_option()
 
 
 func _update_percent_label(label: Label, linear: float) -> void:

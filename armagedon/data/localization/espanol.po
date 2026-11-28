@@ -1,0 +1,226 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: es\n"
+
+msgid "menu.title"
+msgstr "ARMAGEDDON"
+
+msgid "menu.play"
+msgstr "JUGAR"
+
+msgid "menu.select_save"
+msgstr "SELECCIONAR PARTIDA"
+
+msgid "menu.slot_empty"
+msgstr "Partida %d - Vacía"
+
+msgid "menu.slot_filled"
+msgstr "Partida %d - Score: %d | Ronda: %d"
+
+msgid "menu.delete"
+msgstr "Borrar"
+
+msgid "menu.back"
+msgstr "Volver"
+
+msgid "menu.loading"
+msgstr "Cayendo al Infierno..."
+
+msgid "pause.title"
+msgstr "PAUSA"
+
+msgid "pause.resume"
+msgstr "Reanudar"
+
+msgid "pause.settings"
+msgstr "Configuración"
+
+msgid "pause.main_menu"
+msgstr "Salir al menú"
+
+msgid "pause.settings_title"
+msgstr "CONFIGURACIÓN"
+
+msgid "pause.master_volume"
+msgstr "Volumen general"
+
+msgid "pause.music_volume"
+msgstr "Volumen música"
+
+msgid "pause.sfx_volume"
+msgstr "Volumen efectos"
+
+msgid "pause.language"
+msgstr "Idioma"
+
+msgid "pause.back"
+msgstr "Volver"
+
+msgid "language.spanish"
+msgstr "Español"
+
+msgid "language.english"
+msgstr "English"
+
+msgid "health.label"
+msgstr "Vida: %d / %d"
+
+msgid "faith.label"
+msgstr "Fe: %d / %d"
+
+msgid "shards.label"
+msgstr "Esquirlas: %d"
+
+msgid "dash.label"
+msgstr "Dash: %d / %d"
+
+msgid "ammo.melee"
+msgstr "Arma: %s (melee)"
+
+msgid "ammo.reloading"
+msgstr "  (recargando %.1f s)"
+
+msgid "round.label"
+msgstr "Ronda: %d | %s | %02d:%02d"
+
+msgid "round.state.round"
+msgstr "RONDA"
+
+msgid "round.state.rest"
+msgstr "DESCANSO"
+
+msgid "round.state.escape"
+msgstr "ESCAPE"
+
+msgid "round.state.transition"
+msgstr "TRANSICIÓN"
+
+msgid "round.state.idle"
+msgstr "INICIO"
+
+msgid "boss.default_name"
+msgstr "JEFE"
+
+msgid "seal.prompt"
+msgstr "[F] Romper el sello"
+
+msgid "circle.0"
+msgstr "1. LIMBO"
+
+msgid "circle.1"
+msgstr "2. LUJURIA"
+
+msgid "circle.2"
+msgstr "3. GULA"
+
+msgid "circle.3"
+msgstr "4. AVARICIA Y PRODIGALIDAD"
+
+msgid "circle.4"
+msgstr "5. IRA Y PEREZA"
+
+msgid "circle.5"
+msgstr "6. HEREJÍA"
+
+msgid "circle.6"
+msgstr "7. VIOLENCIA"
+
+msgid "circle.7"
+msgstr "8. FRAUDE"
+
+msgid "circle.8"
+msgstr "9. TRAICIÓN"
+
+msgid "circle.9"
+msgstr "CASTILLO DE LUCIFER"
+
+msgid "circle.10"
+msgstr "EL VACÍO"
+
+msgid "vision.quote.1"
+msgstr "Un viento que nunca descansa arrastra a los que se dejaron arrastrar."
+
+msgid "vision.quote.2"
+msgstr "Una lluvia fría y sucia cae sin fin sobre los que nunca se saciaron."
+
+msgid "vision.quote.3"
+msgstr "Empujan rocas para siempre los que todo quisieron guardar."
+
+msgid "vision.quote.4"
+msgstr "En el pantano se muerden los furiosos; bajo el lodo suspiran los que nada hicieron."
+
+msgid "vision.quote.5"
+msgstr "Tumbas abiertas arden por los que negaron el alma."
+
+msgid "vision.quote.6"
+msgstr "Un río de sangre hierve para los que la derramaron."
+
+msgid "vision.quote.7"
+msgstr "Diez fosas guardan a los que mintieron con una sonrisa."
+
+msgid "vision.quote.8"
+msgstr "El hielo no perdona a quien traicionó la confianza."
+
+msgid "vision.quote.9"
+msgstr "Más allá del hielo espera el trono del primero que cayó."
+
+msgid "vision.quote.10"
+msgstr "No queda nada. Solo tú y la oscuridad que sigue."
+
+msgid "weapon.Pistol"
+msgstr "Pistola"
+
+msgid "weapon.Shotgun"
+msgstr "Escopeta"
+
+msgid "weapon.Sword"
+msgstr "Espada"
+
+msgid "weapon.Rifle FX-05"
+msgstr "Rifle FX-05"
+
+msgid "enemy.Demonio del Averno"
+msgstr "Demonio del Averno"
+
+msgid "enemy.Demonio Lanzallamas"
+msgstr "Demonio Lanzallamas"
+
+msgid "enemy.Demonio Escupe-creep"
+msgstr "Demonio Escupe-creep"
+
+msgid "enemy.Demonio Teletransportador"
+msgstr "Demonio Teletransportador"
+
+msgid "enemy.Esqueleto Condenado"
+msgstr "Esqueleto Condenado"
+
+msgid "enemy.Esqueleto Tirador"
+msgstr "Esqueleto Tirador"
+
+msgid "enemy.Esqueleto Kamikaze"
+msgstr "Esqueleto Kamikaze"
+
+msgid "enemy.Esqueleto Invocador"
+msgstr "Esqueleto Invocador"
+
+msgid "enemy.The Wrapped"
+msgstr "The Wrapped"
+
+msgid "enemy.The Wrapped Cargador"
+msgstr "The Wrapped Cargador"
+
+msgid "enemy.The Wrapped Blindado"
+msgstr "The Wrapped Blindado"
+
+msgid "enemy.The Wrapped Artillero"
+msgstr "The Wrapped Artillero"
+
+msgid "enemy.Jefe Demonio"
+msgstr "Jefe Demonio"
+
+msgid "enemy.Jefe Esqueleto"
+msgstr "Jefe Esqueleto"
+
+msgid "enemy.Jefe The Wrapped"
+msgstr "Jefe The Wrapped"

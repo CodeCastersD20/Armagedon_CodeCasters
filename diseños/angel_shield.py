@@ -1,4 +1,4 @@
-# Escudo angelical redondo y abombado. Blender: frente = +X, centro en z=CZ. Misma huella que Shield.glb.
+# Escudo angelical redondo y abombado. Blender: frente = +X, centro en z=CZ. Misma huella que el escudo viejo (Shield.glb, ya borrado).
 import os
 D=os.path.dirname(os.path.abspath(__file__))+'/'
 exec(open(D+'style_head.py').read()); exec(open(D+'angel_palette.py').read())

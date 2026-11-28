@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://scripts/Enemies/drop_manager.gd" id="9_dropmgr"]
 [ext_resource type="Resource" path="res://data/drop_config.tres" id="10_dropcfg"]
 [ext_resource type="Script" path="res://scripts/Shop/shard_wallet.gd" id="11_wallet"]
+[ext_resource type="Script" path="res://scripts/Rounds/circle_transition_director.gd" id="12_transition"]
 
 [node name="Main" type="Node3D" unique_id=499188323]
 
@@ -46,3 +47,6 @@ script = ExtResource("11_wallet")
 [node name="DropManager" type="Node" parent="."]
 script = ExtResource("9_dropmgr")
 config = ExtResource("10_dropcfg")
+
+[node name="CircleTransitionDirector" type="Node" parent="."]
+script = ExtResource("12_transition")

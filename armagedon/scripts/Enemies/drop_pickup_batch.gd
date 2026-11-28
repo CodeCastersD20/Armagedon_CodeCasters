@@ -6,6 +6,7 @@ signal collected(type: int, amount: float)
 
 @export var type: int = 0
 @export var spin: bool = false
+@export var visual_scale: float = 1.0
 
 var capacity: int = 0
 
@@ -31,6 +32,24 @@ func setup(p_type: int, mesh: Mesh, material: Material, p_capacity: int, p_spin:
 	_amounts.resize(capacity)
 	_ages.resize(capacity)
 	_phases.resize(capacity)
+
+
+## Cambia malla, material y giro sin perder los pickups activos.
+func set_look(mesh: Mesh, material: Material, p_spin: bool, p_scale: float) -> void:
+	spin = p_spin
+	visual_scale = maxf(p_scale, 0.01)
+	multimesh.mesh = mesh
+	material_override = material
+	for index in _count:
+		multimesh.set_instance_transform(index, _make_transform(index, false))
+
+
+## Muestra una instancia diminuta (sin contarla como pickup) para compilar el shader al cargar.
+func show_prewarm(world_pos: Vector3) -> void:
+	if _count > 0 or capacity <= 0:
+		return
+	multimesh.set_instance_transform(0, Transform3D(Basis().scaled(Vector3.ONE * 0.001), world_pos))
+	multimesh.visible_instance_count = 1
 
 
 func spawn(world_pos: Vector3, amount: float) -> void:
@@ -69,7 +88,8 @@ func step(delta: float, player_pos: Vector3, can_collect: bool, cfg: DropConfig)
 			_swap_remove(index)
 			index -= 1
 			continue
-		if dist_sq <= magnet_sq and dist_sq > 0.0001:
+		# Si no se puede recoger (barra llena), se queda en el suelo: no se pega al jugador.
+		if can_collect and dist_sq <= magnet_sq and dist_sq > 0.0001:
 			var dist: float = sqrt(dist_sq)
 			var travel: float = speed * delta
 			if travel >= dist:
@@ -94,11 +114,12 @@ func has_active() -> bool:
 func _make_transform(index: int, hidden: bool) -> Transform3D:
 	if hidden:
 		return Transform3D(Basis().scaled(Vector3.ZERO), _positions[index])
-	var basis := Basis()
+	var pickup_basis := Basis()
 	if spin:
-		basis = Basis.from_euler(Vector3(0.4, _ages[index] * 2.5, 0.0))
+		pickup_basis = Basis.from_euler(Vector3(0.0, _ages[index] * 2.5 + _phases[index], 0.0))
+	pickup_basis = pickup_basis.scaled(Vector3.ONE * visual_scale)
 	var bob: float = sin(_ages[index] * 4.0 + _phases[index]) * 0.05
-	return Transform3D(basis, _positions[index] + Vector3.UP * bob)
+	return Transform3D(pickup_basis, _positions[index] + Vector3.UP * bob)
 
 
 func _swap_remove(index: int) -> void:

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CircleTransitionConfig" format=3]
+
+[ext_resource type="Script" path="res://scripts/Rounds/Transitions/circle_transition_config.gd" id="1_cfg"]
+[ext_resource type="Script" path="res://scripts/Rounds/Transitions/circle_transition_data.gd" id="2_data"]
+[ext_resource type="Resource" path="res://data/rounds/transitions/elevator.tres" id="3_elevator"]
+[ext_resource type="Resource" path="res://data/rounds/transitions/vision.tres" id="4_vision"]
+[ext_resource type="Resource" path="res://data/rounds/transitions/gate_stairs.tres" id="5_gate"]
+[ext_resource type="Resource" path="res://data/rounds/transitions/arena_collapse.tres" id="6_collapse"]
+[ext_resource type="Resource" path="res://data/rounds/transitions/charon_boat.tres" id="7_boat"]
+
+[resource]
+script = ExtResource("1_cfg")
+enabled = true
+selected = ExtResource("3_elevator")
+options = Array[ExtResource("2_data")]([ExtResource("3_elevator"), ExtResource("5_gate"), ExtResource("6_collapse"), ExtResource("7_boat"), ExtResource("4_vision")])

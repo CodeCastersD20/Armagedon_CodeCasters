@@ -47,16 +47,14 @@ var _coyote_timer: float = 0.0
 var _god_mode: bool = false
 var _invuln_timer: float = 0.0
 var _knockback_velocity: Vector3 = Vector3.ZERO
-var _base_fov: float = 90.0
-var _dynamic_fov_offset: float = 0.0
-var _heartbeat_fov_offset: float = 0.0
-var _hit_punch: float = 0.0
-var _slam_shake_strength: float = 0.0
-var _slam_shake_time_left: float = 0.0
-var _slide_effect_intensity: float = 0.0
+## Transiciones de círculo: sin moverse (sí mirar y disparar) y sin reaparecer al caer.
+var _movement_locked: bool = false
+## Elevador: se puede caminar, pero no saltar ni esquivar (no salir de la plataforma).
+var _jump_locked: bool = false
+var _fall_respawn_suspended: bool = false
 var _stun_time_left: float = 0.0
-var _stun_effect_intensity: float = 0.0
 var _weapon_manager: WeaponManager
+var _camera_feel: PlayerCameraFeel = PlayerCameraFeel.new()
 
 @onready var _head: Node3D = $Head
 @onready var _camera: Camera3D = $Head/Camera3D
@@ -76,8 +74,7 @@ func _ready() -> void:
 	assert(_collision.shape is CapsuleShape3D, "El jugador necesita una CapsuleShape3D")
 	_stand_height = (_collision.shape as CapsuleShape3D).height
 	_head_stand_y = _head.position.y
-	if _camera != null:
-		_base_fov = _camera.fov
+	_camera_feel.setup(_head, _camera, stats, _stun_rect, _slide_lines)
 	_charges = stats.stamina
 	stamina_changed.emit(_charges, stats.stamina)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -109,7 +106,8 @@ func _physics_process(delta: float) -> void:
 	_respawn_if_fallen()
 
 	var on_floor: bool = is_on_floor()
-	var stunned: bool = _stun_time_left > 0.0
+	# El bloqueo de movimiento (transiciones) se trata como un aturdimiento sin efecto visual.
+	var stunned: bool = _stun_time_left > 0.0 or _movement_locked
 	_slide_cooldown_left = maxf(_slide_cooldown_left - delta, 0.0)
 	_slam_cooldown_left = maxf(_slam_cooldown_left - delta, 0.0)
 	if on_floor:
@@ -123,7 +121,7 @@ func _physics_process(delta: float) -> void:
 		if _dash_time_left <= 0.0 and not _slamming:
 			velocity.y -= _gravity * delta
 
-	if not stunned and Input.is_action_just_pressed("jump"):
+	if not stunned and not _jump_locked and Input.is_action_just_pressed("jump"):
 		if on_floor or _coyote_timer > 0.0:
 			if _slide_time_left > 0.0:
 				velocity.y = stats.jump_velocity * stats.slide_jump_vertical_multiplier
@@ -172,7 +170,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		_is_blocking = false
 
-	if not stunned and Input.is_action_just_pressed("dash"):
+	if not stunned and not _jump_locked and Input.is_action_just_pressed("dash"):
 		_slide_time_left = 0.0
 		_slamming = false
 		_try_dash(direction)
@@ -345,104 +343,30 @@ func _apply_horizontal_movement(delta: float, direction: Vector3, on_floor: bool
 
 
 func _update_camera_feel(delta: float, input_dir: Vector2) -> void:
-	var is_sliding: bool = _slide_time_left > 0.0
-	var target_tilt: float = (
-		-input_dir.x * deg_to_rad(stats.camera_tilt_degrees) if stats.camera_tilt_enabled else 0.0
-	)
-	if is_sliding:
-		var slide_tilt_sign: float = -signf(input_dir.x) if absf(input_dir.x) > 0.1 else 1.0
-		target_tilt += deg_to_rad(3.5) * slide_tilt_sign
-	if _stun_time_left > 0.0:
-		target_tilt += deg_to_rad(4.5) * sin(float(Time.get_ticks_msec()) * 0.025)
-	_head.rotation.z = lerpf(_head.rotation.z, target_tilt, 10.0 * delta)
-	_update_slide_visual(delta, is_sliding)
-	_update_stun_visual(delta, _stun_time_left > 0.0)
-	if _camera == null:
-		return
 	var horiz_speed: float = Vector2(velocity.x, velocity.z).length()
-	var target_fov_boost: float = 0.0
-	if _dash_time_left > 0.0:
-		target_fov_boost = stats.dash_fov_boost
-	elif is_sliding:
-		target_fov_boost = maxf(stats.speed_fov_boost, 6.0)
-	elif horiz_speed > stats.move_speed * 1.15:
-		var t: float = clampf(
-			(horiz_speed - stats.move_speed) / maxf(stats.dash_residual_speed, 1.0), 0.0, 1.0
-		)
-		target_fov_boost = stats.speed_fov_boost * t
-	var fov_rate: float = 18.0 if target_fov_boost > _dynamic_fov_offset else 7.5
-	_dynamic_fov_offset = lerpf(_dynamic_fov_offset, target_fov_boost, fov_rate * delta)
-	if _hit_punch > 0.001:
-		_hit_punch = move_toward(_hit_punch, 0.0, delta * 12.0)
-	var envelope: float = 0.0
-	if _slam_shake_time_left > 0.0:
-		envelope = clampf(_slam_shake_time_left / maxf(stats.slam_shake_duration, 0.01), 0.0, 1.0)
-		_slam_shake_time_left = maxf(_slam_shake_time_left - delta, 0.0)
-		if _slam_shake_time_left <= 0.0:
-			_slam_shake_strength = 0.0
-	var shake: float = _slam_shake_strength * envelope
-	var rotation_shake: float = deg_to_rad(stats.slam_shake_rotation_degrees) * envelope
-	var impact: float = _hit_punch + shake
-	if impact > 0.001:
-		_camera.position = Vector3(
-			randf_range(-0.06, 0.06) * impact,
-			randf_range(-0.06, 0.06) * impact - 0.04 * shake,
-			0.045 * impact
-		)
-	elif _camera.position != Vector3.ZERO:
-		_camera.position = Vector3.ZERO
-	if rotation_shake > 0.0001:
-		_camera.rotation = Vector3(
-			randf_range(-rotation_shake, rotation_shake),
-			randf_range(-rotation_shake, rotation_shake),
-			randf_range(-rotation_shake, rotation_shake) * 0.5
-		)
-	elif _camera.rotation != Vector3.ZERO:
-		_camera.rotation = Vector3.ZERO
-	_camera.fov = _base_fov + _dynamic_fov_offset + _heartbeat_fov_offset + (_hit_punch * 4.5)
-
-
-func _update_stun_visual(delta: float, is_stunned_now: bool) -> void:
-	var target: float = 1.0 if is_stunned_now else 0.0
-	var rate: float = 22.0 if is_stunned_now else 8.0
-	var next_intensity: float = move_toward(_stun_effect_intensity, target, rate * delta)
-	if is_equal_approx(next_intensity, _stun_effect_intensity):
-		return
-	_stun_effect_intensity = next_intensity
-	if _stun_rect != null and _stun_rect.material is ShaderMaterial:
-		(_stun_rect.material as ShaderMaterial).set_shader_parameter(
-			"intensity", _stun_effect_intensity
-		)
-
-
-func _update_slide_visual(delta: float, is_sliding: bool) -> void:
-	var target: float = 1.0 if is_sliding else 0.0
-	var rate: float = 18.0 if is_sliding else 10.0
-	var next_intensity: float = move_toward(_slide_effect_intensity, target, rate * delta)
-	if is_equal_approx(next_intensity, _slide_effect_intensity):
-		return
-	_slide_effect_intensity = next_intensity
-	if _slide_lines != null and _slide_lines.material is ShaderMaterial:
-		(_slide_lines.material as ShaderMaterial).set_shader_parameter(
-			"intensity", _slide_effect_intensity
-		)
+	_camera_feel.update(
+		delta,
+		input_dir,
+		horiz_speed,
+		_slide_time_left > 0.0,
+		_dash_time_left > 0.0,
+		_stun_time_left > 0.0
+	)
 
 
 ## Golpe seco de cámara estilo ULTRAKILL al conectar un hit-stop.
 func add_camera_punch(strength: float = 1.0) -> void:
-	_hit_punch = clampf(maxf(_hit_punch, strength), 0.0, 1.5)
+	_camera_feel.add_punch(strength)
 
 
 ## Sacudida breve con decaimiento lineal al impactar el ground slam.
 func _start_slam_camera_shake() -> void:
-	_slam_shake_strength = maxf(_slam_shake_strength, stats.slam_shake_strength)
-	_slam_shake_time_left = maxf(_slam_shake_time_left, stats.slam_shake_duration)
+	_camera_feel.add_shake(stats.slam_shake_strength, stats.slam_shake_duration)
 
 
 ## Sacudida de cámara externa (explosiones): `strength` como la del slam (1.0), `duration` en s.
 func add_camera_shake(strength: float, duration: float) -> void:
-	_slam_shake_strength = maxf(_slam_shake_strength, strength)
-	_slam_shake_time_left = maxf(_slam_shake_time_left, duration)
+	_camera_feel.add_shake(strength, duration)
 
 
 ## Empuje horizontal externo que decae solo (explosiones).
@@ -468,9 +392,7 @@ func is_stunned() -> bool:
 
 ## Suma un desplazamiento temporal al FOV (p. ej. latido con poca vida en GameFlow).
 func set_heartbeat_fov_offset(offset: float) -> void:
-	_heartbeat_fov_offset = offset
-	if _camera != null:
-		_camera.fov = _base_fov + _dynamic_fov_offset + _heartbeat_fov_offset
+	_camera_feel.set_heartbeat_fov_offset(offset)
 
 
 func _recharge_dash(delta: float) -> void:
@@ -485,6 +407,8 @@ func get_health() -> float:
 
 
 func set_god_mode(enabled: bool) -> void:
+	if not OS.is_debug_build():
+		return
 	_god_mode = enabled
 
 
@@ -584,12 +508,32 @@ func is_blocking() -> bool:
 
 ## Si caes fuera del mapa, vuelves al punto de inicio sin perder vida.
 func _respawn_if_fallen() -> void:
-	if global_position.y >= stats.fall_limit_y:
+	if _fall_respawn_suspended or global_position.y >= stats.fall_limit_y:
 		return
 	global_transform = _spawn_transform
 	velocity = Vector3.ZERO
 	_dash_time_left = 0.0
 	_head.rotation.x = 0.0
+
+
+## Transiciones de círculo: bloquea moverse, saltar y esquivar, pero deja mirar y disparar.
+func set_movement_locked(locked: bool) -> void:
+	_movement_locked = locked
+	if locked:
+		velocity.x = 0.0
+		velocity.z = 0.0
+		_dash_time_left = 0.0
+		_slide_time_left = 0.0
+
+
+## Elevador: caminar sí, saltar y esquivar no.
+func set_jump_locked(locked: bool) -> void:
+	_jump_locked = locked
+
+
+## Transiciones de círculo: no reaparecer en el spawn al bajar de `fall_limit_y`.
+func set_fall_respawn_suspended(suspended: bool) -> void:
+	_fall_respawn_suspended = suspended
 
 
 ## Activa o desactiva el control del jugador durante menús y cinemáticas.
@@ -607,17 +551,10 @@ func set_cinematic_mode(enabled: bool) -> void:
 		_crouch_release_required = false
 		_slamming = false
 		_slam_cooldown_left = 0.0
-		_slam_shake_strength = 0.0
-		_slam_shake_time_left = 0.0
 		_coyote_timer = 0.0
 		_is_blocking = false
 		_head.rotation.z = 0.0
-		_dynamic_fov_offset = 0.0
-		_heartbeat_fov_offset = 0.0
-		if _camera != null:
-			_camera.fov = _base_fov
-			_camera.position = Vector3.ZERO
-			_camera.rotation = Vector3.ZERO
+		_camera_feel.reset()
 	else:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
@@ -634,22 +571,23 @@ func reset_for_new_run() -> void:
 	_crouch_release_required = false
 	_slamming = false
 	_slam_cooldown_left = 0.0
-	_slam_shake_strength = 0.0
-	_slam_shake_time_left = 0.0
 	_coyote_timer = 0.0
 	_is_blocking = false
 	_invuln_timer = 0.0
 	_knockback_velocity = Vector3.ZERO
-	_dynamic_fov_offset = 0.0
-	_heartbeat_fov_offset = 0.0
+	_stun_time_left = 0.0
+	_crouching = false
+	_running = false
+	_air_jumps_left = stats.max_air_jumps
+	_movement_locked = false
+	_jump_locked = false
+	_fall_respawn_suspended = false
+	_stand_up_immediately()
 	velocity = Vector3.ZERO
 	global_transform = _spawn_transform
 	_head.position.y = _head_stand_y
 	_head.rotation = Vector3.ZERO
-	if _camera != null:
-		_camera.fov = _base_fov
-		_camera.position = Vector3.ZERO
-		_camera.rotation = Vector3.ZERO
+	_camera_feel.reset()
 	health_changed.emit(_health, stats.max_health)
 	faith_changed.emit(_faith, stats.max_faith)
 	stamina_changed.emit(_charges, stats.stamina)

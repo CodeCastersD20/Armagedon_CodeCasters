@@ -33,7 +33,11 @@ func _connect_systems() -> void:
 func _on_boss_spawned(enemy: Enemy) -> void:
 	if enemy == null or enemy.data == null:
 		return
-	var boss_name: String = enemy.data.display_name if enemy.data.display_name != "" else "JEFE"
+	var boss_name: String = (
+		LocalizationManager.t("enemy." + enemy.data.display_name, enemy.data.display_name)
+		if enemy.data.display_name != ""
+		else LocalizationManager.t("boss.default_name", "JEFE")
+	)
 	if boss_name != _last_name:
 		_last_name = boss_name
 		_name_label.text = boss_name

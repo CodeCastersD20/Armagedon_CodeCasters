@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" uid="uid://g3xkb2ao6fsg" path="res://scripts/Weapons/weapon_data.gd" id="1_wdata"]
+[ext_resource type="PackedScene" path="res://scenes/Weapons/rifle_fx05.tscn" id="2_scene"]
+[ext_resource type="AudioStream" uid="uid://cv48c7jxj7wh" path="res://assets/audio/sfx/weapons/SFX_Rifle_FX05.wav" id="3_fire"]
+[ext_resource type="AudioStream" uid="uid://0fg6goy4723b" path="res://assets/audio/sfx/weapons/SFX_Mag_Reload.wav" id="4_reload"]
+
+[resource]
+script = ExtResource("1_wdata")
+display_name = "Rifle FX-05"
+damage = 28.0
+magazine_size = 60
+reload_seconds = 3.5
+attack_interval = 0.0923
+automatic = true
+weapon_scene = ExtResource("2_scene")
+sfx_attack = ExtResource("3_fire")
+sfx_reload = ExtResource("4_reload")
+sfx_volume_db = -30.0
+recoil_kick_degrees = 3.5
+recoil_lift = 0.01
+recoil_recovery_seconds = 0.08
+camera_punch_on_fire = 0.12
+camera_shake_on_fire = 0.12
+camera_shake_duration = 0.06
+recoil_z_kick = 0.05

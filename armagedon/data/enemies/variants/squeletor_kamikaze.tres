@@ -3,6 +3,9 @@
 [ext_resource type="Script" uid="uid://c1fgbw3jtekfy" path="res://scripts/Enemies/enemy_data.gd" id="1_edata"]
 [ext_resource type="Script" uid="uid://m6k4wygx0ehg" path="res://scripts/Enemies/Abilities/ability_data.gd" id="2_abdata"]
 [ext_resource type="Script" uid="uid://cjjrnqdvr87gu" path="res://scripts/Enemies/Abilities/kamikaze.gd" id="3_ability"]
+[ext_resource type="Resource" path="res://data/enemies/drops/esqueletor.tres" id="4_drops"]
+[ext_resource type="Script" path="res://scripts/Enemies/Behaviors/behavior_data.gd" id="b_script"]
+[ext_resource type="Resource" path="res://data/enemies/behaviors/zigzag_kamikaze.tres" id="b_zigzag_kamikaze"]
 
 [sub_resource type="Resource" id="Resource_ability"]
 script = ExtResource("2_abdata")
@@ -22,3 +25,5 @@ scale_multiplier = 0.85
 ability_script = ExtResource("3_ability")
 ability = SubResource("Resource_ability")
 death_explosion_type = 1
+drops = ExtResource("4_drops")
+behaviors = Array[ExtResource("b_script")]([ExtResource("b_zigzag_kamikaze")])

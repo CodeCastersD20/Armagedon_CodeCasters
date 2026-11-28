@@ -25,7 +25,7 @@ Tablero de tarjetas: [Armagedon kanban](https://github.com/orgs/CodeCastersD20/p
 
 **Pilares**
 1. **Movimiento constante** y combate rápido.
-2. **Una arma a la vez**, intercambiable en cada descanso.
+2. **Dos huecos de arma** (solo una equipada a la vez, reemplazables en cada descanso).
 3. **Builds distintas** por la oferta aleatoria de la tienda.
 4. **Estética PSX unificada** con un shader y resolución bajos.
 5. **Alcance mínimo**: pocos sistemas, bien hechos.
@@ -58,6 +58,37 @@ Cada 10 rondas es un círculo. Al iniciar cada tramo se muestra el nombre del c�
 | 101+ | **El Vacío (Void)**: rondas infinitas hasta morir | — |
 
 **Nota de alcance:** los círculos con nombre son **[FUTURO]**. En la beta basta con numerar rondas y que cada 10 haya un jefe. Para la beta, un jefe es una versión más grande, con más vida y más daño; Lucifer sigue la misma regla.
+
+### 2.2 Transición entre círculos [EXPERIMENTO]
+
+Al vencer al jefe no se pasa de golpe al siguiente círculo; el jugador vive un momento de paso. Se diferencia de Ultrakill porque nunca se cae por un agujero: se baja o se viaja con ritmo y con el control del jugador.
+
+**Flujo:**
+1. El jefe muere: el cronómetro se para y la horda se limpia (estado `TRANSITION`).
+2. Respiro de 6 s sin enemigos para recoger los drops.
+3. Aparece el **Sello del Jefe** (un haz de luz marca dónde). El jugador lo rompe con **F**.
+4. Viaje de la opción elegida. El círculo cambia (niebla, cielo, luna y tinte de la arena) cuando el jugador no ve la arena.
+5. Llegada a la arena del nuevo círculo con el cartel del nombre, y luego descanso con el Mercader.
+
+**Opciones** (se elige una en `data/rounds/circle_transition_config.tres` → `selected`, o en el menú debug F1). Valores en `data/rounds/transitions/*.tres` (`TODO(GDD)`).
+
+| Opción | Estado | Qué pasa |
+|---|---|---|
+| **A. Elevador del Mercader** | Hecha | El sello aparece sobre la plataforma central (a ras del suelo). Bajan cadenas y la plataforma desciende por un pozo de **catacumba**: osario de huesos y cráneos, nichos, antorchas con fuego 2D, cráneos y brazos esqueléticos que se lanzan al pasar y almas que gritan. Todo se puede romper a tiros. En la plataforma se puede caminar pero no saltar ni esquivar (una pared invisible en el borde evita caer). Tras un fundido llega colgada de las cadenas sobre la arena nueva y encaja en el hueco. Se puede mirar y disparar. |
+| **E. Visión del arcángel** | Hecha | El alma del jefe entra en Zahariel y hay un destello. Visión en un vacío: el nombre del círculo, siluetas que esperan y una frase. Despierta en la arena levantándose del suelo. |
+| **B. Puerta y escalera** | Hecha | Se abre una reja en el muro sur y el jugador la cruza. Baja **a pie** por una escalera de caracol de catacumba (antorchas, cráneos que se lanzan, inscripción "Lasciate ogne speranza"). Al fondo, un umbral de luz lo devuelve a la arena nueva por la reja, que cae de golpe tras él. Si cae o se sale, vuelve al último punto seguro. Si no llega en `max_wait_seconds` (90 s), la transición sigue sola. |
+| **D. La arena se hunde** | Hecha | Con el jugador en la plataforma central, el suelo cae por anillos de fuera a dentro sobre un abismo rojo. El pilar baja por el pozo de catacumba y **emerge desde abajo** por el hueco central en la arena nueva. |
+| **C. Barca de Caronte** | Hecha | En el muro oeste se abre un paso de niebla con el farol de Caronte y el jugador lo cruza. Va de pie en la barca por un río negro entre columnas de roca: Caronte rema, salen brazos del agua, cruzan almas, hay cráneos en las rocas y el nombre del círculo asoma en la niebla. Se puede mirar y disparar. Un arco de luz en la orilla lo devuelve a la arena nueva por el mismo paso, que se cierra. |
+
+**Sonido** (sintetizado, `diseños/transition_sfx.py` → `assets/audio/sfx/transitions/*.ogg`):
+- Campana al llegar al círculo nuevo.
+- Retumbo y piedra que se agrieta.
+- Alma en pena.
+- Remo en el agua.
+
+Arte y valores de diseño editables:
+- `diseños/transition_sprites.py`: almas, sello, polvo, chispa, cadena y brazo.
+- `diseños/catacomb_art.py`: pared de osario con nichos y sprites de cráneos, brazo, antorcha, huesos y alma. Las capturas están en `diseños/out/transicion_*_preview.png`.
 
 ---
 
@@ -94,7 +125,7 @@ Inicio → cinemática de caída (8 s, omitible)
 | Mirar | Mouse |
 | Atacar / disparar | Clic izquierdo |
 | Cubrirse con el escudo | Clic derecho (mantener) |
-| Cambiar arma equipada (fuego ↔ melee) | Q o rueda del mouse |
+| Cambiar arma equipada (hueco 1 ↔ hueco 2) | Q o rueda del mouse |
 | Saltar | Espacio |
 | Dash | Shift |
 | Recargar | R |
@@ -115,7 +146,7 @@ Slide omnidireccional (`C` en el suelo mientras te mueves, `1.15 s` en `data/pla
 | Regeneración | Tras varios segundos sin recibir daño, regenera **1 HP cada 1.2 s**. Espera de **5 s** sin recibir daño antes de empezar (ajustable en QA) |
 | Estamina | 3 cargas. Cada dash consume **1 carga**; cada carga se recupera en **3 s** (ajustable en QA) |
 | Dash | Shift |
-| Armas | Una de fuego y una melee; solo una equipada. Ambas se pueden **reemplazar por otra** en cada descanso |
+| Armas | Dos huecos de cualquier tipo; solo una equipada (Q/rueda). Ambas se pueden **reemplazar por otra** en cada descanso |
 | Arma inicial | Espada + escudo |
 
 ### 5.1 Fe
@@ -130,6 +161,8 @@ Los enemigos sueltan **esferas rojas** que restauran vida.
 
 Munición **infinita**: el número de munición es el tamaño del cargador antes de recargar.
 
+**Dos huecos de arma, cualquier tipo:** el jugador lleva dos armas y solo una equipada (Q o rueda alternan). Cada hueco acepta cualquier arma: espada + escudo y una de fuego, o dos armas de fuego. Al comprar un arma en la tienda reemplaza a la que esté equipada; la anterior se pierde.
+
 ### 6.1 Cuerpo a cuerpo
 
 | Arma | Daño | Velocidad de ataque | Notas |
@@ -141,7 +174,12 @@ Munición **infinita**: el número de munición es el tamaño del cargador antes
 - **Pasivo:** mientras se lleve **equipada** la combinación espada + escudo, el daño recibido se reduce un **30%** de forma permanente (no hace falta cubrirse). Cubrirse con clic derecho sigue bloqueando todo el daño frontal. Otras espadas futuras (p. ej. espada larga) no llevarán escudo y no tendrán este pasivo. El 30% es provisional y se ajusta en QA.
 - **[FUTURO] Parry de proyectiles:** algunos proyectiles de enemigos podrán ser desviados únicamente haciendo *parry* con el escudo. **[PENDIENTE]** ventana de *parry* y proyectiles reflejables.
 
-**Habilidad única de la espada:** *Tajo a distancia* — ataque a distancia hacia adelante. Cada arma tendrá una habilidad única; por ahora solo está pensada la de la espada.
+**Habilidad única de la espada:** *La Espada en Llamas* (tecla **E**). Cada arma tendrá una habilidad única; por ahora solo está pensada la de la espada.
+- **Cargar:** mientras se mantiene E, la espada sube y la hoja se prende en fuego (llamas 2D pixel art que crecen con la carga).
+- **Soltar:** lanza una media luna de fuego hacia adelante. Es un sprite 2D que siempre mira a la cámara, así se lee igual aunque el jugador se mueva.
+- **Escala con la carga:** a más carga, más daño, más enemigos atravesados (cada uno recibe daño una vez) y más alcance. Con poca carga atraviesa a pocos enemigos y se deshace antes.
+- **Carga completa:** el alcance es infinito hasta chocar con algo sólido (piso o pared).
+- Valores provisionales en `data/weapons/sword_slash_wave.tres` (`TODO(GDD)`): carga completa 1.2 s; daño 20 → 90; atraviesa 1 → 10 enemigos; alcance 6 → 30 m (infinito a carga completa); enfriamiento 4 s.
 
 ### 6.2 Armas de fuego
 
@@ -207,7 +245,47 @@ Implementadas en `experiment/sandbox` (a validar con playtest antes de pasar a i
 Ideas del GDD original sin asignar todavía: **Francotirador de rayo rojo** (2 s de línea de vista y rayo), **Tirador de cono / aro de proyectiles** y las nuevas **Curandero de aura** (cura/buffea enemigos cercanos).
 
 - **Aparición:** cada spawn de un modelo tiene 20 % de ser una variante (si hay alguna disponible esa ronda), con máximo 4 variantes vivas.
-- **Campeones:** sistema aparte, combinable con cualquier variante. Corona flotante y aura pequeña; vida ×2.5, daño ×1.5, velocidad ×1.1, tamaño ×1.25. 5 % por spawn desde la ronda 5, máximo 2 vivos. Valores en `data/champion.tres`.
+- **Campeones:** sistema aparte, combinable con cualquier variante. Corona flotante y aura pequeña; vida ×2.5, daño ×1.5, velocidad ×1.1, tamaño ×1.25. 5 % por spawn desde la ronda 5, máximo 2 vivos. Al morir sueltan **10–20 Esquirlas extra** (en 3 pickups) además de las de su tipo. Valores en `data/champion.tres`.
+
+### 7.2 Comportamientos de enemigos (IA) [EXPERIMENTO]
+
+Los enemigos no persiguen todos en línea recta: cada tipo tiene una forma de acercarse, inspirada en los fantasmas de Pac-Man (uno persigue, otro embosca, otro flanquea, otro va y vuelve). Es IA **programada** (reglas simples por enemigo), configurable por datos y sin costo extra de pathfinding.
+
+- **Cómo funciona:** cada `EnemyData` lista uno o varios `BehaviorData` (`data/enemies/behaviors/*.tres`). Al aparecer, el enemigo **sortea uno según su peso**, así un grupo del mismo tipo se reparte en tácticas distintas. El comportamiento elige cada frame un **punto objetivo** y el enemigo navega hacia él con su `NavigationAgent3D` (mismo presupuesto de rutas de `EnemyManager`).
+- **Al alcance del golpe** el enemigo va directo y mira al jugador para atacar, salvo los que estén huyendo o retirándose.
+- **Las habilidades tienen prioridad:** mientras una habilidad controla el movimiento (aviso de disparo, embestida, teletransporte) el comportamiento se pausa.
+- **Programar uno nuevo:** crear un script que extienda `EnemyBehavior` (`scripts/Enemies/Behaviors/`) y sobrescriba `get_target_point()` (y opcionalmente `get_speed_multiplier()`, `faces_player()`, `keeps_target_when_close()` y `on_contact_attack()`); luego un `BehaviorData` que lo apunte con sus parámetros.
+
+| Patrón | Inspiración | Qué hace |
+|---|---|---|
+| **Perseguidor** | Blinky | Va directo al jugador. |
+| **Emboscador** | Pinky | Apunta a un punto por delante del jugador según hacia dónde se mueve, para cortarle el paso. Si el jugador está quieto, o el enemigo ya está a menos de esa distancia, va directo (nunca sigue la mira). |
+| **Flanqueador** | Inky | Se abre hacia un costado (lado al azar por enemigo) y entra por el lado; una vez comprometido, persigue. |
+| **Golpear y retirarse** | Clyde | Persigue; tras conectar un golpe se aleja ~1.6 s y vuelve a entrar. |
+| **Mantener distancia** | — | Si el jugador se acerca, huye en diagonal; si se aleja, se acerca; dentro de su banda se desplaza de lado mirando al jugador. |
+| **Órbita** | — | Rodea al jugador cerrando en espiral; al atacar vuelve a abrir el radio y cambia de sentido. |
+| **Zigzag** | — | Avanza serpenteando de lado a lado para ser difícil de apuntar. |
+
+| Enemigo | Comportamiento (propuesta, `TODO(GDD)`) |
+|---|---|
+| Esqueleto Condenado | 50 % Perseguidor · 50 % Flanqueador |
+| Demonio del Averno | 60 % Emboscador · 40 % Golpear y retirarse |
+| The Wrapped | 70 % Perseguidor · 30 % Emboscador (adelanta 6 m) |
+| Esqueleto Tirador | Mantener distancia (8–14 m) |
+| Esqueleto Invocador | Mantener distancia (12–18 m): se queda lejos invocando |
+| Esqueleto Kamikaze | Zigzag |
+| Demonio Lanzallamas | Emboscador (entra a menos de 4.5 m para su cono) |
+| Demonio Escupe-creep | Mantener distancia (8–12 m) |
+| Demonio Teletransportador | Órbita (radio 7 m) |
+| Wrapped Cargador | Mantener distancia (8–15 m): deja carril para la embestida |
+| Wrapped Blindado | Perseguidor (gira lento) |
+| Wrapped Artillero | Mantener distancia (10–16 m) |
+| Jefes y esqueletos invocados | Perseguidor |
+
+**Movimiento en grupo** (`data/enemies/crowd_config.tres`, `TODO(GDD)`), lo aplica `EnemyManager` a todos los enemigos a la vez, encima del comportamiento de cada uno:
+- **Separación:** dos enemigos a menos de 1.6 m se apartan; no se apilan aunque se atraviesen entre sí.
+- **No hacer fila:** si un enemigo queda detrás de otro visto desde el jugador (menos de 9°), se abre de lado para no compartir la línea de fuego. Así una ráfaga o un tajo no atraviesa a varios en hilera.
+- **Cerco:** los que van directo al jugador (perseguidor, emboscador cerca o con el jugador quieto, golpear y retirarse) reciben un ángulo repartido alrededor de él. Rodean por el arco hasta su lado y solo se cierran cuando están alineados; a menos de 3 m van directo a golpear. Mantener distancia, órbita y flanqueo ya tienen su ruta y no entran al cerco.
 
 ---
 
@@ -217,7 +295,7 @@ El Mercante aparece **40 segundos** entre rondas. Al entrar a la tienda:
 
 - **Siempre se ofrecen:** Vida y Fe.
 - **Además se sortean 4 opciones** entre armas, mejoras y habilidades.
-- Aquí también se puede **reemplazar el arma** equipada (fuego o melee).
+- Aquí también se puede **reemplazar el arma** equipada por cualquier otra (fuego o melee, en cualquiera de los dos huecos).
 
 Moneda: Esquirlas de Alma. **[PENDIENTE]** confirmar.
 
@@ -247,11 +325,11 @@ Valores base sincronizados con los recursos `.tres` de `armagedon/data/` (`upgra
 | Bola de fuego | Poder de Fe | Poder de Fe: lanza una bola de fuego que daña a los enemigos | 150 Esq. | +20 daño (costo: 25 Fe · CD: 4 s) | 3 |
 | Curación pasiva | Poder de Fe | Poder de Fe: aumenta la regeneración de vida | 150 Esq. | +2 HP/s (costo: 20 Fe · CD: 8 s) | 3 |
 | Daño extra al arma equipada | Poder de Fe | Poder de Fe: suma daño al arma que esté equipada | 150 Esq. | +15 daño (costo: 30 Fe · CD: 10 s) | 3 |
-| Tajo a distancia | Armas y Habilidades | Habilidad de espada: lanza un tajo hacia adelante que daña a distancia | 200 Esq. | Desbloqueo de habilidad | 1 |
-| Pistola | Armas y Habilidades | Reemplaza el arma de fuego equipada por la pistola | 150 Esq. | Reemplazo de arma (ver §6.2) | Reemplazable (sin límite) |
-| Escopeta | Armas y Habilidades | Reemplaza el arma de fuego equipada por la escopeta | 250 Esq. | Reemplazo de arma (ver §6.2) | Reemplazable (sin límite) |
-| Subfusil | Armas y Habilidades | Reemplaza el arma de fuego equipada por el subfusil | 250 Esq. | Reemplazo de arma (ver §6.2) | Reemplazable (sin límite) |
-| Rifle FX-05 | Armas y Habilidades | Reemplaza el arma de fuego equipada por el rifle | 350 Esq. | Reemplazo de arma (ver §6.2) | Reemplazable (sin límite) |
+| La Espada en Llamas | Armas y Habilidades | Habilidad de espada: se carga con E y lanza una media luna de fuego que atraviesa enemigos | 200 Esq. | Desbloqueo de habilidad | 1 |
+| Pistola | Armas y Habilidades | Reemplaza el arma equipada por la pistola | 150 Esq. | Reemplazo de arma (ver §6.2) | Reemplazable (sin límite) |
+| Escopeta | Armas y Habilidades | Reemplaza el arma equipada por la escopeta | 250 Esq. | Reemplazo de arma (ver §6.2) | Reemplazable (sin límite) |
+| Subfusil | Armas y Habilidades | Reemplaza el arma equipada por el subfusil | 250 Esq. | Reemplazo de arma (ver §6.2) | Reemplazable (sin límite) |
+| Rifle FX-05 | Armas y Habilidades | Reemplaza el arma equipada por el rifle | 350 Esq. | Reemplazo de arma (ver §6.2) | Reemplazable (sin límite) |
 | Habilidades de otras armas | Armas y Habilidades | Una habilidad única por arma **[FUTURO]** | **[PENDIENTE]** | Desbloqueo de habilidad **[PENDIENTE]** | 1 **[PENDIENTE]** |
 
 > **Notas de balance y economía:**
@@ -310,6 +388,7 @@ Diseñada para permitir *kiting* constante sin que el tope de 30 enemigos se tra
 - **Dimensiones:** Plataforma circular elevadora (`AnimatableBody3D`) de `5.0 m` de radio (`10.0 m` de diámetro).
 - **Comportamiento:**
   - *Durante la ronda:* A ras del suelo (`y = 0`) dejando el centro transitable.
+  - *En reposo* queda a ras del suelo (sin escalón).
   - *Durante el descanso (40 s):* Asciende `+0.5 m` revelando al Mercante Anónimo y su tienda.
 
 ## 11. Objetos y drops
@@ -335,6 +414,10 @@ Cada columna se evalúa de forma independiente al morir el enemigo (un mismo ene
 | **The Wrapped** | `100%` · **30–40 Esq.** (1 pickup agrupado) | `40%` · **1–2 esferas** (+15 a +30 Fe) | `35%` · **1–2 esferas** (+15 a +30 HP) |
 | **Jefe** (rondas 10, 20…) | `100%` · **100–150 Esq.** (agrupado en 3–5 pickups) | `100%` · **2–3 esferas** (+30 a +45 Fe) | `100%` · **2–3 esferas** (+30 a +45 HP) |
 | **Lucifer** (ronda 100) | `100%` · **300 Esq.** (agrupado en 5 pickups de 60 Esq.) | `100%` · **4 esferas** (+60 Fe) | `100%` · **4 esferas** (+60 HP) |
+
+- **Variantes con habilidad (§7.1):** sueltan lo mismo que su modelo base (p. ej. el Esqueleto Tirador, como el Esqueleto Condenado).
+- **Campeones:** además de lo de su tipo, **10–20 Esquirlas extra** repartidas en 3 pickups (`data/champion.tres`).
+- **Esqueletos invocados** por el Invocador: **no sueltan nada**, para que no se puedan farmear Esquirlas dejando vivo al Invocador.
 
 > **Coherencia económica y nota técnica:**
 > - **Rendimiento por ronda:** con una densidad típica de 15–20 bajas en rondas normales, una ronda rinde aprox. **150–300 Esq.** según la composición de enemigos (ronda 1 de solo Esqueletos ≈ 150–200 Esq.; rondas con Demonios y The Wrapped ≈ 220–300+ Esq.), alineado con los precios de `#22` (consumibles `50 Esq.`, mejoras `100–150 Esq.`, habilidades `200–250 Esq.` y armas `150–350 Esq.`). Las probabilidades moderadas de esferas de Vida y Fe sostienen el ritmo del combate sin volver innecesarios los consumibles de la tienda.
@@ -431,7 +514,7 @@ Premia la agresividad en combate (combos sin recibir daño), la eficiencia al li
 | **Jefe** (rondas 10, 20…) | `2,500` | Sí (`× combo`) | Jefe cada 10 rondas |
 | **Lucifer** (ronda 100) | `15,000` | Sí (`× combo`) | Jefe final de la ronda 100 |
 | **Ronda superada** | `500 × n.º de ronda` | No | Escala linealmente (ej. R1 = `500`, R4 = `2,000`, R10 = `5,000`) |
-| **Bono por tiempo restante** | `100 / segundo` | No | Por cada segundo sobrante al limpiar la ronda antes de los 3:30 (alineado con §3 y `round_config.gd`); además otorga `+2 Esq.` extra por cada `10 s` sobrantes |
+| **Bono de ronda por tiempo** | `1,000 × factor` (Score) / `100 × factor` (Esq.) | No | Sin límite de tiempo (§3 y `round_config.gd`): `factor = max(0.25, 90 / (90 + t))` según los segundos `t` que tardó la ronda |
 | **Fe recuperada (esfera azul)** | `15 / esfera` | No | Equivalente a `1 pt` por punto de Fe restaurado (no aplica a la recarga comprada en tienda) |
 | **Poder de Fe recuperado** | `250 / nivel` | No | Al adquirir o subir de nivel un Poder de Fe en la tienda |
 | **Golpe recibido** | `0` (sin resta) | — | **Rompe el combo** (`bajas_en_combo = 0`, multiplicador `×1.0`). Se elimina la penalización previa de `−50` para evitar puntajes negativos y centrar el castigo en perder el multiplicador |
@@ -567,11 +650,8 @@ Reglas que se aplican desde el inicio (la lista operativa vive en `AGENTS.md`, �
 3. ~~Estamina, espera de regeneración~~ (resuelto, §5).
 4. ~~Cadencias de pistola, escopeta y subfusil~~ (resuelto, §6.2; valores provisionales).
 5. Stats de jefes y Lucifer.
-6. Tabla de mejoras (precios y valores) — §8.1.
-7. ~~Multiplicador de combo, puntos de jefe/ronda/Fe, golpe recibido, rangos~~ (resuelto, §16; parámetros configurables en `armagedon/data/` para `#101–#106` y `#95`).
-8. Drops: cantidad y probabilidad.
 6. ~~Tabla de mejoras (precios y valores) — §8.1~~ (resuelto, §8.1; valores base sincronizados con `armagedon/data/`, sujetos a ajuste en QA).
-7. Multiplicador de combo, puntos de jefe/ronda/Fe, golpe recibido, rangos.
+7. ~~Multiplicador de combo, puntos de jefe/ronda/Fe, golpe recibido, rangos~~ (resuelto, §16; parámetros configurables en `armagedon/data/` para `#101–#106` y `#95`).
 8. ~~Drops: cantidad y probabilidad~~ (resuelto, §11; valores base configurables en `armagedon/data/`, sujetos a ajuste en `#64` y `#95`).
 9. Arena, boceto y storyboard.
 10. Menús (pausa, opciones, pantalla de escape).

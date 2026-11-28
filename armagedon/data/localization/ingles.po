@@ -1,0 +1,226 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: en\n"
+
+msgid "menu.title"
+msgstr "ARMAGEDDON"
+
+msgid "menu.play"
+msgstr "PLAY"
+
+msgid "menu.select_save"
+msgstr "SELECT SAVE"
+
+msgid "menu.slot_empty"
+msgstr "Slot %d - Empty"
+
+msgid "menu.slot_filled"
+msgstr "Slot %d - Score: %d | Round: %d"
+
+msgid "menu.delete"
+msgstr "Delete"
+
+msgid "menu.back"
+msgstr "Back"
+
+msgid "menu.loading"
+msgstr "Falling into Hell..."
+
+msgid "pause.title"
+msgstr "PAUSED"
+
+msgid "pause.resume"
+msgstr "Resume"
+
+msgid "pause.settings"
+msgstr "Settings"
+
+msgid "pause.main_menu"
+msgstr "Main Menu"
+
+msgid "pause.settings_title"
+msgstr "SETTINGS"
+
+msgid "pause.master_volume"
+msgstr "Master volume"
+
+msgid "pause.music_volume"
+msgstr "Music volume"
+
+msgid "pause.sfx_volume"
+msgstr "SFX volume"
+
+msgid "pause.language"
+msgstr "Language"
+
+msgid "pause.back"
+msgstr "Back"
+
+msgid "language.spanish"
+msgstr "Español"
+
+msgid "language.english"
+msgstr "English"
+
+msgid "health.label"
+msgstr "Health: %d / %d"
+
+msgid "faith.label"
+msgstr "Faith: %d / %d"
+
+msgid "shards.label"
+msgstr "Shards: %d"
+
+msgid "dash.label"
+msgstr "Dash: %d / %d"
+
+msgid "ammo.melee"
+msgstr "Weapon: %s (melee)"
+
+msgid "ammo.reloading"
+msgstr "  (reloading %.1f s)"
+
+msgid "round.label"
+msgstr "Round: %d | %s | %02d:%02d"
+
+msgid "round.state.round"
+msgstr "ROUND"
+
+msgid "round.state.rest"
+msgstr "REST"
+
+msgid "round.state.escape"
+msgstr "ESCAPE"
+
+msgid "round.state.transition"
+msgstr "TRANSITION"
+
+msgid "round.state.idle"
+msgstr "START"
+
+msgid "boss.default_name"
+msgstr "BOSS"
+
+msgid "seal.prompt"
+msgstr "[F] Break the seal"
+
+msgid "circle.0"
+msgstr "1. LIMBO"
+
+msgid "circle.1"
+msgstr "2. LUST"
+
+msgid "circle.2"
+msgstr "3. GLUTTONY"
+
+msgid "circle.3"
+msgstr "4. GREED & PRODIGALITY"
+
+msgid "circle.4"
+msgstr "5. WRATH & SLOTH"
+
+msgid "circle.5"
+msgstr "6. HERESY"
+
+msgid "circle.6"
+msgstr "7. VIOLENCE"
+
+msgid "circle.7"
+msgstr "8. FRAUD"
+
+msgid "circle.8"
+msgstr "9. TREACHERY"
+
+msgid "circle.9"
+msgstr "LUCIFER'S CASTLE"
+
+msgid "circle.10"
+msgstr "THE VOID"
+
+msgid "vision.quote.1"
+msgstr "A wind that never rests sweeps along those who let themselves be swept away."
+
+msgid "vision.quote.2"
+msgstr "A cold, filthy rain falls endlessly upon those who were never satisfied."
+
+msgid "vision.quote.3"
+msgstr "Forever pushing boulders are those who wanted to keep everything."
+
+msgid "vision.quote.4"
+msgstr "In the marsh the wrathful bite each other; beneath the mud sigh those who did nothing."
+
+msgid "vision.quote.5"
+msgstr "Open tombs burn for those who denied the soul."
+
+msgid "vision.quote.6"
+msgstr "A river of blood boils for those who shed it."
+
+msgid "vision.quote.7"
+msgstr "Ten ditches hold those who lied with a smile."
+
+msgid "vision.quote.8"
+msgstr "The ice does not forgive whoever betrayed trust."
+
+msgid "vision.quote.9"
+msgstr "Beyond the ice awaits the throne of the first to fall."
+
+msgid "vision.quote.10"
+msgstr "Nothing remains. Only you and the darkness that follows."
+
+msgid "weapon.Pistol"
+msgstr "Pistol"
+
+msgid "weapon.Shotgun"
+msgstr "Shotgun"
+
+msgid "weapon.Sword"
+msgstr "Sword"
+
+msgid "weapon.Rifle FX-05"
+msgstr "Rifle FX-05"
+
+msgid "enemy.Demonio del Averno"
+msgstr "Hell Demon"
+
+msgid "enemy.Demonio Lanzallamas"
+msgstr "Flamethrower Demon"
+
+msgid "enemy.Demonio Escupe-creep"
+msgstr "Creep-Spitter Demon"
+
+msgid "enemy.Demonio Teletransportador"
+msgstr "Teleporter Demon"
+
+msgid "enemy.Esqueleto Condenado"
+msgstr "Damned Skeleton"
+
+msgid "enemy.Esqueleto Tirador"
+msgstr "Shooter Skeleton"
+
+msgid "enemy.Esqueleto Kamikaze"
+msgstr "Kamikaze Skeleton"
+
+msgid "enemy.Esqueleto Invocador"
+msgstr "Summoner Skeleton"
+
+msgid "enemy.The Wrapped"
+msgstr "The Wrapped"
+
+msgid "enemy.The Wrapped Cargador"
+msgstr "The Wrapped Charger"
+
+msgid "enemy.The Wrapped Blindado"
+msgstr "The Wrapped Armored"
+
+msgid "enemy.The Wrapped Artillero"
+msgstr "The Wrapped Gunner"
+
+msgid "enemy.Jefe Demonio"
+msgstr "Demon Boss"
+
+msgid "enemy.Jefe Esqueleto"
+msgstr "Skeleton Boss"
+
+msgid "enemy.Jefe The Wrapped"
+msgstr "The Wrapped Boss"

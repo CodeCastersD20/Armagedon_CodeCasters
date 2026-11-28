@@ -2,9 +2,13 @@
 
 [ext_resource type="Script" uid="uid://c1fgbw3jtekfy" path="res://scripts/Enemies/enemy_data.gd" id="1_edata"]
 [ext_resource type="Resource" path="res://data/enemies/drops/esqueletor.tres" id="2_drops"]
+[ext_resource type="Script" path="res://scripts/Enemies/Behaviors/behavior_data.gd" id="b_script"]
+[ext_resource type="Resource" path="res://data/enemies/behaviors/esqueleto_chase.tres" id="b_esqueleto_chase"]
+[ext_resource type="Resource" path="res://data/enemies/behaviors/esqueleto_flank.tres" id="b_esqueleto_flank"]
 
 [resource]
 script = ExtResource("1_edata")
 display_name = "Esqueleto Condenado"
 death_explosion_type = 1
 drops = ExtResource("2_drops")
+behaviors = Array[ExtResource("b_script")]([ExtResource("b_esqueleto_chase"), ExtResource("b_esqueleto_flank")])

@@ -20,6 +20,11 @@ func _connect_round_manager() -> void:
 	_round_manager.round_started.connect(_on_round_started)
 	_round_manager.round_time_changed.connect(_on_time_changed)
 	_round_manager.rest_time_changed.connect(_on_time_changed)
+	LocalizationManager.language_changed.connect(_on_language_changed)
+	_update_text()
+
+
+func _on_language_changed(_locale: String) -> void:
 	_update_text()
 
 
@@ -55,4 +60,4 @@ func _update_text() -> void:
 	var secs: int = total % 60
 	var round_num: int = _round_manager.get_current_round()
 	var state_name: String = _round_manager.get_state_name()
-	_label.text = "Ronda: %d | %s | %02d:%02d" % [round_num, state_name, mins, secs]
+	_label.text = LocalizationManager.tf("round.label", [round_num, state_name, mins, secs])

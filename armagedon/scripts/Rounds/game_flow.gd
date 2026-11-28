@@ -6,7 +6,6 @@ extends Node
 ## - Escape (HP 0): slow-mo -> aro de luz -> flotar viendo la arena -> voltear al portal blanco
 ##   en el cielo -> salir disparado hacia él -> regreso a PlayMenu.
 
-const DAMAGE_VIGNETTE_SHADER: Shader = preload("res://assets/shaders/damage_vignette.gdshader")
 const WHITE_PORTAL_SHADER: Shader = preload("res://assets/shaders/white_portal.gdshader")
 const PLAY_MENU_SCENE_PATH: String = "res://scenes/UI/PlayMenu.tscn"
 const SKY_START_Y: float = 34.0
@@ -23,45 +22,6 @@ const ESCAPE_HALO_APPEAR_SECONDS: float = 1.00
 const ESCAPE_FLOAT_SECONDS: float = 2.60
 const ESCAPE_TURN_SECONDS: float = 0.60
 const ESCAPE_LAUNCH_SECONDS: float = 1.05
-const CIRCLE_FOG_COLORS: Array[Color] = [
-	Color(0.28, 0.28, 0.30, 1.0),  # 1-10: Limbo (gris ceniza)
-	Color(0.45, 0.05, 0.25, 1.0),  # 11-20: Lujuria
-	Color(0.16, 0.34, 0.08, 1.0),  # 21-30: Gula
-	Color(0.48, 0.28, 0.04, 1.0),  # 31-40: Avaricia y Prodigalidad
-	Color(0.55, 0.02, 0.02, 1.0),  # 41-50: Ira y Pereza
-	Color(0.55, 0.16, 0.02, 1.0),  # 51-60: Herejía
-	Color(0.38, 0.01, 0.03, 1.0),  # 61-70: Violencia
-	Color(0.26, 0.06, 0.38, 1.0),  # 71-80: Fraude
-	Color(0.08, 0.22, 0.42, 1.0),  # 81-90: Traición
-	Color(0.22, 0.01, 0.05, 1.0),  # 91-100: Castillo de Lucifer / Lucifer
-	Color(0.05, 0.02, 0.10, 1.0),  # 101+: El Vacío
-]
-const CIRCLE_NAMES: Array[String] = [
-	"1. LIMBO",
-	"2. LUJURIA",
-	"3. GULA",
-	"4. AVARICIA Y PRODIGALIDAD",
-	"5. IRA Y PEREZA",
-	"6. HEREJÍA",
-	"7. VIOLENCIA",
-	"8. FRAUDE",
-	"9. TRAICIÓN",
-	"CASTILLO DE LUCIFER",
-	"EL VACÍO",
-]
-const LOW_HP_THRESHOLD: float = 0.35
-const MOON_PHASE_TEXTURES: Array[Texture2D] = [
-	preload("res://assets/textures/moon/moon_phase_1.png"),
-	preload("res://assets/textures/moon/moon_phase_2.png"),
-	preload("res://assets/textures/moon/moon_phase_3.png"),
-	preload("res://assets/textures/moon/moon_phase_4.png"),
-	preload("res://assets/textures/moon/moon_phase_5.png"),
-	preload("res://assets/textures/moon/moon_phase_6.png"),
-	preload("res://assets/textures/moon/moon_phase_7.png"),
-	preload("res://assets/textures/moon/moon_phase_8.png"),
-]
-const MOON_LUCIFER_COLOR: Color = Color(0.95, 0.14, 0.12, 1.0)
-const MOON_NEUTRAL_COLOR: Color = Color(0.86, 0.84, 0.80, 1.0)
 
 @export_enum("Tinte Rojo", "Manchas de Sangre", "Ambos") var damage_fx_mode: int = 0
 ## Temporal para pruebas: tiñe la luna y el horizonte del cielo con el color del círculo actual.
@@ -71,9 +31,6 @@ const MOON_NEUTRAL_COLOR: Color = Color(0.86, 0.84, 0.80, 1.0)
 @export var round_manager_path: NodePath = NodePath("../RoundManager")
 
 var _world: Node3D
-var _world_env: WorldEnvironment
-var _moon_mat: ShaderMaterial
-var _moon_color: Color = MOON_NEUTRAL_COLOR
 var _hud: Node
 var _round_manager: RoundManager
 var _player: Player
@@ -90,34 +47,21 @@ var _portal_ring_inner: MeshInstance3D
 var _crater: MeshInstance3D
 var _rocks: Array[MeshInstance3D] = []
 var _fade_layer: CanvasLayer
-var _fade_rect: ColorRect
-var _circle_label: Label
-var _circle_tween: Tween
-var _current_circle_idx: int = -1
-var _damage_rect: ColorRect
-var _damage_mat: ShaderMaterial
 var _tween: Tween
 var _weapon_holder_base_y: float = -0.3
 var _shield_base_y: float = -0.26
 var _base_fov: float = 90.0
-var _hp_ratio: float = 1.0
-var _heartbeat_timer: float = 0.0
 var _entry_land_pos: Vector3 = Vector3.ZERO
 var _in_transition: bool = false
+var _slam_rock_id: int = 0
+var _atmosphere: CircleAtmosphere
+var _vignette: DamageVignette
+var _cinematic_hidden_items: Array[CanvasItem] = []
 
 
 func _ready() -> void:
 	add_to_group("game_flow")
 	_world = get_node_or_null(world_path) as Node3D
-	if _world != null:
-		_world_env = _world.get_node_or_null("WorldEnvironment") as WorldEnvironment
-		var moon := _world.get_node_or_null("LunaRoja") as MeshInstance3D
-		if moon != null:
-			_moon_mat = moon.get_active_material(0) as ShaderMaterial
-			if _moon_mat != null:
-				var initial: Variant = _moon_mat.get_shader_parameter("albedo_color")
-				if initial is Color:
-					_moon_color = initial as Color
 	_hud = get_node_or_null(hud_path)
 	_round_manager = get_node_or_null(round_manager_path) as RoundManager
 	if _world == null:
@@ -184,10 +128,8 @@ func _run_entry_cinematic() -> void:
 		_player_camera.fov = _base_fov
 		_player_camera.position = Vector3.ZERO
 		_player_camera.rotation = Vector3.ZERO
-	_hp_ratio = 1.0
-	_heartbeat_timer = 0.0
-	_update_damage_shader(0.0, 0.0)
-	_apply_circle_fog(1, true)
+	_vignette.reset()
+	_atmosphere.apply_circle_fog(1, true)
 
 	# Posición inicial en el cielo sobre el punto de spawn del jugador en la escena.
 	_player.global_position = Vector3(
@@ -213,7 +155,7 @@ func _run_entry_cinematic() -> void:
 	_streak_ring.global_position = _player.global_position + Vector3(0.0, 0.9, 0.0)
 	_streak_ring.visible = true
 	set_process(true)
-	_fade_rect.color = Color(1.0, 0.96, 0.85, 0.55)
+	_atmosphere.set_fade_immediate(Color(1.0, 0.96, 0.85, 0.55), true)
 
 	# 1. Descenso lento místico: un poder divino te baja poco a poco mientras miras la arena.
 	var release_y: float = _entry_land_pos.y + DIVINE_RELEASE_Y
@@ -236,8 +178,11 @@ func _run_entry_cinematic() -> void:
 			. tween_property(_player_head, "rotation:x", deg_to_rad(-78.0), ENTRY_DESCENT_SECONDS)
 			. set_trans(Tween.TRANS_SINE)
 		)
-	_tween.tween_property(_fade_rect, "color:a", 0.0, 1.1)
+	_tween.tween_property(_atmosphere.get_fade_rect(), "color:a", 0.0, 1.1)
 	await _tween.finished
+	if not is_inside_tree():
+		return
+	_atmosphere.set_fade_immediate(Color(1.0, 0.96, 0.85, 0.0), false)
 
 	# 2. El poder divino te suelta y caes rápido con tu propio poder.
 	_tween = create_tween().set_parallel(true)
@@ -324,8 +269,7 @@ func _run_escape_cinematic() -> void:
 	if _player_camera != null:
 		_player_camera.current = true
 		_player_camera.fov = _base_fov
-	_hp_ratio = 0.0
-	_update_damage_shader(1.0, 0.0)
+	_vignette.on_health_changed(0.0, 1.0)
 
 	# Quitar armas y escudo de la mano inmediatamente al morir.
 	if _weapon_holder != null:
@@ -449,7 +393,7 @@ func _run_escape_cinematic() -> void:
 		await _tween.finished
 
 	# 3. Salir disparado hacia el portal blanco + flash blanco al entrar.
-	_fade_rect.color = Color(1.0, 1.0, 1.0, 0.0)
+	_atmosphere.set_fade_immediate(Color(1.0, 1.0, 1.0, 0.0), true)
 	_tween = create_tween().set_ignore_time_scale(true).set_parallel(true)
 	(
 		_tween
@@ -463,7 +407,9 @@ func _run_escape_cinematic() -> void:
 		. set_trans(Tween.TRANS_EXPO)
 		. set_ease(Tween.EASE_IN)
 	)
-	_tween.tween_property(_fade_rect, "color:a", 1.0, 0.30).set_delay(ESCAPE_LAUNCH_SECONDS - 0.30)
+	_tween.tween_property(
+		_atmosphere.get_fade_rect(), "color:a", 1.0, 0.30
+	).set_delay(ESCAPE_LAUNCH_SECONDS - 0.30)
 	await _tween.finished
 
 	# 4. Restaurar tiempo, liberar mouse y volver a la pantalla Play.
@@ -620,33 +566,16 @@ func _build_fx_once() -> void:
 	var damage_layer := CanvasLayer.new()
 	damage_layer.layer = 5
 	add_child(damage_layer)
-	_damage_mat = ShaderMaterial.new()
-	_damage_mat.shader = DAMAGE_VIGNETTE_SHADER
-	_damage_mat.set_shader_parameter("mode", damage_fx_mode)
-	_damage_rect = ColorRect.new()
-	_damage_rect.material = _damage_mat
-	_damage_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_damage_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-	damage_layer.add_child(_damage_rect)
 
-	_fade_rect = ColorRect.new()
-	_fade_rect.color = Color(1.0, 1.0, 1.0, 0.0)
-	_fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_fade_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_fade_layer.add_child(_fade_rect)
+	_vignette = DamageVignette.new()
+	_vignette.name = "DamageVignette"
+	add_child(_vignette)
+	_vignette.setup(damage_layer, damage_fx_mode)
 
-	_circle_label = Label.new()
-	_circle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_circle_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	_circle_label.offset_top = 18.0
-	_circle_label.offset_bottom = 48.0
-	_circle_label.add_theme_font_size_override("font_size", 18)
-	_circle_label.add_theme_color_override("font_color", Color(0.95, 0.92, 0.84, 1.0))
-	_circle_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
-	_circle_label.add_theme_constant_override("outline_size", 4)
-	_circle_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_circle_label.visible = false
-	damage_layer.add_child(_circle_label)
+	_atmosphere = CircleAtmosphere.new()
+	_atmosphere.name = "CircleAtmosphere"
+	add_child(_atmosphere)
+	_atmosphere.setup(_world, circle_tint_moon, damage_layer, _fade_layer)
 
 
 func _prewarm_fx() -> void:
@@ -690,160 +619,101 @@ func _process(delta: float) -> void:
 			_portal_ring_inner.rotate_y(-delta * 2.2)
 			_portal_ring_inner.rotate_z(delta * 0.7)
 
-	if not _in_transition and _hp_ratio <= LOW_HP_THRESHOLD and _player_camera != null:
-		var severity: float = clampf(1.0 - (_hp_ratio / LOW_HP_THRESHOLD), 0.0, 1.0)
-		var beat_period: float = lerpf(0.95, 0.55, severity)
-		_heartbeat_timer = fmod(_heartbeat_timer + delta, beat_period)
-		var phase: float = _heartbeat_timer / beat_period
-		# Doble pulso de corazón ("lub-dub") suave en FOV y viñeta.
-		var beat1: float = exp(-pow((phase - 0.12) / 0.055, 2.0))
-		var beat2: float = exp(-pow((phase - 0.28) / 0.065, 2.0)) * 0.72
-		var pulse_val: float = clampf(beat1 + beat2, 0.0, 1.0)
-		_player.set_heartbeat_fov_offset(pulse_val * lerpf(1.2, 3.0, severity))
-		_update_damage_shader(_damage_intensity_from_hp(), pulse_val * severity)
-	elif _player != null:
-		_player.set_heartbeat_fov_offset(0.0)
+	_vignette.step_heartbeat(delta, _in_transition, _player)
 
 
 func _on_round_started(round_number: int, is_boss: bool) -> void:
-	_apply_circle_fog(round_number, false)
+	_atmosphere.apply_circle_fog(round_number, false)
 	AudioManager.on_round_started(round_number, is_boss)
 
 
-func _apply_circle_fog(round_number: int, instant: bool) -> void:
-	if _world_env == null or _world_env.environment == null:
-		return
-	var idx: int = 0
-	if round_number >= 101:
-		idx = 10
-	elif round_number >= 91:
-		idx = 9
-	else:
-		idx = clampi(floori(float(maxi(round_number, 1) - 1) / 10.0), 0, 8)
-	var target_color: Color = CIRCLE_FOG_COLORS[idx]
-	var env: Environment = _world_env.environment
-	if instant:
-		env.fog_light_color = target_color
-		_current_circle_idx = -1
-		if _circle_label != null:
-			_circle_label.visible = false
-	else:
-		var fog_tw: Tween = create_tween()
-		fog_tw.tween_property(env, "fog_light_color", target_color, 1.5)
-		if idx != _current_circle_idx:
-			_current_circle_idx = idx
-			_show_circle_banner(CIRCLE_NAMES[idx])
-	_apply_moon_for_round(round_number, idx, target_color, instant)
+## Índice del círculo (0..10) al que pertenece una ronda.
+func circle_index_for_round(round_number: int) -> int:
+	return _atmosphere.circle_index_for_round(round_number)
 
 
-func _apply_moon_for_round(
-	round_number: int, circle_idx: int, circle_color: Color, instant: bool
-) -> void:
-	var is_lucifer: bool = circle_idx == 9
-	var phase_idx: int = (
-		0 if is_lucifer else posmod(maxi(round_number, 1) - 1, MOON_PHASE_TEXTURES.size())
-	)
-	var tinted_circle: Color = Color.from_hsv(
-		circle_color.h, circle_color.s, clampf(circle_color.v + 0.45, 0.75, 1.0), 1.0
-	)
-	var target_moon_color: Color = (
-		MOON_LUCIFER_COLOR
-		if is_lucifer
-		else (tinted_circle if circle_tint_moon else MOON_NEUTRAL_COLOR)
-	)
-	if _moon_mat != null:
-		_moon_mat.set_shader_parameter("albedo_texture", MOON_PHASE_TEXTURES[phase_idx])
-		if instant:
-			_set_moon_color(target_moon_color)
+func get_circle_fog_color(circle_idx: int) -> Color:
+	return _atmosphere.get_circle_fog_color(circle_idx)
+
+
+func get_circle_name(circle_idx: int) -> String:
+	return _atmosphere.get_circle_name(circle_idx)
+
+
+## Transición de círculo: cambia al instante niebla, cielo, luna y tinte de la arena.
+func apply_circle_for_round(round_number: int, show_banner: bool) -> void:
+	_atmosphere.apply_circle_for_round(round_number, show_banner)
+
+
+func show_circle_banner_for_index(circle_idx: int) -> void:
+	_atmosphere.show_circle_banner_for_index(circle_idx)
+
+
+## Cinemáticas (transición de círculo): oculta o devuelve HUD, arma y escudo.
+func set_cinematic_view(hidden: bool) -> void:
+	if _hud != null:
+		# Los contadores son Labels bajo nodos Node: no heredan la visibilidad de su capa, así
+		# que se ocultan uno a uno y luego se devuelven solo los que estaban visibles.
+		if hidden:
+			_cinematic_hidden_items.clear()
+			for node in _hud.find_children("*", "CanvasItem", true, false):
+				var item := node as CanvasItem
+				if item.visible:
+					item.visible = false
+					_cinematic_hidden_items.append(item)
 		else:
-			create_tween().tween_method(_set_moon_color, _moon_color, target_moon_color, 1.5)
-	if circle_tint_moon and _world_env != null and _world_env.environment != null:
-		var sky := _world_env.environment.sky
-		var sky_mat := sky.sky_material as ProceduralSkyMaterial if sky != null else null
-		if sky_mat != null:
-			var horizon: Color = circle_color.darkened(0.2)
-			if instant:
-				sky_mat.sky_horizon_color = horizon
-				sky_mat.ground_horizon_color = horizon
-			else:
-				var sky_tw: Tween = create_tween()
-				sky_tw.set_parallel(true)
-				sky_tw.tween_property(sky_mat, "sky_horizon_color", horizon, 1.5)
-				sky_tw.tween_property(sky_mat, "ground_horizon_color", horizon, 1.5)
+			for item in _cinematic_hidden_items:
+				if is_instance_valid(item):
+					item.visible = true
+			_cinematic_hidden_items.clear()
+	if _weapon_holder != null:
+		_weapon_holder.visible = not hidden
+	if _shield != null:
+		var manager := get_tree().get_first_node_in_group("weapon_manager") as WeaponManager
+		var current: Weapon = manager.get_current_weapon() if manager != null else null
+		_shield.visible = not hidden and current != null and current.is_melee()
 
 
-func _set_moon_color(color: Color) -> void:
-	_moon_color = color
-	if _moon_mat != null:
-		_moon_mat.set_shader_parameter("albedo_color", color)
+## Fundido de pantalla completa (capa del portal). Devuelve el tween para poder esperarlo.
+func fade_screen(color: Color, target_alpha: float, seconds: float) -> Tween:
+	return _atmosphere.fade_screen(color, target_alpha, seconds)
 
 
-func _show_circle_banner(circle_name: String) -> void:
-	if _circle_label == null:
-		return
-	if _circle_tween != null and _circle_tween.is_running():
-		_circle_tween.kill()
-	_circle_label.text = circle_name
-	_circle_label.modulate.a = 0.0
-	_circle_label.visible = true
-	_circle_tween = create_tween()
-	_circle_tween.tween_property(_circle_label, "modulate:a", 1.0, 0.4)
-	_circle_tween.tween_interval(2.2)
-	_circle_tween.tween_property(_circle_label, "modulate:a", 0.0, 0.8)
-	_circle_tween.tween_callback(func() -> void: _circle_label.visible = false)
+func _exit_tree() -> void:
+	Engine.time_scale = 1.0
 
 
 func _on_player_slam_landed(impact_pos: Vector3) -> void:
 	if _in_transition:
 		return
+	_slam_rock_id += 1
+	var my_id: int = _slam_rock_id
 	_spawn_rocks(impact_pos)
 	await get_tree().create_timer(0.85).timeout
-	if not _in_transition:
+	if is_inside_tree() and my_id == _slam_rock_id and not _in_transition:
 		_hide_rocks()
 
 
 func _on_player_health_changed(current: float, maximum: float) -> void:
-	_hp_ratio = clampf(current / maxf(maximum, 0.01), 0.0, 1.0)
-	_update_damage_shader(_damage_intensity_from_hp(), 0.0)
+	_vignette.on_health_changed(current, maximum)
 	_update_process_state()
-
-
-func _damage_intensity_from_hp() -> float:
-	if _hp_ratio >= 0.85:
-		return 0.0
-	return clampf((0.85 - _hp_ratio) / 0.85, 0.0, 1.0)
-
-
-func _update_damage_shader(intensity: float, pulse: float) -> void:
-	if _damage_mat == null:
-		return
-	_damage_mat.set_shader_parameter("mode", damage_fx_mode)
-	_damage_mat.set_shader_parameter("intensity", intensity)
-	_damage_mat.set_shader_parameter("pulse", pulse)
 
 
 func _update_process_state() -> void:
 	var needs_streaks: bool = _streak_ring != null and _streak_ring.visible
 	var needs_portal: bool = _white_portal != null and _white_portal.visible
-	var needs_heartbeat: bool = not _in_transition and _hp_ratio <= LOW_HP_THRESHOLD
+	var needs_heartbeat: bool = _vignette.needs_heartbeat(_in_transition)
 	set_process(needs_streaks or needs_portal or needs_heartbeat)
 
 
 ## Alterna entre Tinte Rojo (0), Manchas de Sangre (1) y Ambos (2) para pruebas.
 func cycle_damage_fx_mode() -> int:
-	damage_fx_mode = (damage_fx_mode + 1) % 3
-	_update_damage_shader(_damage_intensity_from_hp(), 0.0)
+	damage_fx_mode = _vignette.cycle_mode()
 	return damage_fx_mode
 
 
 func get_damage_fx_mode_name() -> String:
-	match damage_fx_mode:
-		0:
-			return "Tinte"
-		1:
-			return "Sangre"
-		_:
-			return "Ambos"
+	return _vignette.get_mode_name()
 
 
 func _hide_rocks() -> void:
@@ -870,11 +740,11 @@ func _kill_tween() -> void:
 
 ## Reproduce la animación de entrada desde el menú de depuración.
 func debug_replay_entry() -> void:
-	if _player == null:
+	if not OS.is_debug_build() or _player == null:
 		return
 	Engine.time_scale = 1.0
 	_hide_all_fx()
-	_fade_rect.color.a = 0.0
+	_atmosphere.set_fade_immediate(Color(1.0, 1.0, 1.0, 0.0), false)
 	if _round_manager != null:
 		_round_manager.reset_to_idle()
 	_run_entry_cinematic()
@@ -882,9 +752,9 @@ func debug_replay_entry() -> void:
 
 ## Reproduce la animación de escape/muerte desde el menú de depuración.
 func debug_replay_escape() -> void:
-	if _player == null:
+	if not OS.is_debug_build() or _player == null:
 		return
 	Engine.time_scale = 1.0
 	_hide_all_fx()
-	_fade_rect.color.a = 0.0
+	_atmosphere.set_fade_immediate(Color(1.0, 1.0, 1.0, 0.0), false)
 	_run_escape_cinematic()

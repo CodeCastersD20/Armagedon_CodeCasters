@@ -2,6 +2,9 @@
 
 [ext_resource type="Script" uid="uid://c1fgbw3jtekfy" path="res://scripts/Enemies/enemy_data.gd" id="1_edata"]
 [ext_resource type="Resource" path="res://data/enemies/drops/demonio.tres" id="2_drops"]
+[ext_resource type="Script" path="res://scripts/Enemies/Behaviors/behavior_data.gd" id="b_script"]
+[ext_resource type="Resource" path="res://data/enemies/behaviors/demonio_ambush.tres" id="b_demonio_ambush"]
+[ext_resource type="Resource" path="res://data/enemies/behaviors/demonio_hit_and_run.tres" id="b_demonio_hit_and_run"]
 
 [resource]
 script = ExtResource("1_edata")
@@ -13,3 +16,4 @@ contact_range = 1.84
 contact_hit_delay_seconds = 0.4
 damage_number_height = 2.41
 drops = ExtResource("2_drops")
+behaviors = Array[ExtResource("b_script")]([ExtResource("b_demonio_ambush"), ExtResource("b_demonio_hit_and_run")])

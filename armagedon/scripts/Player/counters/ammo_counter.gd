@@ -17,15 +17,18 @@ func _process(_delta: float) -> void:
 	var weapon: Weapon = _manager.get_current_weapon()
 	if weapon == null:
 		return
+	var weapon_name: String = LocalizationManager.t(
+		"weapon." + weapon.data.display_name, weapon.data.display_name
+	)
 	if not weapon.uses_magazine():
-		var melee_text: String = "Arma: %s (melee)" % weapon.data.display_name
+		var melee_text: String = LocalizationManager.tf("ammo.melee", [weapon_name])
 		if _label.text != melee_text:
 			_label.text = melee_text
 		return
 	var text: String = (
-		"%s: %d / %d" % [weapon.data.display_name, weapon.get_ammo(), weapon.data.magazine_size]
+		"%s: %d / %d" % [weapon_name, weapon.get_ammo(), weapon.data.magazine_size]
 	)
 	if weapon.is_reloading():
-		text += "  (recargando %.1f s)" % weapon.get_reload_seconds_left()
+		text += LocalizationManager.tf("ammo.reloading", [weapon.get_reload_seconds_left()])
 	if _label.text != text:
 		_label.text = text

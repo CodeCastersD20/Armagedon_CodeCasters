@@ -1,6 +1,7 @@
 class_name WeaponManager
 extends Node3D
-## Lleva un arma de fuego y una melee; solo una equipada. Q o rueda del mouse alternan.
+## Dos huecos de arma de cualquier tipo (fuego o melee: p. ej. dos armas de fuego, o espada y
+## escudo + pistola); solo una equipada. Q o rueda del mouse alternan. GDD §6.
 
 signal weapon_changed(weapon: Weapon)
 signal ammo_changed(current: int, magazine: int)
@@ -11,20 +12,15 @@ const SWITCH_DROP_SECONDS: float = 0.07
 const SWITCH_DRAW_SECONDS: float = 0.16
 const SWITCH_OFFSET: Vector3 = Vector3(0.06, -0.34, 0.08)
 const SWITCH_ROTATION_DEG: Vector3 = Vector3(-26.0, 8.0, -12.0)
+const SLOT_COUNT: int = 2
 
-@export var fire_data: WeaponData
-@export var melee_data: WeaponData
-## Tercera arma provisional (solo para verla; se cambia con Q/rueda).
-@export var extra_data: WeaponData
-## Cuarta arma provisional (solo para verla).
-@export var extra2_data: WeaponData
-## GDD §5: el arma inicial es espada + escudo.
-@export var start_with_melee: bool = true
+## Armas iniciales de cada hueco (GDD §5: espada + escudo y pistola).
+@export var slot_1_data: WeaponData
+@export var slot_2_data: WeaponData
+## Hueco equipado al empezar (0 = primero). GDD §5: se empieza con espada + escudo.
+@export_range(0, 1) var start_slot: int = 0
 
-var _fire: Weapon
-var _melee: Weapon
-var _extra: Weapon
-var _extra2: Weapon
+var _slots: Array[Weapon] = [null, null]
 var _current: Weapon
 var _player: Player
 var _switch_tween: Tween
@@ -33,12 +29,10 @@ var _switch_id: int = 0
 
 func _ready() -> void:
 	add_to_group("weapon_manager")
-	_fire = _spawn(fire_data)
-	_melee = _spawn(melee_data)
-	_extra = _spawn(extra_data)
-	_extra2 = _spawn(extra2_data)
-	var first: Weapon = _melee if start_with_melee else _fire
-	_equip(first if first != null else (_fire if _melee == null else _melee))
+	_slots[0] = _spawn(slot_1_data)
+	_slots[1] = _spawn(slot_2_data)
+	var first: Weapon = _slots[clampi(start_slot, 0, SLOT_COUNT - 1)]
+	_equip(first if first != null else (_slots[0] if _slots[0] != null else _slots[1]))
 	_prewarm_inactive.call_deferred()
 
 
@@ -51,6 +45,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_current.try_attack()
 	elif event.is_action_pressed("ability") and _can_attack():
 		_current.try_ability()
+	elif event.is_action_released("ability") and _current != null:
+		_current.release_ability()
 
 
 func _process(_delta: float) -> void:
@@ -73,9 +69,21 @@ func get_current_weapon() -> Weapon:
 	return _current
 
 
+## WeaponData del arma del hueco `slot` (0 o 1), o null si está vacío.
+func get_slot_data(slot: int) -> WeaponData:
+	if slot < 0 or slot >= SLOT_COUNT or _slots[slot] == null:
+		return null
+	return _slots[slot].data
+
+
+## Hueco (0 o 1) del arma equipada, o -1 si no hay.
+func get_current_slot() -> int:
+	return _slots.find(_current) if _current != null else -1
+
+
 func switch_weapon() -> void:
 	var order: Array[Weapon] = []
-	for weapon: Weapon in [_fire, _melee, _extra, _extra2]:
+	for weapon: Weapon in _slots:
 		if weapon != null:
 			order.append(weapon)
 	if order.size() < 2:
@@ -138,20 +146,26 @@ func _animate_draw() -> void:
 	)
 
 
-## Reemplaza el arma del mismo tipo (tienda en el descanso).
-func replace_weapon(data: WeaponData) -> void:
+## Reemplaza el arma de un hueco por otra de cualquier tipo (tienda en el descanso).
+## `slot` = -1 reemplaza la equipada. La anterior se elimina.
+func replace_weapon(data: WeaponData, slot: int = -1) -> void:
 	if data == null:
 		push_error("replace_weapon recibió WeaponData nulo")
 		return
-	var is_fire: bool = data.kind == WeaponData.Kind.FIRE
-	var old: Weapon = _fire if is_fire else _melee
+	if slot < 0:
+		slot = maxi(get_current_slot(), 0)
+	if slot >= SLOT_COUNT:
+		push_error("replace_weapon: hueco %d inválido" % slot)
+		return
+	_switch_id += 1
+	if _switch_tween != null and _switch_tween.is_valid():
+		_switch_tween.kill()
+	var old: Weapon = _slots[slot]
 	var new_weapon: Weapon = _spawn(data)
-	if is_fire:
-		_fire = new_weapon
-	else:
-		_melee = new_weapon
+	_slots[slot] = new_weapon
 	var was_equipped: bool = _current == null or _current == old
 	if old != null:
+		old.cancel_reload()
 		if old == _current:
 			_current = null
 		old.queue_free()
@@ -199,10 +213,12 @@ func _equip(weapon: Weapon) -> void:
 ## uso en pleno combate.
 func _prewarm_inactive() -> void:
 	DamageNumber.prewarm(get_tree())
-	for weapon: Weapon in [_fire, _melee]:
+	EnemyGib.prewarm(get_tree())
+	DropManager.prewarm(get_tree())
+	for weapon: Weapon in _slots:
 		if weapon != null:
 			weapon.prewarm()
-	var other: Weapon = _melee if _current == _fire else _fire
+	var other: Weapon = _slots[1] if _current == _slots[0] else _slots[0]
 	if other == null or other == _current:
 		return
 	other.visible = true

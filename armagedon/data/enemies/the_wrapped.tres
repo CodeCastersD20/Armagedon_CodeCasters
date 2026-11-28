@@ -2,6 +2,9 @@
 
 [ext_resource type="Script" uid="uid://c1fgbw3jtekfy" path="res://scripts/Enemies/enemy_data.gd" id="1_edata"]
 [ext_resource type="Resource" path="res://data/enemies/drops/the_wrapped.tres" id="2_drops"]
+[ext_resource type="Script" path="res://scripts/Enemies/Behaviors/behavior_data.gd" id="b_script"]
+[ext_resource type="Resource" path="res://data/enemies/behaviors/wrapped_chase.tres" id="b_wrapped_chase"]
+[ext_resource type="Resource" path="res://data/enemies/behaviors/wrapped_ambush.tres" id="b_wrapped_ambush"]
 
 [resource]
 script = ExtResource("1_edata")
@@ -13,3 +16,4 @@ contact_range = 2.0
 contact_hit_delay_seconds = 0.45
 damage_number_height = 2.4
 drops = ExtResource("2_drops")
+behaviors = Array[ExtResource("b_script")]([ExtResource("b_wrapped_chase"), ExtResource("b_wrapped_ambush")])

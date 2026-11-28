@@ -20,6 +20,9 @@ const HIT_KNOCKBACK_DECAY: float = 24.0
 const _ENEMY_MANAGER = preload("res://scripts/Enemies/enemy_manager.gd")
 const _BONE_PIECE := preload("res://scripts/Enemies/bone_piece.gd")
 const _ENEMY_GIB := preload("res://scripts/Enemies/enemy_gib.gd")
+const _CROWD_CONFIG: CrowdConfig = preload("res://data/enemies/crowd_config.tres")
+## Cerco: cuánto ángulo (radianes) avanza por el arco hacia su hueco en cada punto objetivo.
+const SURROUND_ARC_STEP: float = 0.8
 const _DROP_MANAGER := preload("res://scripts/Enemies/drop_manager.gd")
 
 static var _hit_stop_id: int = 0
@@ -39,6 +42,8 @@ var damage_scale: float = 1.0
 var speed_scale: float = 1.0
 var visual_scale: float = 1.0
 var contact_cooldown_scale: float = 1.0
+## false = no suelta drops al morir (mini esqueletos invocados, para no farmear Esquirlas).
+var drops_enabled: bool = true
 ## Velocidad de giro en rad/s (0 = instantáneo). La usa el blindado frontal.
 var turn_speed: float = 0.0
 ## Multiplicador temporal de la velocidad de animación (lo usan habilidades como la embestida).
@@ -58,11 +63,18 @@ var _dead: bool = false
 var _spawn_position: Vector3 = Vector3.ZERO
 var _avoid_center_hole: bool = false
 var _abilities: Array[EnemyAbility] = []
+var _behavior: EnemyBehavior
 var _flash_meshes: Array[MeshInstance3D] = []
 var _hit_flash_timer: float = 0.0
 var _hit_knockback: Vector3 = Vector3.ZERO
 var _step_delta: float = 0.016
 var _move_log_timer: float = 0.0
+## Último punto objetivo del comportamiento (solo para el log de depuración).
+var _debug_target: Vector3 = Vector3.ZERO
+## Movimiento en grupo (lo rellena EnemyManager cada frame, ver CrowdConfig).
+var _crowd_separation: Vector3 = Vector3.ZERO
+var _surround_angle: float = 0.0
+var _has_surround_slot: bool = false
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var _nav_agent: NavigationAgent3D = get_node_or_null("NavigationAgent3D")
@@ -92,6 +104,7 @@ func _ready() -> void:
 		damage_scale *= champion_data.damage_multiplier
 		speed_scale *= champion_data.speed_multiplier
 	_setup_ability()
+	_setup_behavior()
 	apply_round_scaling(start_round)
 	_health = _max_health
 	health_changed.emit(_health, _max_health)
@@ -166,12 +179,27 @@ func step_physics(delta: float, player_node: Node3D, allow_nav: bool = true) -> 
 			if distance > 0.001:
 				_look_toward_direction(to_player)
 		else:
-			var move_dir: Vector3 = _get_navigation_direction(to_player, distance, allow_nav)
+			var target: Vector3 = _apply_surround(_get_behavior_target(delta, distance), distance)
+			_debug_target = target
+			var to_target: Vector3 = target - global_position
+			to_target.y = 0.0
+			var move_dir: Vector3 = _get_navigation_direction(
+				to_target, to_target.length(), target, allow_nav
+			)
+			if _crowd_separation != Vector3.ZERO and move_dir != Vector3.ZERO:
+				move_dir = (move_dir + _crowd_separation).normalized()
 			if _avoid_center_hole:
 				move_dir = _steer_around_center_hole(move_dir)
-			velocity.x = move_dir.x * _move_speed
-			velocity.z = move_dir.z * _move_speed
-			if move_dir.length_squared() > 0.0001:
+			var speed: float = _move_speed
+			if _behavior != null:
+				speed *= _behavior.get_speed_multiplier()
+			velocity.x = move_dir.x * speed
+			velocity.z = move_dir.z * speed
+			var close: bool = distance <= data.contact_range * 1.5
+			if (_behavior != null and _behavior.faces_player()) or close:
+				if distance > 0.001:
+					_look_toward_direction(to_player)
+			elif move_dir.length_squared() > 0.0001:
 				_look_toward_direction(move_dir)
 			elif distance > 0.001:
 				_look_toward_direction(to_player)
@@ -203,6 +231,7 @@ func step_physics(delta: float, player_node: Node3D, allow_nav: bool = true) -> 
 					nav_next,
 					nav_fin,
 					dist_p,
+					_get_behavior_debug_info(),
 				)
 			)
 
@@ -272,10 +301,62 @@ func _setup_ability() -> void:
 
 
 ## Multiplicador de daño actual respecto al base (ronda + variante), para escalar habilidades.
+## Sortea un comportamiento de data.behaviors según su peso (vacío = persigue directo).
+func _setup_behavior() -> void:
+	if data == null or data.behaviors.is_empty():
+		return
+	var total: float = 0.0
+	for entry: BehaviorData in data.behaviors:
+		if entry != null:
+			total += maxf(entry.weight, 0.0)
+	if total <= 0.0:
+		return
+	var roll: float = randf() * total
+	var chosen: BehaviorData = null
+	for entry: BehaviorData in data.behaviors:
+		if entry == null:
+			continue
+		roll -= maxf(entry.weight, 0.0)
+		if roll <= 0.0:
+			chosen = entry
+			break
+	if chosen == null or chosen.behavior_script == null:
+		push_error("BehaviorData sin behavior_script en %s" % name)
+		return
+	var behavior := chosen.behavior_script.new() as EnemyBehavior
+	if behavior == null:
+		push_error("behavior_script no extiende EnemyBehavior en %s" % name)
+		return
+	behavior.setup(self, chosen)
+	_behavior = behavior
+
+
 func get_damage_multiplier() -> float:
 	if data == null:
 		return 1.0
 	return _contact_damage / maxf(data.contact_damage, 0.01)
+
+
+## EnemyManager: empuje para apartarse de los enemigos cercanos (ya ponderado).
+func set_crowd_separation(push: Vector3) -> void:
+	_crowd_separation = push
+
+
+## EnemyManager: ángulo (radianes, plano XZ alrededor del jugador) por el que debe llegar.
+func set_surround_slot(angle: float) -> void:
+	_surround_angle = angle
+	_has_surround_slot = true
+
+
+func clear_surround_slot() -> void:
+	_has_surround_slot = false
+
+
+## true si este enemigo debe repartirse en el cerco (va directo al jugador y no tiene ruta propia).
+func wants_surround() -> bool:
+	if _dead:
+		return false
+	return _behavior == null or _behavior.allows_surround()
 
 
 func get_player() -> Node3D:
@@ -295,11 +376,12 @@ func trigger_ability_attack_anim(_duration: float = 0.45) -> void:
 	pass
 
 
-func take_damage(amount: float, is_critical: bool = false) -> void:
+## `ignore_armor` = atraviesa blindajes como el frontal del Blindado (La Espada en Llamas).
+func take_damage(amount: float, is_critical: bool = false, ignore_armor: bool = false) -> void:
 	if _dead or amount <= 0.0 or data == null:
 		return
 	for ability in _abilities:
-		amount = ability.modify_damage(amount)
+		amount = ability.modify_damage(amount, ignore_armor)
 	if amount <= 0.0:
 		return
 	_health = maxf(_health - amount, 0.0)
@@ -415,17 +497,71 @@ func is_dead() -> bool:
 	return _dead
 
 
+## Punto al que va el enemigo: lo decide su comportamiento (GDD §7.2). Al alcance del golpe
+## va directo al jugador, salvo que la táctica sea alejarse (huir o retirarse).
+## "comportamiento/modo tgt=(x,z) tgt_p=distancia del objetivo al jugador" para el log MOVE.
+func _get_behavior_debug_info() -> String:
+	var behavior_name: String = _behavior.get_debug_name() if _behavior != null else "none"
+	var mode: String = _behavior.debug_mode if _behavior != null else "chase"
+	var target_to_player: float = (
+		_debug_target.distance_to(_player.global_position)
+		if _player != null and is_instance_valid(_player)
+		else -1.0
+	)
+	return (
+		"%s/%s tgt=(%.2f,%.2f) tgt_p=%.2f"
+		% [behavior_name, mode, _debug_target.x, _debug_target.z, target_to_player]
+	)
+
+
+## Si el comportamiento va directo al jugador y este enemigo tiene hueco en el cerco, en vez de
+## ir a su posición rodea por el arco hacia su ángulo (como mucho `SURROUND_ARC_STEP` por delante)
+## y solo se acerca cuando ya está alineado: así llegan por lados distintos y no en fila.
+## A menos de `surround_engage_distance` va directo a golpear.
+func _apply_surround(target: Vector3, distance: float) -> Vector3:
+	if not _has_surround_slot or not _CROWD_CONFIG.surround_enabled:
+		return target
+	var player_pos: Vector3 = _player.global_position
+	if distance <= _CROWD_CONFIG.surround_engage_distance:
+		return target
+	var flat_gap := Vector2(target.x - player_pos.x, target.z - player_pos.z)
+	if flat_gap.length_squared() > 0.01:
+		return target
+	var current: float = atan2(global_position.z - player_pos.z, global_position.x - player_pos.x)
+	var error: float = angle_difference(current, _surround_angle)
+	var step: float = clampf(error, -SURROUND_ARC_STEP, SURROUND_ARC_STEP)
+	# Alineado = se cierra del todo; muy desviado = casi solo rodea.
+	var closing: float = clampf(1.0 - absf(error) / (PI * 0.5), 0.2, 1.0)
+	var radius: float = maxf(
+		distance - _CROWD_CONFIG.surround_ring_offset * closing,
+		_CROWD_CONFIG.surround_engage_distance
+	)
+	var angle: float = current + step
+	return player_pos + Vector3(cos(angle), 0.0, sin(angle)) * radius
+
+
+func _get_behavior_target(delta: float, distance: float) -> Vector3:
+	if _behavior == null:
+		return _player.global_position
+	var target: Vector3 = _behavior.get_target_point(delta, _player)
+	if distance <= data.contact_range * 1.5 and not _behavior.keeps_target_when_close():
+		return _player.global_position
+	return target
+
+
+## Dirección hacia `target`: directa si está cerca; si no, la ruta del NavigationAgent3D
+## (recalculada cada NAV_UPDATE_INTERVAL y según el presupuesto de EnemyManager).
 func _get_navigation_direction(
-	to_player: Vector3, distance: float, allow_nav: bool = true
+	to_target: Vector3, distance: float, target: Vector3, allow_nav: bool = true
 ) -> Vector3:
 	if distance <= 0.001:
 		return Vector3.ZERO
-	var fallback_dir: Vector3 = to_player / distance
-	if distance < 4.0 or _nav_agent == null or _player == null or not is_instance_valid(_player):
+	var fallback_dir: Vector3 = to_target / distance
+	if distance < 4.0 or _nav_agent == null:
 		return fallback_dir
 	if allow_nav and _nav_timer <= 0.0:
 		_nav_timer = NAV_UPDATE_INTERVAL
-		_nav_agent.target_position = _player.global_position
+		_nav_agent.target_position = target
 		if _nav_agent.is_navigation_finished():
 			_cached_nav_dir = fallback_dir
 		else:
@@ -477,6 +613,8 @@ func _try_contact_damage(distance: float) -> void:
 	if _player.has_method("take_damage"):
 		_player.call("take_damage", _contact_damage, global_position)
 		_contact_timer = data.contact_cooldown * maxf(contact_cooldown_scale, 0.01)
+		if _behavior != null:
+			_behavior.on_contact_attack()
 
 
 func _look_toward_direction(direction: Vector3) -> void:
@@ -498,7 +636,8 @@ func _die() -> void:
 		return
 	_dead = true
 	died.emit(self)
-	_DROP_MANAGER.spawn_from(get_tree(), global_position, data)
+	if drops_enabled:
+		_DROP_MANAGER.spawn_from(get_tree(), global_position, data, champion_data)
 	if data != null:
 		var burst_origin: Vector3 = global_position + Vector3.UP * (data.damage_number_height * 0.5)
 		if data.death_explosion_type == EnemyData.DeathExplosionType.BONES:
@@ -511,7 +650,8 @@ func _die() -> void:
 					get_tree(),
 					burst_origin,
 					18,
-					[Color(0.86, 0.82, 0.70), Color(0.85, 0.06, 0.06)],
+					[Color(0.86, 0.82, 0.70)] as Array[Color],
+					_ENEMY_GIB.Style.BONES,
 				)
 			)
 		elif data.death_gib_count > 0:

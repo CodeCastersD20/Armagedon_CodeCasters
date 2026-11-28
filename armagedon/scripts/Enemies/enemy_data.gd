@@ -51,6 +51,11 @@ enum DeathExplosionType { BLOOD, BONES }
 @export var ability_script: Script
 @export var ability: AbilityData
 
+@export_group("Behavior")
+## Comportamientos de movimiento (GDD §7.2). Al aparecer se sortea uno según su `weight`.
+## Vacío = persigue directo al jugador.
+@export var behaviors: Array[BehaviorData] = []
+
 @export_group("Death Explosion")
 ## Tipo de explosión al morir (sangre para demonios, piezas óseas para esqueletos).
 @export var death_explosion_type: DeathExplosionType = DeathExplosionType.BLOOD

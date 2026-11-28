@@ -24,7 +24,8 @@ func step(_delta: float, _player: Node3D) -> bool:
 
 
 ## Filtra el daño recibido (blindado frontal). Devolver 0 anula el golpe.
-func modify_damage(amount: float) -> float:
+## `ignore_armor` = el golpe atraviesa blindajes (p. ej. La Espada en Llamas).
+func modify_damage(amount: float, _ignore_armor: bool = false) -> float:
 	return amount
 
 

@@ -17,6 +17,7 @@ var _alive: Array = []
 var _round: int = 0
 var _active: bool = false
 var _pending: int = 0
+var _round_token: int = 0
 var _avoid_center_hole: bool = false
 
 
@@ -37,6 +38,7 @@ func _connect_round_manager() -> void:
 	_round_manager.round_started.connect(_on_round_started)
 	_round_manager.rest_started.connect(_on_round_over)
 	_round_manager.escape_started.connect(_on_round_over)
+	_round_manager.transition_started.connect(_on_round_over)
 	_round_manager.state_changed.connect(_on_state_changed)
 	var scene: Node = get_tree().current_scene
 	_avoid_center_hole = scene != null and scene.find_child("HuecoCentral", true, false) != null
@@ -66,6 +68,7 @@ func _on_state_changed(new_state: RoundManager.State, _old_state: RoundManager.S
 
 
 func _clear_horde() -> void:
+	_round_token += 1
 	_pending = 0
 	for raw in _alive:
 		if is_instance_valid(raw) and not (raw as Enemy).is_dead():
@@ -106,8 +109,12 @@ func _spawn_one() -> void:
 		enemy.data = variant.data
 	if _should_be_champion():
 		enemy.champion_data = config.champion
+	var scene: Node = get_tree().current_scene
+	if scene == null:
+		enemy.queue_free()
+		return
 	enemy.died.connect(_on_enemy_died)
-	get_tree().current_scene.add_child(enemy)
+	scene.add_child(enemy)
 	enemy.set_spawn_position(_pick_spawn_position())
 	DebugLogger.log_spawn("HordeSpawner", enemy, enemy.global_position, _round)
 	_alive.append(enemy)
@@ -220,8 +227,11 @@ func _on_enemy_died(enemy: Node) -> void:
 	_alive.erase(enemy)
 	if not _active:
 		return
+	var token: int = _round_token
 	_pending += 1
 	await get_tree().create_timer(config.respawn_delay).timeout
+	if token != _round_token:
+		return
 	_pending = maxi(_pending - 1, 0)
 	if _active and is_inside_tree():
 		_spawn_one()

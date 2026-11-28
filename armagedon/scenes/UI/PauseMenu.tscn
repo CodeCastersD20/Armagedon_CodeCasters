@@ -63,23 +63,23 @@ theme_override_constants/separation = 12
 [node name="Title" type="Label" parent="Root/Center/Panel/Margin/MainPanel"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
-text = "PAUSA"
+text = "pause.title"
 horizontal_alignment = 1
 
 [node name="ResumeButton" type="Button" parent="Root/Center/Panel/Margin/MainPanel"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-text = "Reanudar"
+text = "pause.resume"
 
 [node name="SettingsButton" type="Button" parent="Root/Center/Panel/Margin/MainPanel"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-text = "Configuración"
+text = "pause.settings"
 
 [node name="MenuButton" type="Button" parent="Root/Center/Panel/Margin/MainPanel"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-text = "Salir al menú"
+text = "pause.main_menu"
 
 [node name="SettingsPanel" type="VBoxContainer" parent="Root/Center/Panel/Margin"]
 visible = false
@@ -89,7 +89,7 @@ theme_override_constants/separation = 14
 [node name="Title" type="Label" parent="Root/Center/Panel/Margin/SettingsPanel"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "CONFIGURACIÓN"
+text = "pause.settings_title"
 horizontal_alignment = 1
 
 [node name="MasterRow" type="HBoxContainer" parent="Root/Center/Panel/Margin/SettingsPanel"]
@@ -99,7 +99,7 @@ theme_override_constants/separation = 10
 [node name="Label" type="Label" parent="Root/Center/Panel/Margin/SettingsPanel/MasterRow"]
 custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
-text = "Volumen general"
+text = "pause.master_volume"
 
 [node name="Slider" type="HSlider" parent="Root/Center/Panel/Margin/SettingsPanel/MasterRow"]
 layout_mode = 2
@@ -122,7 +122,7 @@ theme_override_constants/separation = 10
 [node name="Label" type="Label" parent="Root/Center/Panel/Margin/SettingsPanel/MusicRow"]
 custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
-text = "Volumen música"
+text = "pause.music_volume"
 
 [node name="Slider" type="HSlider" parent="Root/Center/Panel/Margin/SettingsPanel/MusicRow"]
 layout_mode = 2
@@ -145,7 +145,7 @@ theme_override_constants/separation = 10
 [node name="Label" type="Label" parent="Root/Center/Panel/Margin/SettingsPanel/SfxRow"]
 custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
-text = "Volumen efectos"
+text = "pause.sfx_volume"
 
 [node name="Slider" type="HSlider" parent="Root/Center/Panel/Margin/SettingsPanel/SfxRow"]
 layout_mode = 2
@@ -161,7 +161,20 @@ layout_mode = 2
 text = "100%"
 horizontal_alignment = 2
 
+[node name="LanguageRow" type="HBoxContainer" parent="Root/Center/Panel/Margin/SettingsPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="Root/Center/Panel/Margin/SettingsPanel/LanguageRow"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+text = "pause.language"
+
+[node name="OptionButton" type="OptionButton" parent="Root/Center/Panel/Margin/SettingsPanel/LanguageRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
 [node name="BackButton" type="Button" parent="Root/Center/Panel/Margin/SettingsPanel"]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-text = "Volver"
+text = "pause.back"

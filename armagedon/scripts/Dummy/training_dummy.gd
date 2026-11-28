@@ -14,7 +14,7 @@ func _ready() -> void:
 	PsxStyle.apply(self)
 
 
-func take_damage(amount: float, is_critical: bool = false) -> void:
+func take_damage(amount: float, is_critical: bool = false, _ignore_armor: bool = false) -> void:
 	is_critical = is_critical or randf() < debug_crit_chance
 	var offset := Vector3(
 		randf_range(-number_spread, number_spread), 0.0, randf_range(-number_spread, number_spread)

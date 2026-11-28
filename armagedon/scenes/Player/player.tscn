@@ -8,8 +8,6 @@
 [ext_resource type="Script" uid="uid://cujw4666a0c1f" path="res://scripts/Weapons/weapon_manager.gd" id="5_uiqp4"]
 [ext_resource type="Resource" uid="uid://bgk1r21ac0jqu" path="res://data/weapons/pistol.tres" id="6_pistol"]
 [ext_resource type="Resource" uid="uid://7txwl60gdnn2" path="res://data/weapons/sword.tres" id="7_sword"]
-[ext_resource type="Resource" path="res://data/weapons/shotgun.tres" id="99_shotgun"]
-[ext_resource type="Resource" path="res://data/weapons/heavy_mg.tres" id="98_heavymg"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/angel_shield/AngelShield.glb" id="9_wwtew"]
 [ext_resource type="AudioStreamWAV" path="res://assets/audio/sfx/weapons/SFX_Shield_Block.wav" id="10_block"]
 [ext_resource type="Script" uid="uid://cj3txvpmxs7du" path="res://scripts/Debug/debug_view.gd" id="25_debugview"]
@@ -54,10 +52,8 @@ bob_stats = ExtResource("4_bobstats")
 
 [node name="WeaponManager" type="Node3D" parent="Head/Camera3D/WeaponHolder" unique_id=292174088]
 script = ExtResource("5_uiqp4")
-fire_data = ExtResource("6_pistol")
-melee_data = ExtResource("7_sword")
-extra_data = ExtResource("99_shotgun")
-extra2_data = ExtResource("98_heavymg")
+slot_1_data = ExtResource("7_sword")
+slot_2_data = ExtResource("6_pistol")
 
 [node name="Shield" type="Node3D" parent="Head/Camera3D" unique_id=1989403883]
 script = ExtResource("5_shield")

@@ -1,6 +1,7 @@
 class_name RoundManager
 extends Node
 ## Máquina de estados del bucle de partida: ronda -> descanso -> siguiente ronda -> escape.
+## Tras vencer al jefe: ronda -> transición de círculo -> descanso (GDD §2.2).
 ## Punto único de verdad de la ronda actual y su cronómetro ascendente (GDD §3, §16).
 
 signal state_changed(new_state: State, old_state: State)
@@ -11,8 +12,9 @@ signal rest_time_changed(remaining_seconds: float)
 signal rest_started(round_number: int)
 signal rest_ended(round_number: int)
 signal escape_started(round_number: int)
+signal transition_started(round_number: int)
 
-enum State { IDLE, ROUND, REST, ESCAPE }
+enum State { IDLE, ROUND, REST, ESCAPE, TRANSITION }
 
 @export var config: RoundConfig
 @export var auto_start: bool = false
@@ -62,7 +64,7 @@ func start_game() -> void:
 
 
 func end_round(elapsed_override: float = -1.0) -> void:
-	if current_state != State.ROUND:
+	if current_state != State.ROUND and current_state != State.TRANSITION:
 		return
 	var elapsed: float = _round_elapsed if elapsed_override < 0.0 else maxf(elapsed_override, 0.0)
 	var rewards: Dictionary = calculate_round_rewards(elapsed)
@@ -85,6 +87,19 @@ func start_next_round() -> void:
 	round_time_changed.emit(_round_elapsed)
 
 
+## Pasa a la transición de círculo (tras vencer al jefe). El cronómetro se detiene y la horda
+## se limpia; al terminar, CircleTransitionDirector llama a end_round() para ir al descanso.
+## `force` permite empezarla desde el descanso (menú debug).
+func begin_transition(force: bool = false) -> bool:
+	var allowed: bool = current_state == State.ROUND or (force and current_state == State.REST)
+	if not allowed:
+		return false
+	_rest_time_left = 0.0
+	_set_state(State.TRANSITION)
+	transition_started.emit(current_round)
+	return true
+
+
 func trigger_escape() -> void:
 	if current_state == State.ESCAPE or current_state == State.IDLE:
 		return
@@ -100,13 +115,15 @@ func get_state() -> State:
 func get_state_name() -> String:
 	match current_state:
 		State.ROUND:
-			return "RONDA"
+			return LocalizationManager.t("round.state.round", "RONDA")
 		State.REST:
-			return "DESCANSO"
+			return LocalizationManager.t("round.state.rest", "DESCANSO")
 		State.ESCAPE:
-			return "ESCAPE"
+			return LocalizationManager.t("round.state.escape", "ESCAPE")
+		State.TRANSITION:
+			return LocalizationManager.t("round.state.transition", "TRANSICIÓN")
 		_:
-			return "INICIO"
+			return LocalizationManager.t("round.state.idle", "INICIO")
 
 
 func get_current_round() -> int:
@@ -147,6 +164,8 @@ func is_boss_round(round_number: int = -1) -> bool:
 
 
 func debug_next_round() -> void:
+	if not OS.is_debug_build():
+		return
 	if current_state == State.ROUND:
 		end_round(_round_elapsed)
 	elif current_state == State.REST:

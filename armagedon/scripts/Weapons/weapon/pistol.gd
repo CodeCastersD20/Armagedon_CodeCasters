@@ -73,8 +73,11 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	super._process(delta)
 	_update_overheat(delta)
+	var player_ref := _player_body as Player
+	var stunned: bool = player_ref != null and player_ref.is_stunned()
 	var wants_charge: bool = (
 		is_ricochet_enabled()
+		and not stunned
 		and _ricochet_heat < MAX_RICOCHET_HEAT
 		and Input.is_action_pressed("block")
 		and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
@@ -154,6 +157,7 @@ func _try_fire_ricochet() -> void:
 	position.z = RECOIL_Z * RICOCHET_RECOIL_MULT
 	_fire_ricochet_shot()
 	attacked.emit()
+	_play_sfx(data.sfx_attack)
 	_play_sky_flick_recoil()
 	var player := _player_body as Player
 	if player != null:
@@ -195,10 +199,13 @@ func _fire_ricochet_shot() -> void:
 	var exclude: Array[RID] = _player_exclude()
 	var cam_origin: Vector3 = camera.global_position
 	var cam_dir: Vector3 = -camera.global_basis.z.normalized()
-	var aim_query := PhysicsRayQueryParameters3D.create(
-		cam_origin, cam_origin + cam_dir * data.max_range, 0xFFFFFFFF, exclude
-	)
-	var aim_hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(aim_query)
+	if _ray_query == null:
+		_ray_query = PhysicsRayQueryParameters3D.new()
+	_ray_query.collision_mask = HIT_MASK
+	_ray_query.from = cam_origin
+	_ray_query.to = cam_origin + cam_dir * data.max_range
+	_ray_query.exclude = exclude
+	var aim_hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(_ray_query)
 	var target_pos: Vector3 = (
 		aim_hit["position"] if not aim_hit.is_empty() else cam_origin + cam_dir * data.max_range
 	)
@@ -408,6 +415,8 @@ func cancel_reload() -> void:
 		_pose_tween.kill()
 	_anim.stop()
 	_stop_charge_immediately()
+	if _overheat_particles != null:
+		_overheat_particles.emitting = false
 	position.y = _base_y
 
 

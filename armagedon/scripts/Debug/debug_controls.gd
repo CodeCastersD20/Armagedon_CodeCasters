@@ -15,15 +15,17 @@ const BOSS_ENTRIES: Array[Dictionary] = [
 	{"label": "Jefe Demonio", "scene": preload("res://scenes/Enemies/JefeDemonio.tscn")},
 	{"label": "Jefe Wrapped", "scene": preload("res://scenes/Enemies/JefeWrapped.tscn")},
 ]
-const SHIELD_MODELS: Array[Dictionary] = [
-	{
-		"label": "Escudo Clásico",
-		"scene": preload("res://assets/models/weapons/psx_weapons/Shield.glb"),
-	},
-	{
-		"label": "Escudo Angelical",
-		"scene": preload("res://assets/models/weapons/angel_shield/AngelShield.glb"),
-	},
+## Armas para los dos huecos (cualquier tipo en cualquier hueco; solo una equipada).
+const SLOT_WEAPONS: Array[Dictionary] = [
+	{"label": "Espada+Escudo", "data": preload("res://data/weapons/sword.tres")},
+	{"label": "Pistola", "data": preload("res://data/weapons/pistol.tres")},
+	{"label": "Escopeta", "data": preload("res://data/weapons/shotgun.tres")},
+	{"label": "Rifle FX-05", "data": preload("res://data/weapons/rifle_fx05.tres")},
+]
+const PICKUP_VISUALS: Array[Dictionary] = [
+	{"label": "Drops Clásicos", "visual": DropConfig.PickupVisual.CLASSIC},
+	{"label": "Drops 3D", "visual": DropConfig.PickupVisual.MODEL_3D},
+	{"label": "Drops 2D", "visual": DropConfig.PickupVisual.SPRITE_2D},
 ]
 const SUMMON_COLUMNS: int = 2
 const PANEL_WIDTH: float = 560.0
@@ -42,7 +44,11 @@ var _replay_entry_btn: Button
 var _replay_escape_btn: Button
 var _time_buttons: Dictionary = {}
 var _champion_toggle: CheckButton
-var _shield_buttons: Array[Button] = []
+var _pickup_buttons: Array[Button] = []
+var _transition_buttons: Array[Button] = []
+var _transition_status: Label
+## Por hueco: un botón por cada arma de SLOT_WEAPONS.
+var _weapon_buttons: Array[Array] = []
 
 var _is_open: bool = false
 var _previous_mouse_mode: Input.MouseMode = Input.MOUSE_MODE_CAPTURED
@@ -208,8 +214,12 @@ func _build_ui() -> void:
 	vbox.add_child(spawn_row)
 	var spawn_one := _add_action_button(spawn_row, "Spawn +1", _on_spawn_enemies_pressed.bind(1))
 	spawn_one.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var spawn_five := _add_action_button(spawn_row, "x5", _on_spawn_enemies_pressed.bind(5))
-	spawn_five.custom_minimum_size = Vector2(36.0, 0.0)
+	for batch in [5, 10]:
+		var spawn_batch := _add_action_button(
+			spawn_row, "x%d" % batch, _on_spawn_random_pressed.bind(batch)
+		)
+		spawn_batch.custom_minimum_size = Vector2(36.0, 0.0)
+		spawn_batch.tooltip_text = "Tanda aleatoria de enemigos normales y variantes (sin jefes)"
 	var kill_btn := _add_action_button(spawn_row, "Matar todos", _on_kill_all_pressed)
 	kill_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
@@ -231,7 +241,9 @@ func _build_ui() -> void:
 	_add_shards_btn = _add_action_button(game_row, "+1000 Esq.", _on_add_shards_pressed)
 	_add_shards_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-	_build_shield_section(vbox)
+	_build_weapon_section(vbox)
+	_build_transition_section(vbox)
+	_build_pickup_section(vbox)
 
 	_add_action_button(vbox, "Cerrar (F1)", _toggle_menu)
 
@@ -316,11 +328,22 @@ func _refresh_ui() -> void:
 	_replay_entry_btn.disabled = game_flow == null
 	_replay_escape_btn.disabled = game_flow == null
 
-	var shield := _find_shield()
-	var shield_path: String = shield.get_model_path() if shield != null else ""
-	for i in range(_shield_buttons.size()):
-		var scene: PackedScene = SHIELD_MODELS[i]["scene"]
-		_shield_buttons[i].disabled = shield == null or scene.resource_path == shield_path
+	var weapon_manager := _find_weapon_manager()
+	for slot in range(_weapon_buttons.size()):
+		var slot_data: WeaponData = (
+			weapon_manager.get_slot_data(slot) if weapon_manager != null else null
+		)
+		var row: Array = _weapon_buttons[slot]
+		for i in range(row.size()):
+			(row[i] as Button).disabled = (
+				weapon_manager == null or SLOT_WEAPONS[i]["data"] == slot_data
+			)
+
+	_refresh_transition_section()
+
+	var pickup_visual: DropConfig.PickupVisual = DropManager.get_visual(get_tree())
+	for i in range(_pickup_buttons.size()):
+		_pickup_buttons[i].disabled = PICKUP_VISUALS[i]["visual"] == pickup_visual
 
 	var enemy_count: int = get_tree().get_nodes_in_group("enemies").size()
 	_status_label.text = (
@@ -396,9 +419,37 @@ func _on_spawn_enemies_pressed(count: int) -> void:
 	_spawn_enemies(SQUELETOR_SCENE, null, count)
 
 
+## Tanda aleatoria: cada enemigo se sortea entre todos los tipos y variantes de `HORDE_CONFIG`
+## (los jefes no están ahí).
+func _on_spawn_random_pressed(count: int) -> void:
+	var pool: Array[Array] = []
+	for entry in HORDE_CONFIG.entries:
+		if entry == null or entry.scene == null:
+			continue
+		pool.append([entry.scene, null])
+		for variant in entry.variants:
+			if variant != null and variant.data != null:
+				pool.append([entry.scene, variant.data])
+	if pool.is_empty():
+		return
+	var picks: Array[Array] = []
+	for _i in count:
+		picks.append(pool.pick_random())
+	_spawn_enemy_list(picks)
+
+
 ## Instancia `count` enemigos delante del jugador. `data` (opcional) sustituye el EnemyData de la
 ## escena (variantes); el interruptor "Como Campeón" les asigna `champion_data`.
 func _spawn_enemies(scene: PackedScene, data: EnemyData, count: int) -> void:
+	var picks: Array[Array] = []
+	for _i in count:
+		picks.append([scene, data])
+	_spawn_enemy_list(picks)
+
+
+## Instancia cada `[escena, EnemyData o null]` de `picks` en fila delante del jugador.
+func _spawn_enemy_list(picks: Array[Array]) -> void:
+	var count: int = picks.size()
 	var scene_root: Node = get_tree().current_scene
 	if scene_root == null:
 		return
@@ -425,6 +476,8 @@ func _spawn_enemies(scene: PackedScene, data: EnemyData, count: int) -> void:
 	var round_number: int = round_mgr.get_current_round() if round_mgr != null else 0
 	var half: float = float(count - 1) * 0.5
 	for i in count:
+		var scene: PackedScene = picks[i][0]
+		var data: EnemyData = picks[i][1]
 		var enemy := scene.instantiate() as Enemy
 		if enemy == null:
 			push_error("DebugControls: la escena no es un Enemy")
@@ -490,27 +543,124 @@ func _on_add_shards_pressed() -> void:
 		economy.call("add_shards", DEBUG_SHARDS)
 
 
-func _build_shield_section(vbox: VBoxContainer) -> void:
-	var shield_row := HBoxContainer.new()
-	shield_row.add_theme_constant_override("separation", 3)
-	vbox.add_child(shield_row)
-	for i in range(SHIELD_MODELS.size()):
+func _build_pickup_section(vbox: VBoxContainer) -> void:
+	var pickup_row := HBoxContainer.new()
+	pickup_row.add_theme_constant_override("separation", 3)
+	vbox.add_child(pickup_row)
+	for i in range(PICKUP_VISUALS.size()):
 		var btn := _add_action_button(
-			shield_row, SHIELD_MODELS[i]["label"], _on_shield_model_pressed.bind(i)
+			pickup_row, PICKUP_VISUALS[i]["label"], _on_pickup_visual_pressed.bind(i)
 		)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_shield_buttons.append(btn)
+		_pickup_buttons.append(btn)
 
 
-func _find_shield() -> Shield:
-	_resolve_player()
-	if _player == null:
-		return null
-	return _player.find_child("Shield", true, false) as Shield
+func _on_pickup_visual_pressed(index: int) -> void:
+	DropManager.set_visual(get_tree(), PICKUP_VISUALS[index]["visual"])
+	_refresh_ui()
 
 
-func _on_shield_model_pressed(index: int) -> void:
-	var shield := _find_shield()
-	if shield != null:
-		shield.set_model(SHIELD_MODELS[index]["scene"])
+## Reemplaza el arma de fuego por otra (la anterior se elimina), como en la tienda del descanso.
+## Cambia el arma de cada hueco por cualquier otra (la anterior se elimina), como en la tienda.
+func _build_weapon_section(vbox: VBoxContainer) -> void:
+	var header := Label.new()
+	header.text = "Armas (2 huecos, cualquier tipo)"
+	vbox.add_child(header)
+	for slot in range(WeaponManager.SLOT_COUNT):
+		var weapon_row := HBoxContainer.new()
+		weapon_row.add_theme_constant_override("separation", 3)
+		vbox.add_child(weapon_row)
+		var slot_label := Label.new()
+		slot_label.text = "%d:" % (slot + 1)
+		weapon_row.add_child(slot_label)
+		var row: Array[Button] = []
+		for i in range(SLOT_WEAPONS.size()):
+			var btn := _add_action_button(
+				weapon_row, SLOT_WEAPONS[i]["label"], _on_slot_weapon_pressed.bind(slot, i)
+			)
+			btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			btn.clip_text = true
+			btn.tooltip_text = "Hueco %d: %s" % [slot + 1, SLOT_WEAPONS[i]["label"]]
+			row.append(btn)
+		_weapon_buttons.append(row)
+
+
+func _find_weapon_manager() -> WeaponManager:
+	return get_tree().get_first_node_in_group("weapon_manager") as WeaponManager
+
+
+func _on_slot_weapon_pressed(slot: int, index: int) -> void:
+	var weapon_manager := _find_weapon_manager()
+	if weapon_manager != null:
+		weapon_manager.replace_weapon(SLOT_WEAPONS[index]["data"], slot)
+	_refresh_ui()
+
+
+## Transición de círculo (GDD §2.2): elegir opción, probarla ya o matar al jefe vivo.
+func _build_transition_section(vbox: VBoxContainer) -> void:
+	_transition_status = Label.new()
+	_transition_status.text = "Transición de círculo"
+	vbox.add_child(_transition_status)
+	var director := _find_transition_director()
+	var options_row := HFlowContainer.new()
+	options_row.add_theme_constant_override("h_separation", 3)
+	options_row.add_theme_constant_override("v_separation", 3)
+	vbox.add_child(options_row)
+	var config: CircleTransitionConfig = (
+		director.config if director != null else CircleTransitionDirector.DEFAULT_CONFIG
+	)
+	for data in config.options:
+		if data == null:
+			continue
+		var btn := _add_action_button(
+			options_row, data.display_name, _on_transition_option_pressed.bind(data)
+		)
+		btn.set_meta("transition_data", data)
+		_transition_buttons.append(btn)
+	var action_row := HBoxContainer.new()
+	action_row.add_theme_constant_override("separation", 3)
+	vbox.add_child(action_row)
+	var test_btn := _add_action_button(
+		action_row, "Probar transición ahora", _on_transition_test_pressed
+	)
+	test_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var kill_boss_btn := _add_action_button(action_row, "Matar jefe", _on_kill_boss_pressed)
+	kill_boss_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+
+func _refresh_transition_section() -> void:
+	var director := _find_transition_director()
+	var selected: CircleTransitionData = director.get_selected() if director != null else null
+	for btn in _transition_buttons:
+		btn.disabled = director == null or btn.get_meta("transition_data") == selected
+	if _transition_status != null:
+		var state: String = "en curso" if director != null and director.is_active() else "lista"
+		_transition_status.text = "Transición de círculo (%s)" % state
+
+
+func _find_transition_director() -> CircleTransitionDirector:
+	return (
+		get_tree().get_first_node_in_group("circle_transition_director") as CircleTransitionDirector
+	)
+
+
+func _on_transition_option_pressed(data: CircleTransitionData) -> void:
+	var director := _find_transition_director()
+	if director != null:
+		director.set_selected(data)
+	_refresh_ui()
+
+
+func _on_transition_test_pressed() -> void:
+	var director := _find_transition_director()
+	if director != null:
+		_toggle_menu()
+		director.debug_start_now()
+
+
+func _on_kill_boss_pressed() -> void:
+	for node in get_tree().get_nodes_in_group("enemies"):
+		var enemy := node as Enemy
+		if enemy != null and enemy.get_parent() is BossSpawner and not enemy.is_dead():
+			enemy.take_damage(999999.0, false, true)
 	_refresh_ui()

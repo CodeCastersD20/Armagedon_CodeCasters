@@ -40,13 +40,13 @@ theme_override_constants/separation = 14
 
 [node name="Title" type="Label" parent="Center/VBox"]
 layout_mode = 2
-text = "ARMAGEDDON"
+text = "menu.title"
 horizontal_alignment = 1
 
 [node name="PlayButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(220, 52)
 layout_mode = 2
-text = "PLAY"
+text = "menu.play"
 
 [node name="SlotCenter" type="CenterContainer" parent="."]
 visible = false
@@ -65,7 +65,7 @@ theme_override_constants/separation = 10
 [node name="Title" type="Label" parent="SlotCenter/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "SELECCIONAR PARTIDA"
+text = "menu.select_save"
 horizontal_alignment = 1
 
 [node name="Slot1Row" type="HBoxContainer" parent="SlotCenter/VBox"]
@@ -81,7 +81,7 @@ text = "Partida 1 - Vacía"
 [node name="DeleteButton" type="Button" parent="SlotCenter/VBox/Slot1Row"]
 custom_minimum_size = Vector2(72, 44)
 layout_mode = 2
-text = "Borrar"
+text = "menu.delete"
 
 [node name="Slot2Row" type="HBoxContainer" parent="SlotCenter/VBox"]
 layout_mode = 2
@@ -96,7 +96,7 @@ text = "Partida 2 - Vacía"
 [node name="DeleteButton" type="Button" parent="SlotCenter/VBox/Slot2Row"]
 custom_minimum_size = Vector2(72, 44)
 layout_mode = 2
-text = "Borrar"
+text = "menu.delete"
 
 [node name="Slot3Row" type="HBoxContainer" parent="SlotCenter/VBox"]
 layout_mode = 2
@@ -111,12 +111,12 @@ text = "Partida 3 - Vacía"
 [node name="DeleteButton" type="Button" parent="SlotCenter/VBox/Slot3Row"]
 custom_minimum_size = Vector2(72, 44)
 layout_mode = 2
-text = "Borrar"
+text = "menu.delete"
 
 [node name="BackButton" type="Button" parent="SlotCenter/VBox"]
 custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
-text = "Volver"
+text = "menu.back"
 
 [node name="LoadingOverlay" type="Control" parent="."]
 visible = false
@@ -148,5 +148,5 @@ offset_top = -36.0
 offset_bottom = -12.0
 grow_horizontal = 2
 grow_vertical = 0
-text = "Cayendo al Infierno..."
+text = "menu.loading"
 horizontal_alignment = 1

@@ -30,9 +30,9 @@ const COLOR: Color = Color(0.45, 0.27, 0.12)
 @export var grip_offset: Vector3 = Vector3(0.02, 0.06, 0.0)
 ## Pon true si el frente del escudo queda hacia ti en vez de hacia afuera.
 @export var grip_flip_front: bool = false
-## Escala del modelo en la mano. Shield.glb mide 1.55 m de alto; con 0.35 queda de ~0.55 m.
+## Escala del modelo en la mano. AngelShield.glb mide ~1.55 m de alto; con 0.35 queda de ~0.55 m.
 @export_range(0.05, 1.0, 0.01) var model_scale: float = 0.35
-## Centro del modelo Shield.glb (dónde queda el asa).
+## Centro del modelo AngelShield.glb (dónde queda el asa).
 @export var model_grip_center: Vector3 = Vector3(-0.031, 0.378, 0.0)
 
 ## SFX al bloquear un golpe frontal (GDD §14: SFX_Shield_Block).
@@ -62,31 +62,6 @@ func _ready() -> void:
 		_apply_weapon_visibility(manager.get_current_weapon(), false)
 	else:
 		visible = false
-
-
-## Cambia el modelo visible del escudo (p. ej. desde el menú debug). Conserva el transform del
-## modelo actual, así que el nuevo debe tener la misma huella (alto ~1.55 m, frente hacia +X).
-func set_model(scene: PackedScene) -> void:
-	if scene == null:
-		push_error("Shield.set_model recibió una escena nula")
-		return
-	var new_model := scene.instantiate() as Node3D
-	if new_model == null:
-		push_error("Shield.set_model: la raíz de la escena no es Node3D")
-		return
-	if _model != null:
-		new_model.transform = _model.transform
-		remove_child(_model)
-		_model.queue_free()
-	new_model.name = "Shield2"
-	add_child(new_model)
-	PsxStyle.apply(new_model)
-	_model = new_model
-
-
-## Ruta de la escena del modelo actual ("" si es la malla provisional).
-func get_model_path() -> String:
-	return _model.scene_file_path if _model != null else ""
 
 
 func _process(delta: float) -> void:

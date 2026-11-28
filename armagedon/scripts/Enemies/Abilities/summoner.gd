@@ -39,6 +39,7 @@ func step(delta: float, player: Node3D) -> bool:
 		mini_enemy.speed_scale = cfg.summon_speed_factor
 		mini_enemy.visual_scale = cfg.summon_scale
 		mini_enemy.contact_cooldown_scale = cfg.summon_attack_cooldown_factor
+		mini_enemy.drops_enabled = false
 		parent.add_child(mini_enemy)
 		_minis.append(mini_enemy)
 		mini_enemy.add_to_group("summoned")

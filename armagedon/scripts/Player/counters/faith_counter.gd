@@ -11,10 +11,16 @@ func _ready() -> void:
 		push_error("FaithCounter: no hay jugador en la escena")
 		return
 	_player.faith_changed.connect(_on_faith_changed)
+	LocalizationManager.language_changed.connect(_on_language_changed)
 	_on_faith_changed(_player.get_faith(), _player.stats.max_faith)
 
 
+func _on_language_changed(_locale: String) -> void:
+	if _player != null:
+		_on_faith_changed(_player.get_faith(), _player.stats.max_faith)
+
+
 func _on_faith_changed(current: float, maximum: float) -> void:
-	var text: String = "Fe: %d / %d" % [floori(current), int(maximum)]
+	var text: String = LocalizationManager.tf("faith.label", [floori(current), int(maximum)])
 	if _label.text != text:
 		_label.text = text

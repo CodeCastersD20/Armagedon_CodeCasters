@@ -1,6 +1,6 @@
 # AGENTS.md — Armageddon
 
-Guía para agentes de IA (Claude Code, OpenCode, Codex, Cursor, etc.) y para el equipo. Este archivo es la fuente única; `CLAUDE.md` solo lo importa.
+Guía para agentes de IA (Claude Code, Gemini/Antigravity, OpenCode, Codex, Cursor, etc.) y para el equipo. Este archivo es la fuente única; `CLAUDE.md` y `GEMINI.md` solo lo importan. Solo se puede ignorar o cambiar una regla de este archivo si el usuario lo solicita explícitamente conociendo los cambios.
 
 ## Logs de depuración locales (para agentes e IA)
 - **Ubicación:** `armagedon/logs/debug.log` (gitignorado en `armagedon/.gitignore`, **no se sube al repo**).
@@ -12,13 +12,13 @@ Guía para agentes de IA (Claude Code, OpenCode, Codex, Cursor, etc.) y para el 
 Armageddon: roguelike shooter en primera persona por rondas, low-poly PSX. **Godot 4, GDScript, 3D.** Desarrollo rápido (< 1 mes): hacer lo mínimo que sea entretenido. Equipo de 4: Sadrach (@Sadrach34), Adrián (@AdrianS-127), Erick (@Ddarielz), Alfion (@Alfion72).
 
 ## Fuente de verdad
-- Diseño: `docs/GDD.md`. **Léelo antes de implementar.** Si el código contradice el GDD, avisa; no inventes valores.
+- Diseño: `docs/GDD.md` es la **base de las mecánicas**, balance, sistemas y reglas del juego. **Léelo antes de implementar.** Si el código contradice el GDD, avisa; no inventes valores (salvo que el usuario pida explícitamente el cambio conociendo sus implicaciones).
 - Valores marcados `[PENDIENTE]` no están decididos: no los inventes, usa constantes configurables y deja `# TODO(GDD)`.
 - Fuera de alcance de la beta: jefes secretos, eventos especiales, comportamientos distintos por enemigo, círculos con nombre, multijugador.
 
 ## Reglas de diseño que no hay que romper
 - Munición infinita: el número de munición es el tamaño del cargador.
-- Una sola arma equipada (fuego o melee); se cambia con Q/rueda y se reemplaza en el descanso.
+- Dos huecos de arma de cualquier tipo (p. ej. dos de fuego); solo una equipada, se cambia con Q/rueda y se reemplaza en el descanso.
 - Los enemigos no aumentan en número entre rondas; aumentan sus stats. Tope 30 simultáneos.
 - Todos los enemigos siguen al jugador y dañan al contacto.
 - HP 0 = escape (aro de luz), no muerte. Sin progreso entre partidas salvo el mejor Score.
@@ -151,6 +151,17 @@ Se optimiza desde el principio, no al final (detalle y motivos en `docs/GDD.md` 
 | `gdlint: class-definitions-order` por un `static var` declarado después de funciones | La variable estática se añadió al final del archivo | Declarar todas las variables (`static var` incluidas) antes de las funciones y verificar con `gdlint armagedon` |
 | `gdlint: max-line-length (100)` en comentarios `##` de cabecera | Las líneas largas no se parten solas con `gdformat` | Partir el comentario en dos líneas y correr `gdformat armagedon` + `gdlint armagedon` |
 | `SHADOWED_VARIABLE_BASE_CLASS: The local function parameter "name" is shadowing...` | Usar `name` como nombre de parámetro en una función de un script que hereda de `Node` | Renombrar el parámetro (p. ej. `anim_name` o `target_name`) |
+| `INTEGER_DIVISION: Integer division. Decimal part will be discarded.` | Dividir dos `int` (p. ej. repartir Esquirlas en pickups) | Hacerlo explícito: `floori(float(a) / float(b))` |
+| `Parse Error: Used space character for indentation instead of tab` y el arma desaparece | Un espacio antes del tab al editar a mano; el script no carga y `WeaponManager` usa el arma base vacía | Indentar solo con tabs y correr `gdformat --check` + `godot --headless --path armagedon --quit` tras cada edición |
+| `gdlint: Function "play" has more than 6 return statements (max-returns)` | Una cinemática larga con `if not alive(): return` tras cada `await` | Partirla en fases (`_descend()`, `_arrive()`...) que devuelven `bool` y encadenarlas en `play()` |
+| Ocultar el HUD (`MainHud.visible = false`) no oculta los contadores | `MainHud` es un `Node2D` con un `CanvasLayer`, y los `Label` cuelgan de nodos `Node`: no heredan la visibilidad | Ocultar cada `CanvasItem` visible y restaurar solo esos (`GameFlow.set_cinematic_view()`) |
+| El jugador atraviesa una pared hecha con `create_trimesh_shape()` y cae | `ConcavePolygonShape3D` solo choca por la cara de fuera (`backface_collision = false`): desde dentro de un cilindro no hay colisión | Poner `backface_collision = true` y, en zonas a pie, devolver al jugador al último punto seguro si cae o se sale |
+| El jugador se cae de una `AnimatableBody3D` que se mueve en horizontal (barca) | La plataforma movida por tween no arrastra al `CharacterBody3D` en X/Z (en vertical sí lo sostiene) | Mientras va encima, fijar al jugador a un punto de la plataforma en `_physics_process` (`global_transform * offset`) |
+| `Preload file "...ogg" has no resource loaders` al añadir audio nuevo | Carrera de primera importación: el script se compila antes de que exista el `.import` del `.ogg` | Correr `godot --headless --path armagedon --import --quit` una segunda vez |
+| `INT_AS_ENUM_WITHOUT_CAST: Integer used when an enum value is expected` | Leer un campo `enum` de un `preload()` sin tipar (el `const` es `Resource`, el valor llega como `int`) | Castear el recurso a su clase antes de leerlo: `(_DEFAULT_CONFIG as DropConfig).visual` |
+| `SHADOWED_VARIABLE_BASE_CLASS: The local variable "basis" is shadowing...` | Usar `basis`, `position`, `transform`… como variable local en un script que hereda de `Node3D` | Renombrar la variable (p. ej. `pickup_basis`) |
+| Drops (Esquirlas/Vida/Fe) que a veces no se recogen aunque el jugador esté encima | `DropManager` resolvía `_player` una sola vez y, si era nulo, apagaba su `_process` para siempre; además Vida/Fe con la barra llena se atraían hasta los pies sin poder recogerse | Re-buscar `_player` con `is_instance_valid` en vez de apagar el proceso, y no atraer pickups que no se pueden recoger |
+| Un enemigo "sigue la mira": ronda a unos metros del jugador quieto sin atacar nunca | `AmbushBehavior` apuntaba a `jugador + hacia_donde_mira × lead_distance` cuando el jugador estaba quieto, y ese punto quedaba fuera de `engage_distance` | Emboscar solo con la velocidad del jugador; quieto, más cerca que `lead_distance` o al llegar al punto, ir directo. Diagnóstico: el log `MOVE` muestra `ai=<comportamiento>/<modo> tgt=... tgt_p=...` y `SNAPSHOT` la mira (`look`) del jugador |
 | La cámara gira "a la espalda" (boca abajo) y se invierten W/S al mover el mouse rápido arriba/abajo | Usar `_head.rotate_x(...)` antes de `clampf(_head.rotation.x, -limit, limit)`; al pasar de ±90° la descomposición Euler YXZ voltea `Y` y `Z` en 180° y deja `X` dentro del rango | Modificar y acotar directamente `_head.rotation.x = clampf(_head.rotation.x - delta_y, -limit, limit)` sin llamar a `rotate_x()` |
 | `gdlint: Definition out of order in global scope (class-definitions-order)` | Declarar un `enum` después de un `const` (o una clase interna fuera de `others`) | Ordenar: `signal`, `enum`, `const`, `static var`, `@export var`, `var`, clases internas; verificar con `gdlint armagedon` |
 | `godot: command not found` en el entorno local | El CLI de Godot no está en el PATH de la máquina | Validar con `gdlint armagedon && gdformat --check armagedon` y dejar la validación `godot --headless` al CI |

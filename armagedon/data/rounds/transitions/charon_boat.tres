@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CircleTransitionData" format=3]
+
+[ext_resource type="Script" path="res://scripts/Rounds/Transitions/circle_transition_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://scripts/Rounds/Transitions/charon_boat_transition.gd" id="2_script"]
+
+[resource]
+script = ExtResource("1_data")
+transition_script = ExtResource("2_script")
+display_name = "Barca de Caronte"
+travel_seconds = 18.0
+soul_count = 9

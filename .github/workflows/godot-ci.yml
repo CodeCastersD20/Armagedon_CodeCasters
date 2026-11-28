@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GODOT_VERSION: "4.7.0"   # Debe coincidir con config/features de armagedon/project.godot
+  GODOT_VERSION: "4.7.2"   # Debe coincidir con config/features de armagedon/project.godot y godot-release.yml
   PROJECT_PATH: armagedon
 
 jobs:

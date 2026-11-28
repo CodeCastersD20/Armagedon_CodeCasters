@@ -14,5 +14,9 @@ extends Resource
 @export var damage_multiplier: float = 1.5
 @export var speed_multiplier: float = 1.1
 @export var scale_multiplier: float = 1.25
+## Esquirlas extra al morir (además de las de su tipo), repartidas en varios pickups (GDD §11.2).
+@export var bonus_shard_min: int = 10
+@export var bonus_shard_max: int = 20
+@export var bonus_shard_pickups: int = 3
 @export var aura_color: Color = Color(1.0, 0.85, 0.2, 0.35)
 @export var crown_color: Color = Color(1.0, 0.8, 0.1)

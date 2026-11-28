@@ -43,6 +43,8 @@ func _ready() -> void:
 		var slot: int = i + 1
 		_slot_play_buttons[i].pressed.connect(_on_slot_selected.bind(slot))
 		_slot_delete_buttons[i].pressed.connect(_on_slot_deleted.bind(slot))
+	LocalizationManager.language_changed.connect(_on_language_changed)
+	_refresh_slots()
 	_play_button.grab_focus()
 	AudioManager.play_menu_music()
 
@@ -78,12 +80,16 @@ func _refresh_slots() -> void:
 		if exists:
 			var best_score: int = int(summary.get("best_score", 0))
 			var best_round: int = int(summary.get("best_round", 0))
-			_slot_play_buttons[i].text = (
-				"Partida %d - Score: %d | Ronda: %d" % [slot, best_score, best_round]
+			_slot_play_buttons[i].text = LocalizationManager.tf(
+				"menu.slot_filled", [slot, best_score, best_round]
 			)
 		else:
-			_slot_play_buttons[i].text = "Partida %d - Vacía" % slot
+			_slot_play_buttons[i].text = LocalizationManager.tf("menu.slot_empty", [slot])
 		_slot_delete_buttons[i].disabled = not exists
+
+
+func _on_language_changed(_locale: String) -> void:
+	_refresh_slots()
 
 
 func _start_load() -> void:
@@ -121,6 +127,9 @@ func _process(delta: float) -> void:
 		):
 			_loading = false
 			set_process(false)
+			_overlay.visible = false
+			_menu_box.visible = true
+			_play_button.grab_focus()
 			push_error("PlayMenu: fallo al cargar %s" % MAIN_SCENE_PATH)
 			return
 

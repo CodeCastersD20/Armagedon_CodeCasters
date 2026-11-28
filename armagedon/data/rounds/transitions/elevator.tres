@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CircleTransitionData" format=3]
+
+[ext_resource type="Script" path="res://scripts/Rounds/Transitions/circle_transition_data.gd" id="1_data"]
+[ext_resource type="Script" path="res://scripts/Rounds/Transitions/elevator_transition.gd" id="2_script"]
+
+[resource]
+script = ExtResource("1_data")
+transition_script = ExtResource("2_script")
+display_name = "Elevador del Mercader"
+travel_seconds = 8.0
+arrival_seconds = 6.0
+travel_distance = 18.0
+arrival_height = 22.0
+soul_count = 10

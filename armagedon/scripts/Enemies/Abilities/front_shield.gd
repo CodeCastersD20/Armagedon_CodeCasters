@@ -1,14 +1,17 @@
 class_name FrontShield
 extends EnemyAbility
 ## Blindado frontal (#10): solo recibe daño por la espalda (arco `arc_degrees`). Gira lento
-## (`turn_speed`) para poder rodearlo.
+## (`turn_speed`) para poder rodearlo. Los golpes que atraviesan blindaje (La Espada en Llamas)
+## le dañan por cualquier lado.
 
 
 func _on_setup() -> void:
 	enemy.turn_speed = cfg.turn_speed
 
 
-func modify_damage(amount: float) -> float:
+func modify_damage(amount: float, ignore_armor: bool = false) -> float:
+	if ignore_armor:
+		return amount
 	var player: Node3D = enemy.get_player()
 	if player == null:
 		return amount

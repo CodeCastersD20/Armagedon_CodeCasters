@@ -6,5 +6,6 @@
 [resource]
 script = ExtResource("1_edata")
 display_name = "Esqueleto Condenado"
+enemy_type = &"squeletor"
 death_explosion_type = 1
 drops = ExtResource("2_drops")

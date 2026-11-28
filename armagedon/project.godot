@@ -20,6 +20,7 @@ config/features=PackedStringArray("4.7", "Forward Plus")
 AudioManager="*res://scripts/audio_manager.gd"
 DisplayConfig="*res://scripts/Settings/display_config.gd"
 DebugControls="*res://scripts/Debug/debug_controls.gd"
+EnemyEvents="*res://scripts/Enemies/enemy_events.gd"
 
 [display]
 

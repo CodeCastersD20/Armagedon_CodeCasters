@@ -6,6 +6,7 @@
 [resource]
 script = ExtResource("1_edata")
 display_name = "The Wrapped"
+enemy_type = &"the_wrapped"
 max_health = 325.0
 contact_damage = 30.0
 move_speed = 2.8

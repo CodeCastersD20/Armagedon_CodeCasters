@@ -242,8 +242,11 @@ func _die() -> void:
 	if _dead:
 		return
 	_dead = true
+	var death_position: Vector3 = global_position
+	var enemy_type: StringName = data.enemy_type if data != null else &""
 	died.emit(self)
-	_DROP_MANAGER.spawn_from(get_tree(), global_position, data)
+	EnemyEvents.report_death(enemy_type, death_position)
+	_DROP_MANAGER.spawn_from(get_tree(), death_position, data)
 	if data != null:
 		var burst_origin: Vector3 = global_position + Vector3.UP * (data.damage_number_height * 0.5)
 		if data.death_explosion_type == EnemyData.DeathExplosionType.BONES:

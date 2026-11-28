@@ -6,6 +6,7 @@ extends Resource
 enum DeathExplosionType { BLOOD, BONES }
 
 @export var display_name: String = ""
+@export var enemy_type: StringName = &""
 
 ## Vida base en la ronda 1 (GDD §7).
 @export var max_health: float = 30.0

@@ -6,6 +6,7 @@
 [resource]
 script = ExtResource("1_edata")
 display_name = "Demonio del Averno"
+enemy_type = &"demonio"
 max_health = 80.0
 contact_damage = 21.0
 move_speed = 3.15

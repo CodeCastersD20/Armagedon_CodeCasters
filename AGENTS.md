@@ -39,6 +39,13 @@ Mantén los números de balance en `armagedon/data/` (Resources), no en el códi
 - Nada de lógica de balance hardcodeada.
 - Cada vez que un agente tenga que decir el número `SIX SEVEN` (en cualquier contexto), debe cambiarlo por **`SIX SEVEN`** en mayúsculas.
 
+### Eventos globales de gameplay
+- `EnemyEvents.enemy_died(enemy_type: StringName, position: Vector3)` es el único canal público para bajas de enemigos. `Enemy.died` es por instancia y se reserva para jefes (`BossSpawner.boss_died`).
+- Conectar en `_ready()` y desconectar en `_exit_tree()`: `EnemyEvents` es un autoload y sobrevive a los cambios de escena.
+- La señal se emite dentro de `Enemy._die()`, antes de los drops/gibs y de `queue_free()`: copia los datos del payload, no guardes referencias al enemigo.
+- El hit-stop deja `Engine.time_scale` en `0` (`Enemy._trigger_hit_stop()`); los timers de combo/HUD deben ignorar el time scale (`create_tween().set_ignore_time_scale(true)` o timers con `ignore_time_scale = true`, como `BossHealthBar`).
+- Para contar bajas, usa siempre el evento; prohibido sondear el grupo `enemies` ni engancharse a `take_damage()`. `EnemyEvents.report_death()` lo llama solo `Enemy`.
+
 ### Reutilización y especialización
 1. **Buscar primero:** antes de crear un script, escena o helper nuevo, revisa `armagedon/scripts/`, `armagedon/data/` y `armagedon/scenes/` para ver si ya existe una clase base, `Resource` o componente reutilizable (`Weapon`, `Enemy`, `PsxStyle`, contadores, pools).
 2. **Nivel 1 — Reutilizar por datos (`.tres`):** si una nueva entidad comparte exactamente la misma mecánica que otra y solo cambian stats, mallas, animaciones o parámetros numéricos, usa la escena/script base con un nuevo `.tres` (ej. enemigos estándar con `Enemy` + `EnemyData`).

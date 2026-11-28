@@ -465,6 +465,8 @@ Sustituye el ejemplo anterior (`46,540 pts`), que quedó obsoleto tras el cambio
 
 > **Nota técnica (`#101–#106` y `#95`):** todos los parámetros del sistema de Score — puntos base por enemigo, incremento de combo (`0.1`), tope (`×5.0`), ventanas de inicio (`0.5 s`) y expiración (`1.5 s`), bonos de ronda/tiempo/Fe y umbrales de rango — se expondrán como constantes configurables en un `Resource` dentro de `armagedon/data/` (ej. `score_config.tres`), sin valores hardcodeados en código, para facilitar la implementación en `#101–#106` y el balanceo final en `#95`.
 
+> **Nota técnica (`#101–#106`):** las bajas se consumen desde `EnemyEvents.enemy_died` (contrato en `AGENTS.md` → “Eventos globales de gameplay”), no desde `take_damage()` ni sondeando el grupo `enemies`; los puntos base salen del `Resource` indicado arriba, no de comparar `enemy_type` en código. Los timers de combo deben ignorar el hit-stop (`Engine.time_scale = 0`).
+
 ---
 
 ## 17. Rendimiento y alcance
